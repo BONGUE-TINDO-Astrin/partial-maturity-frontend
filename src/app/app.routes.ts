@@ -63,20 +63,16 @@ export const routes: Routes = [
         path: 'users',
         canActivate: [roleGuard],
         data: {
-          roles: ['ADMIN'],
-          breadcrumb: 'Utilisateurs',
-          title: 'Gestion des utilisateurs',
-          description:
-            'Création, activation et désactivation des comptes.',
+            roles: ['ADMIN'],
+            breadcrumb: 'Utilisateurs',
         },
         loadComponent: () =>
-          import(
-            './shared/ui-components/feature-placeholder/feature-placeholder.component'
-          ).then(
-            (module) =>
-              module.FeaturePlaceholderComponent,
-          ),
-      },
+            import(
+            './features/users/users-page/users-page.component'
+            ).then(
+            (module) => module.UsersPageComponent,
+            ),
+        },
 
       {
         path: 'audit',

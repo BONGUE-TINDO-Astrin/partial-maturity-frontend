@@ -1,0 +1,209 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+} from '@angular/core';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import {
+  LucideEye,
+  LucideEyeOff,
+  LucideX,
+} from '@lucide/angular';
+
+import { UserRole } from '../../../core/authentication/models/user-role';
+import { ApplicationUser } from '../models/application-user';
+import { CreateUserRequest } from '../models/create-user-request';
+import { UpdateUserRequest } from '../models/update-user-request';
+
+/**
+ * Valeur émise lors de la validation du formulaire.
+ *
+ * Le parent sait s'il s'agit d'une création ou modification
+ * grâce à la propriété mode.
+ */
+export interface UserFormSubmission {
+  mode: 'create' | 'edit';
+  createRequest?: CreateUserRequest;
+  updateRequest?: UpdateUserRequest;
+}
+
+/**
+ * Fenêtre de création et modification d'un utilisateur.
+ *
+ * Le composant ne réalise aucun appel HTTP. Il collecte et
+ * valide les données, puis les transmet à la page par un output.
+ */
+@Component({
+  selector: 'app-user-form-dialog',
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    LucideEye,
+    LucideEyeOff,
+    LucideX,
+  ],
+  templateUrl: './user-form-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class UserFormDialogComponent {
+  private readonly formBuilder = inject(FormBuilder);
+
+  readonly user = input<ApplicationUser | null>(null);
+  readonly submitting = input(false);
+  readonly serverError = input<string | null>(null);
+
+  readonly closeDialog = output<void>();
+  readonly saveUser = output<UserFormSubmission>();
+
+  readonly isEditMode = computed(
+    () => this.user() !== null,
+  );
+
+  readonly title = computed(
+    () =>
+      this.isEditMode()
+        ? 'Modifier l’utilisateur'
+        : 'Créer un utilisateur',
+  );
+
+  readonly roles: UserRole[] = [
+    'ADMIN',
+    'COMPTABILITE',
+  ];
+
+  readonly form = this.formBuilder.nonNullable.group({
+    username: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(100),
+        Validators.pattern(/^[a-zA-Z0-9._-]+$/),
+      ],
+    ],
+
+    fullName: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(200),
+      ],
+    ],
+
+    role: [
+      'COMPTABILITE' as UserRole,
+      [
+        Validators.required,
+      ],
+    ],
+
+    password: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(12),
+        Validators.maxLength(200),
+      ],
+    ],
+  });
+
+  showPassword = false;
+
+constructor() {
+  effect(() => {
+    const selectedUser = this.user();
+
+    if (!selectedUser) {
+      this.form.reset({
+        username: '',
+        fullName: '',
+        role: 'COMPTABILITE',
+        password: '',
+      });
+
+      this.form.controls.username.enable();
+
+      this.form.controls.password.setValidators([
+        Validators.required,
+        Validators.minLength(12),
+        Validators.maxLength(200),
+      ]);
+
+      this.form.controls.password.updateValueAndValidity({
+        emitEvent: false,
+      });
+
+      return;
+    }
+
+    this.form.reset({
+      username: selectedUser.username,
+      fullName: selectedUser.fullName,
+      role: selectedUser.role,
+      password: '',
+    });
+
+    this.form.controls.username.disable();
+
+    this.form.controls.password.clearValidators();
+
+    this.form.controls.password.updateValueAndValidity({
+      emitEvent: false,
+    });
+  });
+}
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  cancel(): void {
+    if (this.submitting()) {
+      return;
+    }
+
+    this.closeDialog.emit();
+  }
+
+  submit(): void {
+    if (this.form.invalid || this.submitting()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const selectedUser = this.user();
+    const rawValue = this.form.getRawValue();
+
+    if (selectedUser) {
+      this.saveUser.emit({
+        mode: 'edit',
+        updateRequest: {
+          fullName: rawValue.fullName.trim(),
+          role: rawValue.role,
+        },
+      });
+
+      return;
+    }
+
+    this.saveUser.emit({
+      mode: 'create',
+      createRequest: {
+        username: rawValue.username
+          .trim()
+          .toLowerCase(),
+        fullName: rawValue.fullName.trim(),
+        role: rawValue.role,
+        password: rawValue.password,
+      },
+    });
+  }
+}
