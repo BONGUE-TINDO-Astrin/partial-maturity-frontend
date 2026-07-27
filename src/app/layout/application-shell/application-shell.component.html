@@ -1,0 +1,38 @@
+<div class="min-h-screen bg-slate-50">
+  <app-side-menu
+    [mobileOpen]="mobileMenuOpen()"
+    (closeMobileMenu)="closeMobileMenu()"
+  />
+
+  <div class="min-h-screen lg:pl-72">
+    <app-top-bar
+      (openMobileMenu)="openMobileMenu()"
+    />
+
+    <main>
+      <div class="px-4 pt-5 sm:px-6 lg:px-8">
+        <app-navigation-path />
+      </div>
+
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<!-- <div class="min-h-screen bg-slate-50">
+  <app-side-menu />
+
+  <div class="min-h-screen lg:pl-72">
+    <app-top-bar />
+
+    <main>
+      <div class="px-4 pt-5 sm:px-6 lg:px-8">
+        <p class="text-sm text-slate-500">
+          Accueil / Tableau de bord
+        </p>
+      </div>
+
+      <router-outlet />
+    </main>
+  </div>
+</div> -->

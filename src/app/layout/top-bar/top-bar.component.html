@@ -1,0 +1,98 @@
+<header
+  class="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8"
+>
+  <div class="flex items-center gap-3">
+    <button
+      type="button"
+      class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+      aria-label="Ouvrir le menu"
+      (click)="openMobileMenu.emit()"
+    >
+      <svg
+        lucideMenu
+        class="size-6"
+        aria-hidden="true"
+      ></svg>
+    </button>
+
+    <div>
+      <p class="text-sm font-semibold text-slate-900">
+        Maturités partielles
+      </p>
+
+      <p class="hidden text-xs text-slate-500 sm:block">
+        Gestion des intérêts et paiements
+      </p>
+    </div>
+  </div>
+
+  <div class="relative">
+    <button
+      type="button"
+      class="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50"
+      [attr.aria-expanded]="userMenuOpen()"
+      aria-label="Menu utilisateur"
+      (click)="toggleUserMenu()"
+    >
+      <span
+        class="flex size-10 items-center justify-center rounded-full bg-red-50 text-[#78060D]"
+      >
+        <svg
+          lucideUserRound
+          class="size-5"
+          aria-hidden="true"
+        ></svg>
+      </span>
+
+      <span class="hidden sm:block">
+        <span
+          class="block max-w-48 truncate text-sm font-semibold text-slate-900"
+        >
+          {{ authenticationService.currentUser()?.fullName }}
+        </span>
+
+        <span class="block text-xs text-slate-500">
+          {{ authenticationService.currentUser()?.role }}
+        </span>
+      </span>
+
+      <svg
+        lucideChevronDown
+        class="hidden size-4 text-slate-400 sm:block"
+        aria-hidden="true"
+      ></svg>
+    </button>
+
+    @if (userMenuOpen()) {
+      <div
+        class="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
+      >
+        <div class="border-b border-slate-100 px-3 py-2">
+          <p
+            class="truncate text-sm font-semibold text-slate-900"
+          >
+            {{ authenticationService.currentUser()?.username }}
+          </p>
+
+          <p class="mt-1 text-xs text-slate-500">
+            Session active
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+          (click)="logout()"
+        >
+          <svg
+            lucideLogOut
+            class="size-4"
+            aria-hidden="true"
+          ></svg>
+
+          Se déconnecter
+        </button>
+      </div>
+    }
+  </div>
+</header>

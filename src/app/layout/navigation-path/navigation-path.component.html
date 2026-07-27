@@ -1,0 +1,40 @@
+<nav
+  class="flex min-h-8 flex-wrap items-center gap-2 text-sm"
+  aria-label="Chemin de navigation"
+>
+  <a
+    routerLink="/app/dashboard"
+    class="font-medium text-slate-500 transition hover:text-[#78060D]"
+  >
+    Accueil
+  </a>
+
+  @for (
+    item of items();
+    track item.url;
+    let last = $last
+  ) {
+    <span
+      class="text-slate-300"
+      aria-hidden="true"
+    >
+      /
+    </span>
+
+    @if (last) {
+      <span
+        class="font-semibold text-slate-800"
+        aria-current="page"
+      >
+        {{ item.label }}
+      </span>
+    } @else {
+      <a
+        [routerLink]="item.url"
+        class="font-medium text-slate-500 transition hover:text-[#78060D]"
+      >
+        {{ item.label }}
+      </a>
+    }
+  }
+</nav>
