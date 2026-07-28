@@ -46,16 +46,12 @@ export const routes: Routes = [
         data: {
           roles: ['ADMIN'],
           breadcrumb: 'Chargements CSV',
-          title: 'Chargements CSV',
-          description:
-            'Importation et contrôle des fichiers de maturités.',
         },
         loadComponent: () =>
           import(
-            './shared/ui-components/feature-placeholder/feature-placeholder.component'
+            './features/imports/imports-page/imports-page.component'
           ).then(
-            (module) =>
-              module.FeaturePlaceholderComponent,
+            (module) => module.ImportsPageComponent,
           ),
       },
 
