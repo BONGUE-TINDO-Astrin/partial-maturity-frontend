@@ -1,0 +1,809 @@
+<section class="p-4 sm:p-6 lg:p-8">
+  <!-- En-tête -->
+  <div
+    class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between"
+  >
+    <div>
+      <p
+        class="text-sm font-semibold uppercase tracking-wider text-[#F4511E]"
+      >
+        Comptabilité
+      </p>
+
+      <h1 class="mt-2 text-3xl font-bold text-slate-900">
+        Consultation des polices
+      </h1>
+
+      <p class="mt-2 max-w-3xl text-slate-600">
+        Recherchez une police pour consulter ses maturités,
+        leurs montants et leur chronologie.
+      </p>
+    </div>
+
+    @if (hasResult()) {
+      <button
+        type="button"
+        class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+        [disabled]="loading()"
+        (click)="refreshPolicy()"
+      >
+        <svg
+          lucideRefreshCw
+          class="size-4"
+          [class.animate-spin]="loading()"
+          aria-hidden="true"
+        ></svg>
+
+        Actualiser
+      </button>
+    }
+  </div>
+
+  <!-- Formulaire de recherche -->
+  <section
+    class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+  >
+    <form
+        [formGroup]="searchForm"
+      class="flex flex-col gap-4 sm:flex-row sm:items-start"
+      (ngSubmit)="searchPolicy()"
+      novalidate
+    >
+      <div class="min-w-0 flex-1">
+        <label
+          for="policyNumber"
+          class="mb-2 block text-sm font-medium text-slate-800"
+        >
+          Numéro de police
+        </label>
+
+        <div class="relative">
+          <svg
+            lucideSearch
+            class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400"
+            aria-hidden="true"
+          ></svg>
+
+            <input
+                id="policyNumber"
+                type="text"
+                formControlName="policyNumber"
+                autocomplete="off"
+                class="w-full rounded-lg border border-slate-300 py-3 pl-12 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#F4511E] focus:ring-4 focus:ring-orange-100"
+                placeholder="Exemple : POL001 ou 00012458"
+            />
+        </div>
+
+        @if (
+          policyNumberControl.touched &&
+          policyNumberControl.hasError('required')
+        ) {
+          <p class="mt-2 text-sm text-red-600">
+            Le numéro de police est obligatoire.
+          </p>
+        }
+
+        @if (
+          policyNumberControl.touched &&
+          policyNumberControl.hasError('maxlength')
+        ) {
+          <p class="mt-2 text-sm text-red-600">
+            Le numéro de police ne doit pas dépasser
+            100 caractères.
+          </p>
+        }
+
+        <p class="mt-2 text-xs text-slate-500">
+          Les éventuels zéros placés au début du numéro
+          doivent être conservés.
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        class="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#78060D] px-6 py-3 font-semibold text-white transition hover:bg-[#65050B] disabled:cursor-not-allowed disabled:opacity-50 sm:mt-7"
+        [disabled]="loading()"
+      >
+        <svg
+          lucideFileSearch
+          class="size-5"
+          aria-hidden="true"
+        ></svg>
+
+        @if (loading()) {
+          Recherche...
+        } @else {
+          Rechercher
+        }
+      </button>
+    </form>
+  </section>
+
+  <!-- Erreur technique -->
+  @if (pageError()) {
+    <div
+      class="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-700"
+      role="alert"
+    >
+      <svg
+        lucideCircleAlert
+        class="mt-0.5 size-5 shrink-0"
+        aria-hidden="true"
+      ></svg>
+
+      <div>
+        <p class="font-semibold">
+          Recherche impossible
+        </p>
+
+        <p class="mt-1 text-sm">
+          {{ pageError() }}
+        </p>
+      </div>
+    </div>
+  }
+
+  @if (paymentSuccessMessage()) {
+    <div
+        class="mt-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800"
+        role="status"
+        aria-live="polite"
+    >
+        <svg
+        lucideCircleCheckBig
+        class="mt-0.5 size-5 shrink-0 text-green-700"
+        aria-hidden="true"
+        ></svg>
+
+        <div class="min-w-0 flex-1">
+        <p class="font-semibold">
+            Paiement enregistré
+        </p>
+
+        <p class="mt-1 text-sm">
+            {{ paymentSuccessMessage() }}
+        </p>
+        </div>
+
+        <button
+        type="button"
+        class="rounded-lg p-1 text-green-700 hover:bg-green-100"
+        aria-label="Fermer le message"
+        (click)="paymentSuccessMessage.set(null)"
+        >
+        <svg
+            lucideX
+            class="size-5"
+            aria-hidden="true"
+        ></svg>
+        </button>
+    </div>
+    }
+
+  <!-- Police introuvable -->
+  @if (notFoundMessage()) {
+    <section
+      class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center"
+      role="status"
+    >
+      <div
+        class="mx-auto flex size-14 items-center justify-center rounded-full bg-white text-amber-700"
+      >
+        <svg
+          lucideFileSearch
+          class="size-7"
+          aria-hidden="true"
+        ></svg>
+      </div>
+
+      <h2 class="mt-5 text-xl font-bold text-amber-950">
+        Police introuvable
+      </h2>
+
+      <p class="mx-auto mt-3 max-w-xl text-amber-800">
+        {{ notFoundMessage() }}
+      </p>
+
+      <button
+        type="button"
+        class="mt-6 rounded-lg border border-amber-300 bg-white px-5 py-3 font-medium text-amber-900 hover:bg-amber-100"
+        (click)="clearSearch()"
+      >
+        Effectuer une nouvelle recherche
+      </button>
+    </section>
+  }
+
+  <!-- État initial -->
+  @if (
+    !loading() &&
+    !hasResult() &&
+    !notFoundMessage() &&
+    !pageError()
+  ) {
+    <section
+      class="mt-6 rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm"
+    >
+      <div
+        class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-400"
+      >
+        <svg
+          lucideFileSearch
+          class="size-8"
+          aria-hidden="true"
+        ></svg>
+      </div>
+
+      <h2 class="mt-5 text-xl font-bold text-slate-900">
+        Aucune police sélectionnée
+      </h2>
+
+      <p class="mx-auto mt-3 max-w-xl text-slate-600">
+        Saisissez le numéro exact d’une police pour afficher
+        les maturités importées.
+      </p>
+    </section>
+  }
+
+  <!-- Résultat de la recherche -->
+  @if (policy(); as currentPolicy) {
+    <!-- Synthèse -->
+    <section class="mt-6">
+      <div
+        class="rounded-2xl bg-gradient-to-br from-[#78060D] to-[#9B111E] p-6 text-white shadow-sm sm:p-8"
+      >
+        <div
+          class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+        >
+          <div>
+            <p
+              class="text-sm font-semibold uppercase tracking-wider text-[#EDA23C]"
+            >
+              Police
+            </p>
+
+            <h2
+              class="mt-2 break-all text-3xl font-bold sm:text-4xl"
+            >
+              {{ currentPolicy.policyNumber }}
+            </h2>
+          </div>
+
+          <div
+            class="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white"
+          >
+            <svg
+              lucideCircleCheckBig
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+
+            {{ currentPolicy.maturityCount }}
+            maturité(s)
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicateurs -->
+      <div class="mt-5 grid gap-4 md:grid-cols-3">
+        <article
+          class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+          <div
+            class="flex size-11 items-center justify-center rounded-xl bg-green-50 text-green-700"
+          >
+            <svg
+              lucideCoins
+              class="size-6"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="mt-5 text-sm font-medium text-slate-500">
+            Montant total des maturités
+          </p>
+
+          <p
+            class="mt-2 break-words text-2xl font-bold text-slate-900"
+          >
+            {{
+              currentPolicy.totalMaturityAmount
+                | number: '1.2-6'
+            }}
+          </p>
+        </article>
+
+        <article
+          class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+          <div
+            class="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700"
+          >
+            <svg
+              lucideCalendarDays
+              class="size-6"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="mt-5 text-sm font-medium text-slate-500">
+            Première maturité
+          </p>
+
+          <p class="mt-2 text-2xl font-bold text-slate-900">
+            {{
+              currentPolicy.firstMaturityDate
+                | date: 'dd/MM/yyyy': 'UTC'
+            }}
+          </p>
+        </article>
+
+        <article
+          class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        >
+          <div
+            class="flex size-11 items-center justify-center rounded-xl bg-orange-50 text-[#F4511E]"
+          >
+            <svg
+              lucideCalendarDays
+              class="size-6"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="mt-5 text-sm font-medium text-slate-500">
+            Dernière maturité
+          </p>
+
+          <p class="mt-2 text-2xl font-bold text-slate-900">
+            {{
+              currentPolicy.lastMaturityDate
+                | date: 'dd/MM/yyyy': 'UTC'
+            }}
+          </p>
+        </article>
+      </div>
+    </section>
+
+        <!-- Simulation des intérêts -->
+    <section
+        class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        >
+        <div
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div class="flex items-start gap-3">
+            <div
+                class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700"
+            >
+                <svg
+                lucideCalculator
+                class="size-6"
+                aria-hidden="true"
+                ></svg>
+            </div>
+
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">
+                Simulation des intérêts
+                </h2>
+
+                <p class="mt-1 text-sm text-slate-600">
+                Calcul selon les cycles complets de douze mois
+                avec un taux annuel fixe de 3,2 %.
+                </p>
+            </div>
+            </div>
+
+            <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 rounded-lg bg-green-700 px-5 py-3 font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+            [disabled]="simulating()"
+            (click)="simulateInterest()"
+            >
+            <svg
+                lucideTrendingUp
+                class="size-5"
+                aria-hidden="true"
+            ></svg>
+
+            @if (simulating()) {
+                Calcul en cours...
+            } @else {
+                Calculer les intérêts
+            }
+            </button>
+        </div>
+
+        @if (simulationError()) {
+            <div
+            class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            role="alert"
+            >
+            {{ simulationError() }}
+            </div>
+        }
+    
+        @if (simulation(); as result) {
+            <div class="mt-6">
+                <div
+                    class="rounded-2xl bg-slate-950 p-5 text-white sm:p-6"
+                >
+                    <div
+                    class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+                    >
+                    <div>
+                        <p
+                        class="text-sm font-medium uppercase tracking-wider text-slate-400"
+                        >
+                        Solde à payer
+                        </p>
+
+                        <p
+                        class="mt-2 break-words text-3xl font-bold text-white"
+                        >
+                        {{ result.balance | number: '1.6-6' }}
+                        </p>
+                    </div>
+
+                    <div class="text-left sm:text-right">
+                        <p class="text-sm text-slate-400">
+                        Date du calcul
+                        </p>
+
+                        <p class="mt-1 font-semibold">
+                        {{
+                            result.calculationDate
+                            | date: 'dd/MM/yyyy': 'UTC'
+                        }}
+                        </p>
+
+                        <p class="mt-2 text-sm text-slate-400">
+                        Taux annuel :
+                        {{
+                            result.annualRate
+                            | percent: '1.1-3'
+                        }}
+                        </p>
+                    </div>
+                    </div>
+                </div>
+
+                <dl class="mt-4 grid gap-4 sm:grid-cols-3">
+                    <div class="rounded-xl bg-blue-50 p-4">
+                    <dt class="text-xs font-medium uppercase text-blue-700">
+                        Capital ouvert
+                    </dt>
+
+                    <dd class="mt-2 text-xl font-bold text-blue-900">
+                        {{ result.openCapital | number: '1.6-6' }}
+                    </dd>
+                    </div>
+
+                    <div class="rounded-xl bg-green-50 p-4">
+                    <dt class="text-xs font-medium uppercase text-green-700">
+                        Intérêts ouverts
+                    </dt>
+
+                    <dd class="mt-2 text-xl font-bold text-green-900">
+                        {{ result.openInterest | number: '1.6-6' }}
+                    </dd>
+                    </div>
+
+                    <div class="rounded-xl bg-orange-50 p-4">
+                    <dt class="text-xs font-medium uppercase text-orange-700">
+                        Cycles appliqués
+                    </dt>
+
+                    <dd class="mt-2 text-xl font-bold text-orange-900">
+                        {{ result.completedCycles }}
+                    </dd>
+                    </div>
+                </dl>
+
+                <div
+                    class="mt-5 overflow-hidden rounded-xl border border-slate-200"
+                >
+                    <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
+                            Date
+                            </th>
+
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">
+                            Événement
+                            </th>
+
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">
+                            Capital ajouté
+                            </th>
+
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">
+                            Intérêt
+                            </th>
+
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">
+                            Solde après
+                            </th>
+                        </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-slate-100">
+                        @for (
+                            line of result.lines;
+                            track line.sequence
+                        ) {
+                            <tr>
+                            <td class="px-4 py-3 text-sm text-slate-700">
+                                {{
+                                line.eventDate
+                                    | date: 'dd/MM/yyyy': 'UTC'
+                                }}
+                            </td>
+
+                            <td class="px-4 py-3">
+                                <p class="font-medium text-slate-900">
+                                @switch (line.eventType) {
+                                    @case ('MATURITY_ADDED') {
+                                    Maturité ajoutée
+                                    }
+
+                                    @case ('INTEREST_APPLIED') {
+                                    Cycle d’intérêt
+                                    }
+
+                                    @case ('PAYMENT_APPLIED') {
+                                    Paiement total
+                                    }
+                                }
+                                </p>
+
+                                <p class="mt-1 text-xs text-slate-500">
+                                {{ line.description }}
+                                </p>
+                            </td>
+
+                            <td class="px-4 py-3 text-right text-sm text-slate-700">
+                                {{ line.capitalAdded | number: '1.6-6' }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right text-sm font-medium text-green-700">
+                                {{ line.interestAmount | number: '1.6-6' }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right text-sm font-semibold text-slate-900">
+                                {{ line.balanceAfter | number: '1.6-6' }}
+                            </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                @if (
+                    authenticationService.isAccounting() &&
+                    result.balance > 0
+                ) {
+                <div class="mt-5 flex justify-end">
+                    <button
+                        type="button"
+                        class="rounded-lg bg-[#78060D] px-5 py-3 font-semibold text-white hover:bg-[#65050B] disabled:opacity-50"
+                        [disabled]="recordingPayment()"
+                        (click)="openPaymentConfirmation()"
+                        >
+                        @if (recordingPayment()) {
+                            Enregistrement...
+                        } @else {
+                            Enregistrer le paiement total
+                        }
+                    </button>
+                </div>
+                }
+            </div>
+        }
+    </section>
+
+    <!-- Liste des maturités -->
+    <section
+      class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+    >
+      <header
+        class="flex items-center gap-3 border-b border-slate-200 p-5"
+      >
+        <div
+          class="flex size-10 items-center justify-center rounded-xl bg-orange-50 text-[#F4511E]"
+        >
+          <svg
+            lucideListOrdered
+            class="size-5"
+            aria-hidden="true"
+          ></svg>
+        </div>
+
+        <div>
+          <h2 class="font-bold text-slate-900">
+            Séquence des maturités
+          </h2>
+
+          <p class="mt-1 text-sm text-slate-500">
+            Maturités classées dans l’ordre de leurs rangs
+          </p>
+        </div>
+      </header>
+
+      <!-- Tableau desktop -->
+      <div class="hidden overflow-x-auto md:block">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50">
+            <tr>
+              <th
+                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
+                Rang
+              </th>
+
+              <th
+                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
+                Type
+              </th>
+
+              <th
+                class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
+                Date
+              </th>
+
+              <th
+                class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
+                Montant
+              </th>
+
+              <th
+                class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
+                Source CSV
+              </th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-slate-100">
+            @for (
+              maturity of maturities();
+              track maturity.id
+            ) {
+              <tr class="hover:bg-slate-50/70">
+                <td class="px-5 py-4">
+                  <span
+                    class="inline-flex size-9 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-[#78060D]"
+                  >
+                    {{ maturity.maturityRank }}
+                  </span>
+                </td>
+
+                <td
+                  class="px-5 py-4 font-medium text-slate-900"
+                >
+                  {{ maturity.maturityType }}
+                </td>
+
+                <td class="px-5 py-4 text-slate-700">
+                  {{
+                    maturity.maturityDate
+                      | date: 'dd/MM/yyyy': 'UTC'
+                  }}
+                </td>
+
+                <td
+                  class="px-5 py-4 text-right font-semibold text-slate-900"
+                >
+                  {{
+                    maturity.maturityAmount
+                      | number: '1.2-6'
+                  }}
+                </td>
+
+                <td
+                  class="px-5 py-4 text-right text-sm text-slate-500"
+                >
+                  Ligne {{ maturity.sourceRowNumber }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Cartes mobiles -->
+      <div class="divide-y divide-slate-100 md:hidden">
+        @for (
+          maturity of maturities();
+          track maturity.id
+        ) {
+          <article class="p-5">
+            <div
+              class="flex items-start justify-between gap-4"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="inline-flex size-9 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-[#78060D]"
+                >
+                  {{ maturity.maturityRank }}
+                </span>
+
+                <div>
+                  <p class="font-semibold text-slate-900">
+                    {{ maturity.maturityType }}
+                  </p>
+
+                  <p class="mt-1 text-sm text-slate-500">
+                    Ligne CSV {{ maturity.sourceRowNumber }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <dl class="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <dt class="text-xs uppercase text-slate-500">
+                  Date
+                </dt>
+
+                <dd class="mt-1 font-medium text-slate-900">
+                  {{
+                    maturity.maturityDate
+                      | date: 'dd/MM/yyyy': 'UTC'
+                  }}
+                </dd>
+              </div>
+
+              <div class="text-right">
+                <dt class="text-xs uppercase text-slate-500">
+                  Montant
+                </dt>
+
+                <dd class="mt-1 font-semibold text-slate-900">
+                  {{
+                    maturity.maturityAmount
+                      | number: '1.2-6'
+                  }}
+                </dd>
+              </div>
+            </dl>
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- Nouvelle recherche -->
+    <div class="mt-6 flex justify-end">
+      <button
+        type="button"
+        class="rounded-lg border border-slate-300 px-5 py-3 font-medium text-slate-700 transition hover:bg-white"
+        (click)="clearSearch()"
+      >
+        Nouvelle recherche
+      </button>
+    </div>
+  }
+</section>
+
+  @if (
+        paymentConfirmationOpen() &&
+        policy();
+        as currentPolicy
+        ) {
+        @if (simulation(); as currentSimulation) {
+            <app-payment-confirmation-dialog
+            [policyNumber]="currentPolicy.policyNumber"
+            [simulation]="currentSimulation"
+            [submitting]="recordingPayment()"
+            [serverError]="paymentError()"
+            (closeDialog)="closePaymentConfirmation()"
+            (confirmPayment)="confirmPayment()"
+            />
+        }
+    }

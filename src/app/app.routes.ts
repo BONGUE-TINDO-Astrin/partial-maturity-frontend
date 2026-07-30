@@ -93,18 +93,14 @@ export const routes: Routes = [
         path: 'policies',
         canActivate: [roleGuard],
         data: {
-          roles: ['COMPTABILITE'],
+          roles: ['ADMIN', 'COMPTABILITE'],
           breadcrumb: 'Polices',
-          title: 'Recherche des polices',
-          description:
-            'Consultation des maturités et calcul des intérêts.',
         },
         loadComponent: () =>
           import(
-            './shared/ui-components/feature-placeholder/feature-placeholder.component'
+            './features/policies/policies-page/policies-page.component'
           ).then(
-            (module) =>
-              module.FeaturePlaceholderComponent,
+            (module) => module.PoliciesPageComponent,
           ),
       },
 
@@ -112,18 +108,17 @@ export const routes: Routes = [
         path: 'payments',
         canActivate: [roleGuard],
         data: {
-          roles: ['COMPTABILITE'],
+          roles: [
+            'ADMIN',
+            'COMPTABILITE',
+          ],
           breadcrumb: 'Paiements',
-          title: 'Gestion des paiements',
-          description:
-            'Enregistrement et annulation des paiements.',
         },
         loadComponent: () =>
           import(
-            './shared/ui-components/feature-placeholder/feature-placeholder.component'
+            './features/payments/payments-page/payments-page.component'
           ).then(
-            (module) =>
-              module.FeaturePlaceholderComponent,
+            (module) => module.PaymentsPageComponent,
           ),
       },
 

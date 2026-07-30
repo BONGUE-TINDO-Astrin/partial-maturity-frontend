@@ -115,7 +115,7 @@
         </a>
       }
 
-      @if (authenticationService.isAccounting()) {
+      @if (authenticationService.isAccounting() || authenticationService.isAdmin()) {
         <a
           routerLink="/app/policies"
           routerLinkActive="bg-red-50 text-[#78060D]"
