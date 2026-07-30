@@ -1,0 +1,214 @@
+<div
+  class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4"
+  role="presentation"
+  (click)="close()"
+>
+  <section
+    class="w-full max-w-lg rounded-2xl bg-white shadow-2xl"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cancel-payment-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header
+      class="flex items-start justify-between border-b border-slate-200 px-6 py-5"
+    >
+      <div>
+        <p
+          class="text-sm font-semibold uppercase tracking-wider text-red-700"
+        >
+          Action sensible
+        </p>
+
+        <h2
+          id="cancel-payment-title"
+          class="mt-1 text-2xl font-bold text-slate-900"
+        >
+          Annuler le paiement
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+        aria-label="Fermer"
+        [disabled]="submitting()"
+        (click)="close()"
+      >
+        <svg
+          lucideX
+          class="size-5"
+          aria-hidden="true"
+        ></svg>
+      </button>
+    </header>
+
+    <form
+      [formGroup]="form"
+      class="space-y-5 p-6"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+      <div
+        class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800"
+      >
+        <svg
+          lucideTriangleAlert
+          class="mt-0.5 size-5 shrink-0"
+          aria-hidden="true"
+        ></svg>
+
+        <p class="text-sm leading-6">
+          L’annulation réactivera la situation financière
+          de la police. Les maturités et les intérêts seront
+          de nouveau pris en compte dans les prochaines
+          simulations.
+        </p>
+      </div>
+
+      @if (serverError()) {
+        <div
+          class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {{ serverError() }}
+        </div>
+      }
+
+      <dl
+        class="overflow-hidden rounded-xl border border-slate-200"
+      >
+        <div
+          class="flex justify-between gap-4 border-b border-slate-100 px-4 py-3"
+        >
+          <dt class="text-sm text-slate-500">
+            Paiement
+          </dt>
+
+          <dd class="font-semibold text-slate-900">
+            N° {{ payment().id }}
+          </dd>
+        </div>
+
+        <div
+          class="flex justify-between gap-4 border-b border-slate-100 px-4 py-3"
+        >
+          <dt class="text-sm text-slate-500">
+            Police
+          </dt>
+
+          <dd class="font-semibold text-slate-900">
+            {{ payment().policyNumber }}
+          </dd>
+        </div>
+
+        <div
+          class="flex justify-between gap-4 border-b border-slate-100 px-4 py-3"
+        >
+          <dt class="text-sm text-slate-500">
+            Date
+          </dt>
+
+          <dd class="font-semibold text-slate-900">
+            {{
+              payment().paymentDate
+                | date: 'dd/MM/yyyy': 'UTC'
+            }}
+          </dd>
+        </div>
+
+        <div
+          class="flex justify-between gap-4 px-4 py-3"
+        >
+          <dt class="text-sm text-slate-500">
+            Montant
+          </dt>
+
+          <dd class="font-semibold text-slate-900">
+            {{
+              payment().paidAmount
+                | number: '1.6-6'
+            }}
+          </dd>
+        </div>
+      </dl>
+
+      <div>
+        <label
+          for="cancellationReason"
+          class="mb-2 block text-sm font-medium text-slate-800"
+        >
+          Motif de l’annulation
+        </label>
+
+        <textarea
+          id="cancellationReason"
+          formControlName="reason"
+          rows="5"
+          maxlength="500"
+          class="w-full resize-y rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-red-600 focus:ring-4 focus:ring-red-100"
+          placeholder="Expliquez précisément la raison de l’annulation..."
+        ></textarea>
+
+        <div
+          class="mt-2 flex items-start justify-between gap-4"
+        >
+          <div>
+            @if (
+              form.controls.reason.touched &&
+              form.controls.reason.hasError('required')
+            ) {
+              <p class="text-sm text-red-600">
+                Le motif d’annulation est obligatoire.
+              </p>
+            }
+
+            @if (
+              form.controls.reason.touched &&
+              form.controls.reason.hasError('maxlength')
+            ) {
+              <p class="text-sm text-red-600">
+                Le motif ne doit pas dépasser 500 caractères.
+              </p>
+            }
+          </div>
+
+          <p class="shrink-0 text-xs text-slate-500">
+            {{ form.controls.reason.value.length }}/500
+          </p>
+        </div>
+      </div>
+
+      <footer
+        class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end"
+      >
+        <button
+          type="button"
+          class="rounded-lg border border-slate-300 px-5 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          [disabled]="submitting()"
+          (click)="close()"
+        >
+          Conserver le paiement
+        </button>
+
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-700 px-5 py-3 font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+          [disabled]="submitting()"
+        >
+          <svg
+            lucideBan
+            class="size-5"
+            aria-hidden="true"
+          ></svg>
+
+          @if (submitting()) {
+            Annulation en cours...
+          } @else {
+            Confirmer l’annulation
+          }
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>
