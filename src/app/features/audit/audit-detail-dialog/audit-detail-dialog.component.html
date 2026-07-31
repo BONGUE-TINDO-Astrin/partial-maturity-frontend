@@ -1,0 +1,139 @@
+<div
+  class="app-modal-backdrop"
+  role="presentation"
+  (click)="close()"
+>
+  <section
+    class="app-modal app-modal-lg"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="audit-detail-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="app-modal-header">
+      <div class="flex min-w-0 items-start gap-3">
+        <div class="app-section-icon">
+          @switch (audit().resourceType) {
+            @case ('USER') {
+              <svg lucideCircleUserRound aria-hidden="true"></svg>
+            }
+            @case ('IMPORT_BATCH') {
+              <svg lucideFileInput aria-hidden="true"></svg>
+            }
+            @case ('PAYMENT') {
+              <svg lucideReceiptText aria-hidden="true"></svg>
+            }
+          }
+        </div>
+
+        <div class="min-w-0">
+          <p class="app-eyebrow">
+            Événement n° {{ audit().id }}
+          </p>
+          <h2 id="audit-detail-title" class="app-modal-title">
+            {{ eventLabel(audit().eventType) }}
+          </h2>
+          <p class="app-modal-description break-words">
+            {{ audit().summary }}
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="app-button app-button-ghost app-button-icon"
+        aria-label="Fermer"
+        (click)="close()"
+      >
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+    </header>
+
+    <div class="app-modal-body space-y-4">
+      <section class="app-card shadow-none">
+        <div class="app-card-body">
+          <div class="flex items-center gap-2.5">
+            <div class="app-section-icon">
+              <svg lucideShieldCheck aria-hidden="true"></svg>
+            </div>
+            <h3 class="app-card-title">Informations principales</h3>
+          </div>
+
+          <dl class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <dt class="app-metric-label">Acteur</dt>
+              <dd class="mt-0.5 font-semibold text-belife-text">
+                {{ audit().actorUsername }}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="app-metric-label">Date et heure</dt>
+              <dd class="mt-0.5 font-semibold text-belife-text">
+                {{ audit().occurredAt | date: 'dd/MM/yyyy HH:mm:ss' }}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="app-metric-label">Type de ressource</dt>
+              <dd class="mt-0.5 font-semibold text-belife-text">
+                {{ resourceLabel(audit().resourceType) }}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="app-metric-label">Identifiant de ressource</dt>
+              <dd class="app-code-value mt-0.5 text-belife-text">
+                {{ audit().resourceId }}
+              </dd>
+            </div>
+
+            @if (audit().policyNumber) {
+              <div class="sm:col-span-2">
+                <dt class="app-metric-label">Numéro de police</dt>
+                <dd class="mt-0.5 font-semibold text-belife-text">
+                  {{ audit().policyNumber }}
+                </dd>
+              </div>
+            }
+          </dl>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="app-section-title">Informations structurées</h3>
+
+        @if (detailEntries().length === 0) {
+          <div class="app-panel-muted mt-3 text-sm text-belife-text-secondary">
+            Aucune information complémentaire n’est disponible.
+          </div>
+        } @else {
+          <dl class="app-card mt-3 overflow-hidden shadow-none">
+            @for (entry of detailEntries(); track entry[0]) {
+              <div
+                class="grid gap-1.5 border-b border-belife-border px-4 py-2.5 last:border-b-0 sm:grid-cols-[12rem_minmax(0,1fr)]"
+              >
+                <dt class="text-sm font-medium text-belife-text-secondary">
+                  {{ detailLabel(entry[0]) }}
+                </dt>
+                <dd class="break-words whitespace-pre-wrap text-sm font-medium text-belife-text">
+                  {{ formatDetailValue(entry[1]) }}
+                </dd>
+              </div>
+            }
+          </dl>
+        }
+      </section>
+    </div>
+
+    <footer class="app-modal-footer">
+      <button
+        type="button"
+        class="app-button app-button-secondary"
+        (click)="close()"
+      >
+        Fermer
+      </button>
+    </footer>
+  </section>
+</div>

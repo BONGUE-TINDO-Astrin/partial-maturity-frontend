@@ -12,9 +12,8 @@ import { TopBarComponent } from '../top-bar/top-bar.component';
 /**
  * Coque principale des pages authentifiées.
  *
- * Ce composant assemble le menu latéral,
- * la barre supérieure, le chemin de navigation
- * et la zone d'affichage des fonctionnalités.
+ * Assemble le menu latéral, la barre supérieure,
+ * le chemin de navigation et la zone fonctionnelle.
  */
 @Component({
   selector: 'app-application-shell',
@@ -32,10 +31,14 @@ export class ApplicationShellComponent {
   readonly mobileMenuOpen = signal(false);
 
   openMobileMenu(): void {
-    this.mobileMenuOpen.set(true);
+    if (!this.mobileMenuOpen()) {
+      this.mobileMenuOpen.set(true);
+    }
   }
 
   closeMobileMenu(): void {
-    this.mobileMenuOpen.set(false);
+    if (this.mobileMenuOpen()) {
+      this.mobileMenuOpen.set(false);
+    }
   }
 }

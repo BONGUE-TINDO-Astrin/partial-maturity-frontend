@@ -39,7 +39,6 @@ import { PaymentResponse } from '../models/payment-response';
 })
 export class PaymentDetailDialogComponent {
   readonly payment = input.required<PaymentResponse>();
-
   readonly canCancel = input(false);
   readonly cancelling = input(false);
 
@@ -53,10 +52,12 @@ export class PaymentDetailDialogComponent {
   }
 
   cancelPayment(): void {
-    if (this.canCancel() && !this.cancelling()) {
-      this.requestCancellation.emit(
-        this.payment(),
-      );
+    if (
+      this.payment().status === 'PAID' &&
+      this.canCancel() &&
+      !this.cancelling()
+    ) {
+      this.requestCancellation.emit(this.payment());
     }
   }
 }

@@ -1,28 +1,23 @@
 <div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+  class="app-modal-backdrop"
   role="presentation"
   (click)="close()"
 >
   <section
-    class="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
+    class="app-modal app-modal-xl"
     role="dialog"
     aria-modal="true"
-    aria-label="Détail du chargement CSV"
+    aria-labelledby="import-detail-title"
     (click)="$event.stopPropagation()"
   >
-    <!-- En-tête -->
-    <header
-      class="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-white px-6 py-5"
-    >
+    <header class="app-modal-header">
       <div class="min-w-0">
-        <p
-          class="text-sm font-semibold uppercase tracking-wider text-[#F4511E]"
-        >
+        <p class="app-eyebrow">
           Chargement n° {{ detail().id }}
         </p>
-
         <h2
-          class="mt-1 truncate text-2xl font-bold text-slate-900"
+          id="import-detail-title"
+          class="app-modal-title truncate"
         >
           {{ detail().originalFileName }}
         </h2>
@@ -30,250 +25,124 @@
 
       <button
         type="button"
-        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+        class="app-button app-button-ghost app-button-icon"
         aria-label="Fermer"
+        [disabled]="loadingMaturities()"
         (click)="close()"
       >
-        <svg
-          lucideX
-          class="size-5"
-          aria-hidden="true"
-        ></svg>
+        <svg lucideX aria-hidden="true"></svg>
       </button>
     </header>
 
-    <div class="space-y-6 p-6">
-      <!-- Statut du lot -->
+    <div class="app-modal-body space-y-4">
       <div
-        class="flex items-start gap-4 rounded-xl border p-5"
-        [class.border-green-200]="detail().status === 'IMPORTED'"
-        [class.bg-green-50]="detail().status === 'IMPORTED'"
-        [class.border-red-200]="detail().status === 'REJECTED'"
-        [class.bg-red-50]="detail().status === 'REJECTED'"
+        class="app-alert"
+        [class.app-alert-success]="detail().status === 'IMPORTED'"
+        [class.app-alert-error]="detail().status === 'REJECTED'"
       >
         @if (detail().status === 'IMPORTED') {
           <svg
             lucideCircleCheckBig
-            class="size-7 shrink-0 text-green-700"
+            class="app-alert-icon"
             aria-hidden="true"
           ></svg>
-
-          <div>
-            <p class="font-semibold text-green-900">
-              Fichier importé
-            </p>
-
-            <p class="mt-1 text-sm text-green-700">
+          <div class="app-alert-content">
+            <p class="app-alert-title">Fichier importé</p>
+            <p class="app-alert-message">
               Toutes les validations ont réussi.
             </p>
           </div>
         } @else {
           <svg
             lucideTriangleAlert
-            class="size-7 shrink-0 text-red-700"
+            class="app-alert-icon"
             aria-hidden="true"
           ></svg>
-
-          <div>
-            <p class="font-semibold text-red-900">
-              Fichier rejeté
-            </p>
-
-            <p class="mt-1 text-sm text-red-700">
+          <div class="app-alert-content">
+            <p class="app-alert-title">Fichier rejeté</p>
+            <p class="app-alert-message">
               Aucune maturité du fichier n’a été enregistrée.
             </p>
           </div>
         }
       </div>
 
-      <!-- Compteurs -->
-      <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-xl bg-slate-50 p-4">
-          <dt
-            class="text-xs font-medium uppercase text-slate-500"
-          >
-            Lignes analysées
-          </dt>
-
-          <dd class="mt-2 text-2xl font-bold text-slate-900">
-            {{ detail().totalRows }}
-          </dd>
+      <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="app-metric-card">
+          <dt class="app-metric-label">Lignes analysées</dt>
+          <dd class="app-metric-value">{{ detail().totalRows }}</dd>
         </div>
-
-        <div class="rounded-xl bg-green-50 p-4">
-          <dt
-            class="text-xs font-medium uppercase text-green-700"
-          >
-            Insérées
-          </dt>
-
-          <dd class="mt-2 text-2xl font-bold text-green-800">
-            {{ detail().insertedRows }}
-          </dd>
+        <div class="app-metric-card app-metric-card-success">
+          <dt class="app-metric-label">Insérées</dt>
+          <dd class="app-metric-value">{{ detail().insertedRows }}</dd>
         </div>
-
-        <div class="rounded-xl bg-blue-50 p-4">
-          <dt
-            class="text-xs font-medium uppercase text-blue-700"
-          >
-            Déjà existantes
-          </dt>
-
-          <dd class="mt-2 text-2xl font-bold text-blue-800">
-            {{ detail().existingRows }}
-          </dd>
+        <div class="app-metric-card app-metric-card-info">
+          <dt class="app-metric-label">Déjà existantes</dt>
+          <dd class="app-metric-value">{{ detail().existingRows }}</dd>
         </div>
-
-        <div class="rounded-xl bg-red-50 p-4">
-          <dt
-            class="text-xs font-medium uppercase text-red-700"
-          >
-            Lignes en erreur
-          </dt>
-
-          <dd class="mt-2 text-2xl font-bold text-red-800">
-            {{ detail().errorRows }}
-          </dd>
+        <div class="app-metric-card app-metric-card-error">
+          <dt class="app-metric-label">Lignes en erreur</dt>
+          <dd class="app-metric-value">{{ detail().errorRows }}</dd>
         </div>
       </dl>
 
-      <!-- Informations techniques -->
-      <section
-        class="rounded-xl border border-slate-200 p-5"
-      >
-        <h3 class="font-semibold text-slate-900">
-          Informations techniques
-        </h3>
-
-        <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-          <div>
-            <dt class="text-slate-500">
-              Taille
-            </dt>
-
-            <dd class="mt-1 font-medium text-slate-900">
-              {{
-                detail().fileSizeBytes / 1024
-                  | number: '1.0-2'
-              }}
-              Ko
-            </dd>
-          </div>
-
-          <div>
-            <dt class="text-slate-500">
-              Traité le
-            </dt>
-
-            <dd class="mt-1 font-medium text-slate-900">
-              {{
-                detail().createdAt
-                  | date: 'dd/MM/yyyy HH:mm:ss'
-              }}
-            </dd>
-          </div>
-
-          <div>
-            <dt class="text-slate-500">
-              Traité par
-            </dt>
-
-            <dd class="mt-1 font-medium text-slate-900">
-              {{ detail().createdBy ?? 'SYSTEM' }}
-            </dd>
-          </div>
-
-          <div class="min-w-0">
-            <dt class="text-slate-500">
-              Empreinte SHA-256
-            </dt>
-
-            <dd
-              class="mt-1 break-all font-mono text-xs text-slate-700"
-            >
-              {{ detail().fileSha256 }}
-            </dd>
-          </div>
-        </dl>
+      <section class="app-card shadow-none">
+        <div class="app-card-body">
+          <h3 class="app-card-title">Informations techniques</h3>
+          <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt class="app-metric-label">Taille</dt>
+              <dd class="mt-0.5 font-medium text-belife-text">
+                {{ detail().fileSizeBytes / 1024 | number: '1.0-2' }} Ko
+              </dd>
+            </div>
+            <div>
+              <dt class="app-metric-label">Traité le</dt>
+              <dd class="mt-0.5 font-medium text-belife-text">
+                {{ detail().createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="app-metric-label">Traité par</dt>
+              <dd class="mt-0.5 font-medium text-belife-text">
+                {{ detail().createdBy ?? 'SYSTEM' }}
+              </dd>
+            </div>
+            <div class="min-w-0">
+              <dt class="app-metric-label">Empreinte SHA-256</dt>
+              <dd class="app-code-value mt-0.5 text-belife-text-secondary">
+                {{ detail().fileSha256 }}
+              </dd>
+            </div>
+          </dl>
+        </div>
       </section>
 
-      <!-- Erreurs du CSV -->
       @if (detail().errors.length > 0) {
         <section>
-          <h3 class="text-lg font-bold text-slate-900">
-            Erreurs détectées
-          </h3>
-
-          <div
-            class="mt-4 overflow-hidden rounded-xl border border-red-200"
-          >
-            <div class="overflow-x-auto">
-              <table
-                class="min-w-full divide-y divide-red-100"
-              >
-                <thead class="bg-red-50">
+          <h3 class="app-section-title">Erreurs détectées</h3>
+          <div class="app-card mt-3 overflow-hidden border-belife-error shadow-none">
+            <div class="app-table-container">
+              <table class="app-table">
+                <thead class="bg-belife-error-soft">
                   <tr>
-                    <th
-                      class="px-4 py-3 text-left text-xs font-semibold uppercase text-red-700"
-                    >
-                      Ligne
-                    </th>
-
-                    <th
-                      class="px-4 py-3 text-left text-xs font-semibold uppercase text-red-700"
-                    >
-                      Colonne
-                    </th>
-
-                    <th
-                      class="px-4 py-3 text-left text-xs font-semibold uppercase text-red-700"
-                    >
-                      Code
-                    </th>
-
-                    <th
-                      class="px-4 py-3 text-left text-xs font-semibold uppercase text-red-700"
-                    >
-                      Message
-                    </th>
+                    <th class="text-belife-error">Ligne</th>
+                    <th class="text-belife-error">Colonne</th>
+                    <th class="text-belife-error">Code</th>
+                    <th class="text-belife-error">Message</th>
                   </tr>
                 </thead>
-
-                <tbody
-                  class="divide-y divide-red-100 bg-white"
-                >
-                  @for (
-                    error of detail().errors;
-                    track $index
-                  ) {
+                <tbody>
+                  @for (error of detail().errors; track $index) {
                     <tr>
-                      <td
-                        class="px-4 py-3 text-sm text-slate-700"
-                      >
-                        @if (error.rowNumber > 0) {
-                          {{ error.rowNumber }}
-                        } @else {
-                          Fichier
-                        }
+                      <td>
+                        {{ error.rowNumber > 0 ? error.rowNumber : 'Fichier' }}
                       </td>
-
-                      <td
-                        class="px-4 py-3 text-sm text-slate-700"
-                      >
-                        {{ error.column || '—' }}
-                      </td>
-
-                      <td
-                        class="px-4 py-3 font-mono text-xs text-red-700"
-                      >
+                      <td>{{ error.column || '—' }}</td>
+                      <td class="app-code-value text-belife-error">
                         {{ error.code }}
                       </td>
-
-                      <td
-                        class="px-4 py-3 text-sm text-slate-700"
-                      >
-                        {{ error.message }}
-                      </td>
+                      <td>{{ error.message }}</td>
                     </tr>
                   }
                 </tbody>
@@ -283,113 +152,54 @@
         </section>
       }
 
-      <!-- Maturités importées -->
       @if (detail().status === 'IMPORTED') {
         <section>
-          <div class="flex items-center gap-3">
-            <svg
-              lucideFileText
-              class="size-5 text-[#F4511E]"
-              aria-hidden="true"
-            ></svg>
-
-            <h3 class="text-lg font-bold text-slate-900">
-              Maturités insérées
-            </h3>
+          <div class="app-section-header mb-0">
+            <div class="app-section-icon">
+              <svg lucideFileText aria-hidden="true"></svg>
+            </div>
+            <h3 class="app-section-title">Maturités insérées</h3>
           </div>
 
           @if (loadingMaturities()) {
-            <p class="mt-4 text-sm text-slate-500">
+            <div class="app-loading-state">
+              <svg
+                lucideRefreshCw
+                class="app-spinner text-belife-accent"
+                aria-hidden="true"
+              ></svg>
               Chargement des maturités...
-            </p>
+            </div>
           } @else if (maturities().length === 0) {
-            <p
-              class="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-600"
-            >
+            <div class="app-panel-muted mt-3 text-sm text-belife-text-secondary">
               Ce chargement ne contenait aucune nouvelle maturité.
               Les lignes concernées existaient déjà.
-            </p>
+            </div>
           } @else {
-            <div
-              class="mt-4 overflow-hidden rounded-xl border border-slate-200"
-            >
-              <div class="overflow-x-auto">
-                <table
-                  class="min-w-full divide-y divide-slate-200"
-                >
-                  <thead class="bg-slate-50">
+            <div class="app-card mt-3 overflow-hidden shadow-none">
+              <div class="app-table-container">
+                <table class="app-table">
+                  <thead>
                     <tr>
-                      <th
-                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500"
-                      >
-                        Police
-                      </th>
-
-                      <th
-                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500"
-                      >
-                        Type
-                      </th>
-
-                      <th
-                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500"
-                      >
-                        Date
-                      </th>
-
-                      <th
-                        class="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500"
-                      >
-                        Montant
-                      </th>
-
-                      <th
-                        class="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500"
-                      >
-                        Ligne CSV
-                      </th>
+                      <th>Police</th>
+                      <th>Type</th>
+                      <th>Date</th>
+                      <th class="app-table-cell-right">Montant</th>
+                      <th class="app-table-cell-right">Ligne CSV</th>
                     </tr>
                   </thead>
-
-                  <tbody class="divide-y divide-slate-100">
-                    @for (
-                      maturity of maturities();
-                      track maturity.id
-                    ) {
+                  <tbody>
+                    @for (maturity of maturities(); track maturity.id) {
                       <tr>
-                        <td
-                          class="px-4 py-3 font-medium text-slate-900"
-                        >
-                          {{ maturity.policyNumber }}
+                        <td class="font-medium">{{ maturity.policyNumber }}</td>
+                        <td>{{ maturity.maturityType }}</td>
+                        <td>
+                          {{ maturity.maturityDate | date: 'dd/MM/yyyy': 'UTC' }}
                         </td>
-
-                        <td
-                          class="px-4 py-3 text-sm text-slate-700"
-                        >
-                          {{ maturity.maturityType }}
+                        <td class="app-table-cell-right app-financial-value">
+                          {{ maturity.maturityAmount | number: '1.6-6' }}
                         </td>
-
-                        <td
-                          class="px-4 py-3 text-sm text-slate-700"
-                        >
-                          {{
-                            maturity.maturityDate
-                              | date: 'dd/MM/yyyy'
-                          }}
-                        </td>
-
-                        <td
-                          class="px-4 py-3 text-right text-sm font-medium text-slate-900"
-                        >
-                          {{
-                            maturity.maturityAmount
-                              | number: '1.2-6'
-                          }}
-                        </td>
-
-                        <td
-                          class="px-4 py-3 text-right text-sm text-slate-500"
-                        >
+                        <td class="app-table-cell-right app-table-cell-muted">
                           {{ maturity.sourceRowNumber }}
                         </td>
                       </tr>
@@ -402,5 +212,16 @@
         </section>
       }
     </div>
+
+    <footer class="app-modal-footer">
+      <button
+        type="button"
+        class="app-button app-button-secondary"
+        [disabled]="loadingMaturities()"
+        (click)="close()"
+      >
+        Fermer
+      </button>
+    </footer>
   </section>
 </div>

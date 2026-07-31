@@ -34,9 +34,9 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import(
-            './features/dashboard/dashboard.component'
+            './features/dashboard/dashboard-page/dashboard-page.component'
           ).then(
-            (module) => module.DashboardComponent,
+            (module) => module.DashboardPageComponent,
           ),
       },
 
@@ -75,17 +75,13 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: {
           roles: ['ADMIN'],
-          breadcrumb: 'Audit',
-          title: 'Journal d’audit',
-          description:
-            'Consultation des actions métier sensibles.',
+          breadcrumb: 'Journal d’audit',
         },
         loadComponent: () =>
           import(
-            './shared/ui-components/feature-placeholder/feature-placeholder.component'
+            './features/audit/audit-page/audit-page.component'
           ).then(
-            (module) =>
-              module.FeaturePlaceholderComponent,
+            (module) => module.AuditPageComponent,
           ),
       },
 

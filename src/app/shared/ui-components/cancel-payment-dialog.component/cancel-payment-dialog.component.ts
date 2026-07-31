@@ -21,6 +21,7 @@ import {
 } from '@lucide/angular';
 
 import { PaymentResponse } from '../../../features/payments/models/payment-response';
+
 /**
  * Fenêtre de confirmation et de saisie du motif
  * d'annulation d'un paiement.
@@ -36,33 +37,28 @@ import { PaymentResponse } from '../../../features/payments/models/payment-respo
     LucideTriangleAlert,
     LucideX,
   ],
-  templateUrl:
-    './cancel-payment-dialog.component.html',
+  templateUrl: './cancel-payment-dialog.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CancelPaymentDialogComponent {
   private readonly formBuilder = inject(FormBuilder);
 
   readonly payment = input.required<PaymentResponse>();
-
   readonly submitting = input(false);
-
   readonly serverError = input<string | null>(null);
 
   readonly closeDialog = output<void>();
-
   readonly confirmCancellation = output<string>();
 
-  readonly form =
-    this.formBuilder.nonNullable.group({
-      reason: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(500),
-        ],
+  readonly form = this.formBuilder.nonNullable.group({
+    reason: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(500),
       ],
-    });
+    ],
+  });
 
   close(): void {
     if (!this.submitting()) {
@@ -71,10 +67,11 @@ export class CancelPaymentDialogComponent {
   }
 
   submit(): void {
-    if (
-      this.form.invalid ||
-      this.submitting()
-    ) {
+    if (this.submitting()) {
+      return;
+    }
+
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
@@ -82,10 +79,7 @@ export class CancelPaymentDialogComponent {
     const reason = this.form.controls.reason.value.trim();
 
     if (!reason) {
-      this.form.controls.reason.setErrors({
-        required: true,
-      });
-
+      this.form.controls.reason.setErrors({ required: true });
       this.form.controls.reason.markAsTouched();
       return;
     }

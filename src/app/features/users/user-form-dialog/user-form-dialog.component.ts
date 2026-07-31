@@ -6,6 +6,7 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -23,12 +24,6 @@ import { ApplicationUser } from '../models/application-user';
 import { CreateUserRequest } from '../models/create-user-request';
 import { UpdateUserRequest } from '../models/update-user-request';
 
-/**
- * Valeur émise lors de la validation du formulaire.
- *
- * Le parent sait s'il s'agit d'une création ou modification
- * grâce à la propriété mode.
- */
 export interface UserFormSubmission {
   mode: 'create' | 'edit';
   createRequest?: CreateUserRequest;
@@ -37,9 +32,7 @@ export interface UserFormSubmission {
 
 /**
  * Fenêtre de création et modification d'un utilisateur.
- *
- * Le composant ne réalise aucun appel HTTP. Il collecte et
- * valide les données, puis les transmet à la page par un output.
+ * Le composant ne réalise aucun appel HTTP.
  */
 @Component({
   selector: 'app-user-form-dialog',
@@ -63,21 +56,19 @@ export class UserFormDialogComponent {
   readonly closeDialog = output<void>();
   readonly saveUser = output<UserFormSubmission>();
 
-  readonly isEditMode = computed(
-    () => this.user() !== null,
+  readonly isEditMode = computed(() => this.user() !== null);
+  readonly title = computed(() =>
+    this.isEditMode()
+      ? 'Modifier l’utilisateur'
+      : 'Créer un utilisateur',
   );
 
-  readonly title = computed(
-    () =>
-      this.isEditMode()
-        ? 'Modifier l’utilisateur'
-        : 'Créer un utilisateur',
-  );
-
-  readonly roles: UserRole[] = [
+  readonly roles: readonly UserRole[] = [
     'ADMIN',
     'COMPTABILITE',
   ];
+
+  readonly showPassword = signal(false);
 
   readonly form = this.formBuilder.nonNullable.group({
     username: [
@@ -89,7 +80,6 @@ export class UserFormDialogComponent {
         Validators.pattern(/^[a-zA-Z0-9._-]+$/),
       ],
     ],
-
     fullName: [
       '',
       [
@@ -97,14 +87,10 @@ export class UserFormDialogComponent {
         Validators.maxLength(200),
       ],
     ],
-
     role: [
       'COMPTABILITE' as UserRole,
-      [
-        Validators.required,
-      ],
+      [Validators.required],
     ],
-
     password: [
       '',
       [
@@ -115,62 +101,56 @@ export class UserFormDialogComponent {
     ],
   });
 
-  showPassword = false;
+  constructor() {
+    effect(() => {
+      const selectedUser = this.user();
+      this.showPassword.set(false);
 
-constructor() {
-  effect(() => {
-    const selectedUser = this.user();
+      if (!selectedUser) {
+        this.form.reset({
+          username: '',
+          fullName: '',
+          role: 'COMPTABILITE',
+          password: '',
+        });
 
-    if (!selectedUser) {
-      this.form.reset({
-        username: '',
-        fullName: '',
-        role: 'COMPTABILITE',
-        password: '',
-      });
+        this.form.controls.username.enable({
+          emitEvent: false,
+        });
 
-      this.form.controls.username.enable();
+        this.form.controls.password.setValidators([
+          Validators.required,
+          Validators.minLength(12),
+          Validators.maxLength(200),
+        ]);
+      } else {
+        this.form.reset({
+          username: selectedUser.username,
+          fullName: selectedUser.fullName,
+          role: selectedUser.role,
+          password: '',
+        });
 
-      this.form.controls.password.setValidators([
-        Validators.required,
-        Validators.minLength(12),
-        Validators.maxLength(200),
-      ]);
+        this.form.controls.username.disable({
+          emitEvent: false,
+        });
+        this.form.controls.password.clearValidators();
+      }
 
       this.form.controls.password.updateValueAndValidity({
         emitEvent: false,
       });
-
-      return;
-    }
-
-    this.form.reset({
-      username: selectedUser.username,
-      fullName: selectedUser.fullName,
-      role: selectedUser.role,
-      password: '',
     });
-
-    this.form.controls.username.disable();
-
-    this.form.controls.password.clearValidators();
-
-    this.form.controls.password.updateValueAndValidity({
-      emitEvent: false,
-    });
-  });
-}
+  }
 
   togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
+    this.showPassword.update((visible) => !visible);
   }
 
   cancel(): void {
-    if (this.submitting()) {
-      return;
+    if (!this.submitting()) {
+      this.closeDialog.emit();
     }
-
-    this.closeDialog.emit();
   }
 
   submit(): void {
@@ -190,16 +170,13 @@ constructor() {
           role: rawValue.role,
         },
       });
-
       return;
     }
 
     this.saveUser.emit({
       mode: 'create',
       createRequest: {
-        username: rawValue.username
-          .trim()
-          .toLowerCase(),
+        username: rawValue.username.trim().toLowerCase(),
         fullName: rawValue.fullName.trim(),
         role: rawValue.role,
         password: rawValue.password,

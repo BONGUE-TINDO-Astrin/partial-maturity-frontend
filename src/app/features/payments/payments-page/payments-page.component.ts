@@ -16,9 +16,9 @@ import {
   Validators,
 } from '@angular/forms';
 import {
-  LucideBan,
   LucideCircleAlert,
   LucideCircleCheckBig,
+  LucideEye,
   LucideFileSearch,
   LucideHistory,
   LucideReceiptText,
@@ -27,12 +27,12 @@ import {
 } from '@lucide/angular';
 import { finalize } from 'rxjs';
 
-import { ApiErrorResponse } from '../../../core/error-handling/api-error-response';
 import { AuthenticationService } from '../../../core/authentication/authentication.service';
+import { ApiErrorResponse } from '../../../core/error-handling/api-error-response';
+import { CancelPaymentDialogComponent } from '../../../shared/ui-components/cancel-payment-dialog.component/cancel-payment-dialog.component';
 import { PaymentDetailDialogComponent } from '../payment-detail-dialog/payment-detail-dialog.component';
 import { PaymentResponse } from '../models/payment-response';
 import { PaymentsService } from '../payments.service';
-import { CancelPaymentDialogComponent } from '../../../shared/ui-components/cancel-payment-dialog.component/cancel-payment-dialog.component';
 
 /**
  * Page de consultation de l'historique des paiements.
@@ -45,14 +45,15 @@ import { CancelPaymentDialogComponent } from '../../../shared/ui-components/canc
     DecimalPipe,
     ReactiveFormsModule,
     PaymentDetailDialogComponent,
+    CancelPaymentDialogComponent,
     LucideCircleAlert,
+    LucideCircleCheckBig,
+    LucideEye,
     LucideFileSearch,
     LucideHistory,
     LucideReceiptText,
     LucideSearch,
-    LucideCircleCheckBig,
     LucideX,
-    CancelPaymentDialogComponent,
   ],
   templateUrl: './payments-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,41 +63,36 @@ export class PaymentsPageComponent {
 
   readonly authenticationService = inject(AuthenticationService);
 
-    /**
-     * Paiement actuellement sélectionné pour annulation.
-     */
-    readonly paymentToCancel = signal<PaymentResponse | null>(null);
-
-    /**
-     * Erreur affichée dans la fenêtre d'annulation.
-     */
-    readonly cancellationError = signal<string | null>(null);
-
-  readonly policyNumberControl =
-    new FormControl('', {
-      nonNullable: true,
-      validators: [
-        Validators.required,
-        Validators.maxLength(100),
-      ],
-    });
+  readonly policyNumberControl = new FormControl('', {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      Validators.maxLength(100),
+    ],
+  });
 
   readonly searchForm = new FormGroup({
     policyNumber: this.policyNumberControl,
   });
 
   readonly loading = signal(false);
+  readonly loadingDetail = signal(false);
   readonly cancelling = signal(false);
 
   readonly payments = signal<PaymentResponse[]>([]);
   readonly searchedPolicyNumber = signal<string | null>(null);
-
   readonly selectedPayment = signal<PaymentResponse | null>(null);
+  readonly paymentToCancel = signal<PaymentResponse | null>(null);
 
   readonly pageError = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly cancellationError = signal<string | null>(null);
 
   searchPayments(): void {
+    if (this.loading()) {
+      return;
+    }
+
     this.pageError.set(null);
     this.successMessage.set(null);
 
@@ -105,99 +101,79 @@ export class PaymentsPageComponent {
       return;
     }
 
-    const policyNumber =
-      this.policyNumberControl.value.trim();
+    const policyNumber = this.policyNumberControl.value.trim();
 
     if (!policyNumber) {
-      this.policyNumberControl.setErrors({
-        required: true,
-      });
+      this.policyNumberControl.setErrors({ required: true });
+      this.policyNumberControl.markAsTouched();
       return;
     }
 
     this.loading.set(true);
     this.payments.set([]);
+    this.selectedPayment.set(null);
+    this.paymentToCancel.set(null);
     this.searchedPolicyNumber.set(policyNumber);
 
     this.paymentsService
       .getPolicyPayments(policyNumber)
-      .pipe(
-        finalize(() => this.loading.set(false)),
-      )
+      .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (payments) => {
-          this.payments.set(payments);
-        },
+        next: (payments) => this.payments.set(payments),
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(
-            this.resolveErrorMessage(error),
-          );
+          this.pageError.set(this.resolveErrorMessage(error));
         },
       });
   }
 
   openPayment(payment: PaymentResponse): void {
-    this.loading.set(true);
+    if (this.loadingDetail()) {
+      return;
+    }
+
+    this.loadingDetail.set(true);
     this.pageError.set(null);
 
     this.paymentsService
       .getPayment(payment.id)
-      .pipe(
-        finalize(() => this.loading.set(false)),
-      )
+      .pipe(finalize(() => this.loadingDetail.set(false)))
       .subscribe({
-        next: (detail) => {
-          this.selectedPayment.set(detail);
-        },
+        next: (detail) => this.selectedPayment.set(detail),
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(
-            this.resolveErrorMessage(error),
-          );
+          this.pageError.set(this.resolveErrorMessage(error));
         },
       });
   }
 
   closePayment(): void {
-    if (!this.cancelling()) {
+    if (!this.cancelling() && !this.loadingDetail()) {
       this.selectedPayment.set(null);
     }
   }
 
-    /**
-     * Ouvre la fenêtre de saisie du motif.
-     */
-    requestCancellation(payment: PaymentResponse,): void {
-    if (
-        payment.status !== 'PAID' ||
-        this.cancelling()
-    ) {
-        return;
+  requestCancellation(payment: PaymentResponse): void {
+    if (payment.status !== 'PAID' || this.cancelling()) {
+      return;
     }
 
     this.cancellationError.set(null);
     this.paymentToCancel.set(payment);
-    }
+  }
 
-    /**
-     * Ferme la fenêtre d'annulation.
-     */
-    closeCancellationDialog(): void {
+  closeCancellationDialog(): void {
     if (this.cancelling()) {
-        return;
+      return;
     }
 
     this.paymentToCancel.set(null);
     this.cancellationError.set(null);
-    }
+  }
 
-    /**
-     * Envoie le motif validé au backend.
-     */
-    confirmCancellation(reason: string,): void {
+  confirmCancellation(reason: string): void {
     const payment = this.paymentToCancel();
 
     if (!payment || this.cancelling()) {
-        return;
+      return;
     }
 
     this.cancelling.set(true);
@@ -206,53 +182,33 @@ export class PaymentsPageComponent {
     this.successMessage.set(null);
 
     this.paymentsService
-        .cancelPayment(payment.id, {
-        reason,
-        })
-        .pipe(
-        finalize(() => {
-            this.cancelling.set(false);
-        }),
-        )
-        .subscribe({
+      .cancelPayment(payment.id, { reason })
+      .pipe(finalize(() => this.cancelling.set(false)))
+      .subscribe({
         next: (cancelledPayment) => {
-            this.replacePayment(cancelledPayment);
-
-            /*
-            * Actualise également la fenêtre de détail
-            * éventuellement ouverte derrière la confirmation.
-            */
-            this.selectedPayment.set(
-            cancelledPayment,
-            );
-
-            this.paymentToCancel.set(null);
-            this.cancellationError.set(null);
-
-            this.successMessage.set(
+          this.replacePayment(cancelledPayment);
+          this.selectedPayment.set(cancelledPayment);
+          this.paymentToCancel.set(null);
+          this.cancellationError.set(null);
+          this.successMessage.set(
             `Le paiement n° ${cancelledPayment.id} a été annulé avec succès. La situation de la police sera de nouveau prise en compte dans les simulations.`,
-            );
+          );
         },
-
         error: (error: HttpErrorResponse) => {
-            this.cancellationError.set(
-            this.resolveErrorMessage(error),
-            );
+          this.cancellationError.set(this.resolveErrorMessage(error));
         },
-        });
-    }
+      });
+  }
 
-  private replacePayment(updatedPayment: PaymentResponse,): void {
+  private replacePayment(updatedPayment: PaymentResponse): void {
     this.payments.update((payments) =>
       payments.map((payment) =>
-        payment.id === updatedPayment.id
-          ? updatedPayment
-          : payment,
+        payment.id === updatedPayment.id ? updatedPayment : payment,
       ),
     );
   }
 
-  private resolveErrorMessage(error: HttpErrorResponse,): string {
+  private resolveErrorMessage(error: HttpErrorResponse): string {
     let body: unknown = error.error;
 
     if (typeof body === 'string') {
@@ -269,10 +225,8 @@ export class PaymentsPageComponent {
       return apiError.message;
     }
 
-    if (error.status === 0) {
-      return 'Le serveur est actuellement inaccessible.';
-    }
-
-    return 'Une erreur est survenue pendant le traitement.';
+    return error.status === 0
+      ? 'Le serveur est actuellement inaccessible.'
+      : 'Une erreur est survenue pendant le traitement.';
   }
 }

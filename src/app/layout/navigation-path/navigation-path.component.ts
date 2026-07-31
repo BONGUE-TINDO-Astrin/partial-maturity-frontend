@@ -12,33 +12,25 @@ import {
   Router,
   RouterLink,
 } from '@angular/router';
+import { LucideChevronRight } from '@lucide/angular';
 import { filter } from 'rxjs';
 
-/**
- * Élément affiché dans le chemin de navigation.
- *
- * Exemple :
- * Accueil > Chargements CSV
- */
 interface NavigationPathItem {
-  label: string;
-  url: string;
+  readonly label: string;
+  readonly url: string;
 }
 
 /**
  * Affiche le chemin de navigation correspondant à la route active.
- *
- * <p>Les libellés sont récupérés depuis la propriété breadcrumb
- * définie dans app.routes.ts.</p>
- *
- * <p>Ce composant utilise l'état final du Router plutôt que les
- * instances ActivatedRoute du layout. Cette approche est plus simple
- * et plus fiable avec les composants chargés paresseusement.</p>
+ * Les libellés proviennent de la propriété breadcrumb des routes.
  */
 @Component({
   selector: 'app-navigation-path',
   standalone: true,
-  imports: [RouterLink],
+  imports: [
+    RouterLink,
+    LucideChevronRight,
+  ],
   templateUrl: './navigation-path.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -46,9 +38,6 @@ export class NavigationPathComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  /**
-   * Liste du chemin actuellement affiché.
-   */
   readonly items = signal<NavigationPathItem[]>([]);
 
   constructor() {
@@ -62,15 +51,9 @@ export class NavigationPathComponent {
         ),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => {
-        this.updateNavigationPath();
-      });
+      .subscribe(() => this.updateNavigationPath());
   }
 
-  /**
-   * Reconstruit le chemin à partir de l'arbre final
-   * des routes actives.
-   */
   private updateNavigationPath(): void {
     const items: NavigationPathItem[] = [];
 
@@ -83,13 +66,6 @@ export class NavigationPathComponent {
     this.items.set(items);
   }
 
-  /**
-   * Parcourt récursivement l'unique branche active du routeur.
-   *
-   * @param route route actuellement parcourue
-   * @param parentUrl URL déjà reconstruite
-   * @param items éléments collectés
-   */
   private collectItems(
     route: ActivatedRouteSnapshot,
     parentUrl: string,
@@ -104,25 +80,18 @@ export class NavigationPathComponent {
       ? `${parentUrl}/${routePath}`
       : parentUrl;
 
-    const breadcrumb =
-      route.data['breadcrumb'] as string | undefined;
+    const breadcrumb = route.data['breadcrumb'];
 
-    if (breadcrumb) {
+    if (typeof breadcrumb === 'string' && breadcrumb.trim()) {
       items.push({
         label: breadcrumb,
         url: currentUrl || '/app/dashboard',
       });
     }
 
-    /*
-     * Une seule branche de l'arbre correspond à la page active.
-     * Nous poursuivons donc avec le premier enfant actif.
-     */
-    const childRoute = route.firstChild;
-
-    if (childRoute) {
+    if (route.firstChild) {
       this.collectItems(
-        childRoute,
+        route.firstChild,
         currentUrl,
         items,
       );

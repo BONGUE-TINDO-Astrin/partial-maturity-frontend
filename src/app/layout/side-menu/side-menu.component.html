@@ -1,165 +1,128 @@
 @if (mobileOpen()) {
   <button
     type="button"
-    class="fixed inset-0 z-30 bg-slate-950/50 lg:hidden"
+    class="fixed inset-0 z-30 bg-slate-950/55 lg:hidden"
     aria-label="Fermer le menu"
     (click)="close()"
   ></button>
 }
 
 <aside
-  class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:translate-x-0"
+  class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-belife-border bg-belife-surface shadow-sm transition-transform duration-200 lg:translate-x-0 lg:shadow-none"
   [class.-translate-x-full]="!mobileOpen()"
   [class.translate-x-0]="mobileOpen()"
+  aria-label="Menu de l’application"
 >
   <div
-    class="flex h-20 items-center justify-between border-b border-slate-200 px-6"
+    class="flex h-16 shrink-0 items-center justify-between border-b border-belife-border px-4"
   >
     <a
       routerLink="/app/dashboard"
-      class="flex items-center gap-3"
+      class="inline-flex items-center"
+      aria-label="Accéder au tableau de bord"
       (click)="close()"
     >
-    <img
-      src="images/logo-belife.png"
-      alt="Logo BeLife Insurance"
-      class="h-12 w-auto"
-    />
+      <img
+        src="images/logo-belife.png"
+        alt="BeLife Insurance"
+        class="h-10 w-auto"
+      />
     </a>
 
     <button
       type="button"
-      class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
+      class="app-button app-button-ghost app-button-icon lg:hidden"
       aria-label="Fermer le menu"
       (click)="close()"
     >
-      <svg
-        lucideX
-        class="size-5"
-        aria-hidden="true"
-      ></svg>
+      <svg lucideX aria-hidden="true"></svg>
     </button>
   </div>
 
   <nav
-    class="flex-1 overflow-y-auto px-4 py-6"
+    class="flex-1 overflow-y-auto px-3 py-4"
     aria-label="Navigation principale"
   >
-    <p
-      class="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400"
-    >
+    <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-belife-text-muted">
       Navigation
     </p>
 
     <div class="space-y-1">
       <a
         routerLink="/app/dashboard"
-        routerLinkActive="bg-red-50 text-[#78060D]"
+        routerLinkActive="bg-belife-primary-soft text-belife-primary"
         [routerLinkActiveOptions]="{ exact: true }"
-        class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+        class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
         (click)="close()"
       >
-        <svg
-          lucideLayoutDashboard
-          class="size-5"
-          aria-hidden="true"
-        ></svg>
-
+        <svg lucideLayoutDashboard class="size-4.5" aria-hidden="true"></svg>
         Tableau de bord
       </a>
 
       @if (authenticationService.isAdmin()) {
         <a
           routerLink="/app/imports"
-          routerLinkActive="bg-red-50 text-[#78060D]"
-          class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+          routerLinkActive="bg-belife-primary-soft text-belife-primary"
+          class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
           (click)="close()"
         >
-          <svg
-            lucideFileUp
-            class="size-5"
-            aria-hidden="true"
-          ></svg>
-
+          <svg lucideFileUp class="size-4.5" aria-hidden="true"></svg>
           Chargements CSV
+        </a>
+      }
+
+      <a
+        routerLink="/app/policies"
+        routerLinkActive="bg-belife-primary-soft text-belife-primary"
+        class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+        (click)="close()"
+      >
+        <svg lucideSearch class="size-4.5" aria-hidden="true"></svg>
+        Polices
+      </a>
+
+      <a
+        routerLink="/app/payments"
+        routerLinkActive="bg-belife-primary-soft text-belife-primary"
+        class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+        (click)="close()"
+      >
+        <svg lucideCreditCard class="size-4.5" aria-hidden="true"></svg>
+        Paiements
+      </a>
+
+      @if (authenticationService.isAdmin()) {
+        <a
+          routerLink="/app/audit"
+          routerLinkActive="bg-belife-primary-soft text-belife-primary"
+          class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+          (click)="close()"
+        >
+          <svg lucideClipboardList class="size-4.5" aria-hidden="true"></svg>
+          Journal d’audit
         </a>
 
         <a
           routerLink="/app/users"
-          routerLinkActive="bg-red-50 text-[#78060D]"
-          class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+          routerLinkActive="bg-belife-primary-soft text-belife-primary"
+          class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
           (click)="close()"
         >
-          <svg
-            lucideUsers
-            class="size-5"
-            aria-hidden="true"
-          ></svg>
-
+          <svg lucideUsers class="size-4.5" aria-hidden="true"></svg>
           Utilisateurs
-        </a>
-
-        <a
-          routerLink="/app/audit"
-          routerLinkActive="bg-red-50 text-[#78060D]"
-          class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-          (click)="close()"
-        >
-          <svg
-            lucideClipboardList
-            class="size-5"
-            aria-hidden="true"
-          ></svg>
-
-          Audit
-        </a>
-      }
-
-      @if (authenticationService.isAccounting() || authenticationService.isAdmin()) {
-        <a
-          routerLink="/app/policies"
-          routerLinkActive="bg-red-50 text-[#78060D]"
-          class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-          (click)="close()"
-        >
-          <svg
-            lucideSearch
-            class="size-5"
-            aria-hidden="true"
-          ></svg>
-
-          Polices
-        </a>
-
-        <a
-          routerLink="/app/payments"
-          routerLinkActive="bg-red-50 text-[#78060D]"
-          class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-          (click)="close()"
-        >
-          <svg
-            lucideCreditCard
-            class="size-5"
-            aria-hidden="true"
-          ></svg>
-
-          Paiements
         </a>
       }
     </div>
   </nav>
 
-  <div class="border-t border-slate-200 p-4">
-    <div class="rounded-xl bg-slate-50 p-4">
-      <p
-        class="truncate text-sm font-semibold text-slate-900"
-      >
+  <footer class="shrink-0 border-t border-belife-border p-3">
+    <div class="rounded-lg bg-belife-surface-muted px-3 py-2.5">
+      <p class="truncate text-sm font-semibold text-belife-text">
         {{ authenticationService.currentUser()?.fullName }}
       </p>
-
-      <p class="mt-1 text-xs text-slate-500">
+      <p class="mt-0.5 text-xs text-belife-text-secondary">
         {{ authenticationService.currentUser()?.role }}
       </p>
     </div>
-  </div>
+  </footer>
 </aside>

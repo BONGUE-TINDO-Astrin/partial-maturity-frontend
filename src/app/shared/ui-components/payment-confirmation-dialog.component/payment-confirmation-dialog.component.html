@@ -1,28 +1,22 @@
 <div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+  class="app-modal-backdrop z-[60]"
   role="presentation"
   (click)="close()"
 >
   <section
-    class="w-full max-w-lg rounded-2xl bg-white shadow-2xl"
+    class="app-modal app-modal-md"
     role="dialog"
     aria-modal="true"
     aria-labelledby="payment-confirmation-title"
+    aria-describedby="payment-confirmation-warning"
     (click)="$event.stopPropagation()"
   >
-    <header
-      class="flex items-start justify-between border-b border-slate-200 px-6 py-5"
-    >
+    <header class="app-modal-header">
       <div>
-        <p
-          class="text-sm font-semibold uppercase tracking-wider text-[#F4511E]"
-        >
-          Paiement total
-        </p>
-
+        <p class="app-eyebrow">Paiement total</p>
         <h2
           id="payment-confirmation-title"
-          class="mt-1 text-2xl font-bold text-slate-900"
+          class="app-modal-title"
         >
           Confirmer le paiement
         </h2>
@@ -30,129 +24,107 @@
 
       <button
         type="button"
-        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+        class="app-button app-button-ghost app-button-icon"
         aria-label="Fermer"
         [disabled]="submitting()"
         (click)="close()"
       >
-        <svg
-          lucideX
-          class="size-5"
-          aria-hidden="true"
-        ></svg>
+        <svg lucideX aria-hidden="true"></svg>
       </button>
     </header>
 
-    <div class="space-y-5 p-6">
-      <div
-        class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
-      >
-        <svg
-          lucideCircleAlert
-          class="mt-0.5 size-5 shrink-0 text-amber-700"
-          aria-hidden="true"
-        ></svg>
+    <div class="app-modal-body">
+      <div class="space-y-4">
+        <div
+          id="payment-confirmation-warning"
+          class="app-alert app-alert-warning"
+        >
+          <svg
+            lucideCircleAlert
+            class="app-alert-icon"
+            aria-hidden="true"
+          ></svg>
+          <div class="app-alert-content">
+            La situation de la police sera vérifiée avant
+            d’enregistrer le paiement. Le montant présenté peut donc
+            être actualisé au moment de la validation.
+          </div>
+        </div>
 
-        <p class="text-sm leading-6">
-          Le backend recalculera la situation de la police
-          avant d’enregistrer le paiement. Le montant
-          présenté ci-dessous peut donc être actualisé
-          au moment de la validation.
-        </p>
+        @if (serverError()) {
+          <div class="app-alert app-alert-error" role="alert">
+            <div class="app-alert-content">
+              {{ serverError() }}
+            </div>
+          </div>
+        }
+
+        <dl class="app-card overflow-hidden shadow-none">
+          <div
+            class="flex items-center justify-between gap-4 border-b border-belife-border px-4 py-2.5"
+          >
+            <dt class="text-sm text-belife-text-secondary">
+              Police
+            </dt>
+            <dd class="break-all text-right font-semibold text-belife-text">
+              {{ policyNumber() }}
+            </dd>
+          </div>
+
+          <div
+            class="flex items-center justify-between gap-4 border-b border-belife-border px-4 py-2.5"
+          >
+            <dt class="text-sm text-belife-text-secondary">
+              Date du calcul
+            </dt>
+            <dd class="font-semibold text-belife-text">
+              {{
+                simulation().calculationDate
+                  | date: 'dd/MM/yyyy': 'UTC'
+              }}
+            </dd>
+          </div>
+
+          <div
+            class="flex items-center justify-between gap-4 border-b border-belife-border px-4 py-2.5"
+          >
+            <dt class="text-sm text-belife-text-secondary">
+              Capital
+            </dt>
+            <dd class="app-financial-value text-right">
+              {{ simulation().openCapital | number: '1.6-6' }}
+            </dd>
+          </div>
+
+          <div
+            class="flex items-center justify-between gap-4 border-b border-belife-border px-4 py-2.5"
+          >
+            <dt class="text-sm text-belife-text-secondary">
+              Intérêts
+            </dt>
+            <dd class="text-right font-semibold tabular-nums text-belife-success">
+              {{ simulation().openInterest | number: '1.6-6' }}
+            </dd>
+          </div>
+
+          <div
+            class="flex items-center justify-between gap-4 bg-belife-text px-4 py-3.5 text-white"
+          >
+            <dt class="font-semibold">
+              Montant total estimé
+            </dt>
+            <dd class="text-xl font-bold tabular-nums">
+              {{ simulation().balance | number: '1.6-6' }}
+            </dd>
+          </div>
+        </dl>
       </div>
-
-      @if (serverError()) {
-        <div
-          class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          role="alert"
-        >
-          {{ serverError() }}
-        </div>
-      }
-
-      <dl
-        class="overflow-hidden rounded-xl border border-slate-200"
-      >
-        <div
-          class="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-3"
-        >
-          <dt class="text-sm text-slate-500">
-            Police
-          </dt>
-
-          <dd class="font-semibold text-slate-900">
-            {{ policyNumber() }}
-          </dd>
-        </div>
-
-        <div
-          class="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-3"
-        >
-          <dt class="text-sm text-slate-500">
-            Date du calcul
-          </dt>
-
-          <dd class="font-semibold text-slate-900">
-            {{
-              simulation().calculationDate
-                | date: 'dd/MM/yyyy': 'UTC'
-            }}
-          </dd>
-        </div>
-
-        <div
-          class="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-3"
-        >
-          <dt class="text-sm text-slate-500">
-            Capital
-          </dt>
-
-          <dd class="font-semibold text-slate-900">
-            {{
-              simulation().openCapital
-                | number: '1.6-6'
-            }}
-          </dd>
-        </div>
-
-        <div
-          class="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-3"
-        >
-          <dt class="text-sm text-slate-500">
-            Intérêts
-          </dt>
-
-          <dd class="font-semibold text-green-700">
-            {{
-              simulation().openInterest
-                | number: '1.6-6'
-            }}
-          </dd>
-        </div>
-
-        <div
-          class="flex items-center justify-between gap-4 bg-slate-950 px-4 py-4 text-white"
-        >
-          <dt class="font-semibold">
-            Montant total estimé
-          </dt>
-
-          <dd class="text-xl font-bold">
-            {{
-              simulation().balance
-                | number: '1.6-6'
-            }}
-          </dd>
-        </div>
-      </dl>
     </div>
 
-    <footer
-      class="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:justify-end"
-    >
+    <footer class="app-modal-footer">
       <button
         type="button"
-        class="rounded-lg border border-slate-300 px-5 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        class="app-button app-button-secondary"
         [disabled]="submitting()"
         (click)="close()"
       >
@@ -161,21 +133,20 @@
 
       <button
         type="button"
-        class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#78060D] px-5 py-3 font-semibold text-white hover:bg-[#65050B] disabled:cursor-not-allowed disabled:opacity-50"
-        [disabled]="submitting()"
+        class="app-button app-button-primary"
+        [disabled]="submitting() || simulation().balance <= 0"
         (click)="confirm()"
       >
         <svg
           lucideCreditCard
-          class="size-5"
+          [class.app-spinner]="submitting()"
           aria-hidden="true"
         ></svg>
-
-        @if (submitting()) {
-          Enregistrement...
-        } @else {
-          Confirmer le paiement
-        }
+        {{
+          submitting()
+            ? 'Enregistrement...'
+            : 'Confirmer le paiement'
+        }}
       </button>
     </footer>
   </section>

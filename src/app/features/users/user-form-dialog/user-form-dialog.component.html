@@ -1,230 +1,228 @@
 <div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+  class="app-modal-backdrop"
   role="presentation"
   (click)="cancel()"
 >
   <section
-    class="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
+    class="app-modal app-modal-md"
     role="dialog"
     aria-modal="true"
-    [attr.aria-label]="title()"
+    aria-labelledby="user-form-title"
     (click)="$event.stopPropagation()"
   >
-    <header
-      class="flex items-start justify-between border-b border-slate-200 px-6 py-5"
-    >
+    <header class="app-modal-header">
       <div>
-        <p
-          class="text-sm font-semibold uppercase tracking-wider text-[#F4511E]"
-        >
-          Administration
-        </p>
-
-        <h2 class="mt-1 text-2xl font-bold text-slate-900">
+        <p class="app-eyebrow">Administration</p>
+        <h2 id="user-form-title" class="app-modal-title">
           {{ title() }}
         </h2>
       </div>
 
       <button
         type="button"
-        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+        class="app-button app-button-ghost app-button-icon"
         aria-label="Fermer la fenêtre"
         [disabled]="submitting()"
         (click)="cancel()"
       >
-        <svg
-          lucideX
-          class="size-5"
-          aria-hidden="true"
-        ></svg>
+        <svg lucideX aria-hidden="true"></svg>
       </button>
     </header>
 
     <form
       [formGroup]="form"
+      class="contents"
       (ngSubmit)="submit()"
-      class="space-y-5 p-6"
       novalidate
     >
-      @if (serverError()) {
-        <div
-          class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          role="alert"
-        >
-          {{ serverError() }}
-        </div>
-      }
-
-      <div>
-        <label
-          for="username"
-          class="mb-2 block text-sm font-medium text-slate-800"
-        >
-          Nom d’utilisateur
-        </label>
-
-        <input
-          id="username"
-          type="text"
-          formControlName="username"
-          autocomplete="off"
-          class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-[#F4511E] focus:ring-4 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
-          placeholder="Exemple : comptable01"
-        />
-
-        @if (
-          form.controls.username.touched &&
-          form.controls.username.hasError('required')
-        ) {
-          <p class="mt-2 text-sm text-red-600">
-            Le nom d’utilisateur est obligatoire.
-          </p>
-        }
-
-        @if (
-          form.controls.username.touched &&
-          form.controls.username.hasError('minlength')
-        ) {
-          <p class="mt-2 text-sm text-red-600">
-            Le nom d’utilisateur doit contenir au moins 3 caractères.
-          </p>
-        }
-
-        @if (
-          form.controls.username.touched &&
-          form.controls.username.hasError('pattern')
-        ) {
-          <p class="mt-2 text-sm text-red-600">
-            Seuls les lettres, chiffres, points, tirets et underscores sont autorisés.
-          </p>
-        }
-
-        @if (isEditMode()) {
-          <p class="mt-2 text-xs text-slate-500">
-            L’identifiant de connexion n’est pas modifiable.
-          </p>
-        }
-      </div>
-
-      <div>
-        <label
-          for="fullName"
-          class="mb-2 block text-sm font-medium text-slate-800"
-        >
-          Nom complet
-        </label>
-
-        <input
-          id="fullName"
-          type="text"
-          formControlName="fullName"
-          autocomplete="name"
-          class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-[#F4511E] focus:ring-4 focus:ring-orange-100"
-          placeholder="Nom et prénom de l’utilisateur"
-        />
-
-        @if (
-          form.controls.fullName.touched &&
-          form.controls.fullName.hasError('required')
-        ) {
-          <p class="mt-2 text-sm text-red-600">
-            Le nom complet est obligatoire.
-          </p>
-        }
-      </div>
-
-      <div>
-        <label
-          for="role"
-          class="mb-2 block text-sm font-medium text-slate-800"
-        >
-          Rôle
-        </label>
-
-        <select
-          id="role"
-          formControlName="role"
-          class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-[#F4511E] focus:ring-4 focus:ring-orange-100"
-        >
-          @for (role of roles; track role) {
-            <option [value]="role">
-              {{ role }}
-            </option>
+      <div class="app-modal-body">
+        <div class="app-form-grid">
+          @if (serverError()) {
+            <div class="app-alert app-alert-error" role="alert">
+              <div class="app-alert-content">
+                {{ serverError() }}
+              </div>
+            </div>
           }
-        </select>
 
-        <p class="mt-2 text-xs text-slate-500">
-          ADMIN gère les comptes et les fichiers. COMPTABILITE gère les calculs et paiements.
-        </p>
-      </div>
-
-      @if (!isEditMode()) {
-        <div>
-          <label
-            for="password"
-            class="mb-2 block text-sm font-medium text-slate-800"
-          >
-            Mot de passe initial
-          </label>
-
-          <div class="relative">
+          <div class="app-field">
+            <label for="username" class="app-label">
+              Nom d’utilisateur
+            </label>
             <input
-              id="password"
-              [type]="showPassword ? 'text' : 'password'"
-              formControlName="password"
-              autocomplete="new-password"
-              class="w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 outline-none transition focus:border-[#F4511E] focus:ring-4 focus:ring-orange-100"
-              placeholder="Au moins 12 caractères"
+              id="username"
+              type="text"
+              formControlName="username"
+              autocomplete="off"
+              class="app-input"
+              [class.app-input-invalid]="
+                form.controls.username.touched &&
+                form.controls.username.invalid
+              "
+              placeholder="Exemple : comptable01"
             />
 
-            <button
-              type="button"
-              class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-500 hover:text-slate-900"
-              [attr.aria-label]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
-              (click)="togglePasswordVisibility()"
-            >
-              @if (showPassword) {
-                <svg
-                  lucideEyeOff
-                  class="size-5"
-                  aria-hidden="true"
-                ></svg>
-              } @else {
-                <svg
-                  lucideEye
-                  class="size-5"
-                  aria-hidden="true"
-                ></svg>
-              }
-            </button>
+            @if (
+              form.controls.username.touched &&
+              form.controls.username.hasError('required')
+            ) {
+              <p class="app-field-error">
+                Le nom d’utilisateur est obligatoire.
+              </p>
+            }
+            @if (
+              form.controls.username.touched &&
+              form.controls.username.hasError('minlength')
+            ) {
+              <p class="app-field-error">
+                Le nom d’utilisateur doit contenir au moins 3 caractères.
+              </p>
+            }
+            @if (
+              form.controls.username.touched &&
+              form.controls.username.hasError('maxlength')
+            ) {
+              <p class="app-field-error">
+                Le nom d’utilisateur ne doit pas dépasser 100 caractères.
+              </p>
+            }
+            @if (
+              form.controls.username.touched &&
+              form.controls.username.hasError('pattern')
+            ) {
+              <p class="app-field-error">
+                Utilisez uniquement des lettres, chiffres, points,
+                tirets et underscores.
+              </p>
+            }
+            @if (isEditMode()) {
+              <p class="app-field-help">
+                L’identifiant de connexion n’est pas modifiable.
+              </p>
+            }
           </div>
 
-          @if (
-            form.controls.password.touched &&
-            form.controls.password.hasError('required')
-          ) {
-            <p class="mt-2 text-sm text-red-600">
-              Le mot de passe est obligatoire.
-            </p>
-          }
+          <div class="app-field">
+            <label for="fullName" class="app-label">
+              Nom complet
+            </label>
+            <input
+              id="fullName"
+              type="text"
+              formControlName="fullName"
+              autocomplete="name"
+              class="app-input"
+              [class.app-input-invalid]="
+                form.controls.fullName.touched &&
+                form.controls.fullName.invalid
+              "
+              placeholder="Nom et prénom de l’utilisateur"
+            />
 
-          @if (
-            form.controls.password.touched &&
-            form.controls.password.hasError('minlength')
-          ) {
-            <p class="mt-2 text-sm text-red-600">
-              Le mot de passe doit contenir au moins 12 caractères.
+            @if (
+              form.controls.fullName.touched &&
+              form.controls.fullName.hasError('required')
+            ) {
+              <p class="app-field-error">
+                Le nom complet est obligatoire.
+              </p>
+            }
+            @if (
+              form.controls.fullName.touched &&
+              form.controls.fullName.hasError('maxlength')
+            ) {
+              <p class="app-field-error">
+                Le nom complet ne doit pas dépasser 200 caractères.
+              </p>
+            }
+          </div>
+
+          <div class="app-field">
+            <label for="role" class="app-label">Rôle</label>
+            <select
+              id="role"
+              formControlName="role"
+              class="app-select"
+            >
+              @for (role of roles; track role) {
+                <option [value]="role">{{ role }}</option>
+              }
+            </select>
+            <p class="app-field-help">
+              ADMIN gère les comptes et imports. COMPTABILITE gère
+              les calculs et paiements.
             </p>
+          </div>
+
+          @if (!isEditMode()) {
+            <div class="app-field">
+              <label for="password" class="app-label">
+                Mot de passe initial
+              </label>
+              <div class="relative">
+                <input
+                  id="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  formControlName="password"
+                  autocomplete="new-password"
+                  class="app-input pr-11"
+                  [class.app-input-invalid]="
+                    form.controls.password.touched &&
+                    form.controls.password.invalid
+                  "
+                  placeholder="Au moins 12 caractères"
+                />
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-belife-text-secondary hover:text-belife-text"
+                  [attr.aria-label]="
+                    showPassword()
+                      ? 'Masquer le mot de passe'
+                      : 'Afficher le mot de passe'
+                  "
+                  (click)="togglePasswordVisibility()"
+                >
+                  @if (showPassword()) {
+                    <svg lucideEyeOff class="size-4" aria-hidden="true"></svg>
+                  } @else {
+                    <svg lucideEye class="size-4" aria-hidden="true"></svg>
+                  }
+                </button>
+              </div>
+
+              @if (
+                form.controls.password.touched &&
+                form.controls.password.hasError('required')
+              ) {
+                <p class="app-field-error">
+                  Le mot de passe est obligatoire.
+                </p>
+              }
+              @if (
+                form.controls.password.touched &&
+                form.controls.password.hasError('minlength')
+              ) {
+                <p class="app-field-error">
+                  Le mot de passe doit contenir au moins 12 caractères.
+                </p>
+              }
+              @if (
+                form.controls.password.touched &&
+                form.controls.password.hasError('maxlength')
+              ) {
+                <p class="app-field-error">
+                  Le mot de passe ne doit pas dépasser 200 caractères.
+                </p>
+              }
+            </div>
           }
         </div>
-      }
+      </div>
 
-      <footer
-        class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end"
-      >
+      <footer class="app-modal-footer">
         <button
           type="button"
-          class="rounded-lg border border-slate-300 px-5 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          class="app-button app-button-secondary"
           [disabled]="submitting()"
           (click)="cancel()"
         >
@@ -233,7 +231,7 @@
 
         <button
           type="submit"
-          class="rounded-lg bg-[#78060D] px-5 py-3 font-semibold text-white transition hover:bg-[#65050B] disabled:cursor-not-allowed disabled:opacity-60"
+          class="app-button app-button-primary"
           [disabled]="submitting()"
         >
           @if (submitting()) {

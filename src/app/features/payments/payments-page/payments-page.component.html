@@ -1,240 +1,199 @@
-<section class="p-4 sm:p-6 lg:p-8">
-  <div>
-    <p
-      class="text-sm font-semibold uppercase tracking-wider text-[#F4511E]"
-    >
-      Suivi financier
-    </p>
-
-    <h1 class="mt-2 text-3xl font-bold text-slate-900">
-      Paiements
-    </h1>
-
-    <p class="mt-2 max-w-3xl text-slate-600">
+<section class="app-page">
+  <header class="app-page-header">
+    <p class="app-eyebrow">Suivi financier</p>
+    <h1 class="app-page-title">Paiements</h1>
+    <p class="app-page-description">
       Consultez les paiements valides et annulés d’une police.
     </p>
-  </div>
+  </header>
 
-  <section
-    class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-  >
-    <form
-      [formGroup]="searchForm"
-      class="flex flex-col gap-4 sm:flex-row sm:items-start"
-      (ngSubmit)="searchPayments()"
-    >
-      <div class="min-w-0 flex-1">
-        <label
-          for="paymentPolicyNumber"
-          class="mb-2 block text-sm font-medium text-slate-800"
+  <section class="app-card app-section">
+    <div class="app-card-body">
+      <form
+        [formGroup]="searchForm"
+        class="flex flex-col gap-3 sm:flex-row sm:items-start"
+        (ngSubmit)="searchPayments()"
+        novalidate
+      >
+        <div class="app-field min-w-0 flex-1">
+          <label for="paymentPolicyNumber" class="app-label">
+            Numéro de police
+          </label>
+
+          <div class="relative">
+            <svg
+              lucideSearch
+              class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-belife-text-muted"
+              aria-hidden="true"
+            ></svg>
+            <input
+              id="paymentPolicyNumber"
+              type="text"
+              formControlName="policyNumber"
+              autocomplete="off"
+              class="app-input pl-10"
+              [class.app-input-invalid]="
+                policyNumberControl.touched &&
+                policyNumberControl.invalid
+              "
+              placeholder="Exemple : POL001"
+            />
+          </div>
+
+          @if (
+            policyNumberControl.touched &&
+            policyNumberControl.hasError('required')
+          ) {
+            <p class="app-field-error">
+              Le numéro de police est obligatoire.
+            </p>
+          }
+
+          @if (
+            policyNumberControl.touched &&
+            policyNumberControl.hasError('maxlength')
+          ) {
+            <p class="app-field-error">
+              Le numéro de police ne doit pas dépasser 100 caractères.
+            </p>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="app-button app-button-primary sm:mt-[1.625rem]"
+          [disabled]="loading()"
         >
-          Numéro de police
-        </label>
-
-        <div class="relative">
           <svg
-            lucideSearch
-            class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400"
+            lucideFileSearch
+            [class.app-spinner]="loading()"
             aria-hidden="true"
           ></svg>
-
-          <input
-            id="paymentPolicyNumber"
-            type="text"
-            formControlName="policyNumber"
-            class="w-full rounded-lg border border-slate-300 py-3 pl-12 pr-4 outline-none focus:border-[#F4511E] focus:ring-4 focus:ring-orange-100"
-            placeholder="Exemple : POL001"
-          />
-        </div>
-
-        @if (
-          policyNumberControl.touched &&
-          policyNumberControl.hasError('required')
-        ) {
-          <p class="mt-2 text-sm text-red-600">
-            Le numéro de police est obligatoire.
-          </p>
-        }
-      </div>
-
-      <button
-        type="submit"
-        class="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#78060D] px-6 py-3 font-semibold text-white hover:bg-[#65050B] disabled:opacity-50 sm:mt-7"
-        [disabled]="loading()"
-      >
-        <svg
-          lucideFileSearch
-          class="size-5"
-          aria-hidden="true"
-        ></svg>
-
-        Rechercher
-      </button>
-    </form>
+          {{ loading() ? 'Recherche...' : 'Rechercher' }}
+        </button>
+      </form>
+    </div>
   </section>
 
-    @if (successMessage()) {
-        <div
-            class="mt-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800"
-            role="status"
-            aria-live="polite"
-        >
-            <svg
-            lucideCircleCheckBig
-            class="mt-0.5 size-5 shrink-0 text-green-700"
-            aria-hidden="true"
-            ></svg>
-
-            <div class="min-w-0 flex-1">
-            <p class="font-semibold">
-                Opération réussie
-            </p>
-
-            <p class="mt-1 text-sm">
-                {{ successMessage() }}
-            </p>
-            </div>
-
-            <button
-            type="button"
-            class="rounded-lg p-1 text-green-700 hover:bg-green-100"
-            aria-label="Fermer le message"
-            (click)="successMessage.set(null)"
-            >
-            <svg
-                lucideX
-                class="size-5"
-                aria-hidden="true"
-            ></svg>
-            </button>
-        </div>
-    }
-
-  @if (pageError()) {
+  @if (successMessage()) {
     <div
-      class="mt-6 flex gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-      role="alert"
+      class="app-alert app-alert-success app-section"
+      role="status"
+      aria-live="polite"
     >
       <svg
-        lucideCircleAlert
-        class="size-5 shrink-0"
+        lucideCircleCheckBig
+        class="app-alert-icon"
         aria-hidden="true"
       ></svg>
+      <div class="app-alert-content">
+        <p class="app-alert-title">Opération réussie</p>
+        <p class="app-alert-message">{{ successMessage() }}</p>
+      </div>
+      <button
+        type="button"
+        class="app-button app-button-ghost app-button-icon app-button-sm"
+        aria-label="Fermer le message"
+        (click)="successMessage.set(null)"
+      >
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+    </div>
+  }
 
-      {{ pageError() }}
+  @if (pageError()) {
+    <div class="app-alert app-alert-error app-section" role="alert">
+      <svg
+        lucideCircleAlert
+        class="app-alert-icon"
+        aria-hidden="true"
+      ></svg>
+      <div class="app-alert-content">{{ pageError() }}</div>
     </div>
   }
 
   @if (loading()) {
-    <p class="mt-8 text-center text-slate-500">
-      Chargement des paiements...
-    </p>
-  } @else if (searchedPolicyNumber()) {
-    <section
-      class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-    >
-      <header
-        class="flex items-center gap-3 border-b border-slate-200 p-5"
-      >
+    <div class="app-card app-section">
+      <div class="app-loading-state">
         <svg
-          lucideHistory
-          class="size-5 text-[#F4511E]"
+          lucideSearch
+          class="app-spinner text-belife-accent"
           aria-hidden="true"
         ></svg>
-
-        <div>
-          <h2 class="font-bold text-slate-900">
-            Police {{ searchedPolicyNumber() }}
-          </h2>
-
-          <p class="mt-1 text-sm text-slate-500">
-            {{ payments().length }} paiement(s)
-          </p>
+        Chargement des paiements...
+      </div>
+    </div>
+  } @else if (searchedPolicyNumber()) {
+    <section class="app-card app-section overflow-hidden">
+      <header class="app-card-header">
+        <div class="flex items-center gap-2.5">
+          <div class="app-section-icon">
+            <svg lucideHistory aria-hidden="true"></svg>
+          </div>
+          <div>
+            <h2 class="app-card-title">
+              Police {{ searchedPolicyNumber() }}
+            </h2>
+            <p class="app-card-description">
+              {{ payments().length }} paiement(s)
+            </p>
+          </div>
         </div>
       </header>
 
       @if (payments().length === 0) {
-        <div class="p-10 text-center">
-          <svg
-            lucideReceiptText
-            class="mx-auto size-10 text-slate-300"
-            aria-hidden="true"
-          ></svg>
-
-          <p class="mt-4 font-semibold text-slate-900">
+        <div class="app-empty-state">
+          <div class="app-empty-state-icon">
+            <svg lucideReceiptText aria-hidden="true"></svg>
+          </div>
+          <p class="app-empty-state-title">
             Aucun paiement enregistré
+          </p>
+          <p class="app-empty-state-message">
+            Aucun paiement n’est associé à cette police.
           </p>
         </div>
       } @else {
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
+        <div class="app-table-container">
+          <table class="app-table">
+            <thead>
               <tr>
-                <th class="px-5 py-4 text-left text-xs font-semibold uppercase text-slate-500">
-                  Référence
-                </th>
-
-                <th class="px-5 py-4 text-left text-xs font-semibold uppercase text-slate-500">
-                  Date
-                </th>
-
-                <th class="px-5 py-4 text-right text-xs font-semibold uppercase text-slate-500">
-                  Montant
-                </th>
-
-                <th class="px-5 py-4 text-left text-xs font-semibold uppercase text-slate-500">
-                  Statut
-                </th>
-
-                <th class="px-5 py-4 text-right text-xs font-semibold uppercase text-slate-500">
-                  Action
-                </th>
+                <th>Référence</th>
+                <th>Date</th>
+                <th class="app-table-cell-right">Montant</th>
+                <th>Statut</th>
+                <th class="app-table-cell-right">Action</th>
               </tr>
             </thead>
-
-            <tbody class="divide-y divide-slate-100">
-              @for (
-                payment of payments();
-                track payment.id
-              ) {
-                <tr class="hover:bg-slate-50/70">
-                  <td class="px-5 py-4 font-semibold text-slate-900">
+            <tbody>
+              @for (payment of payments(); track payment.id) {
+                <tr>
+                  <td class="font-semibold">
                     Paiement n° {{ payment.id }}
                   </td>
-
-                  <td class="px-5 py-4 text-sm text-slate-700">
-                    {{
-                      payment.paymentDate
-                        | date: 'dd/MM/yyyy': 'UTC'
-                    }}
+                  <td class="app-table-cell-muted whitespace-nowrap">
+                    {{ payment.paymentDate | date: 'dd/MM/yyyy': 'UTC' }}
                   </td>
-
-                  <td class="px-5 py-4 text-right font-semibold text-slate-900">
+                  <td class="app-table-cell-right app-financial-value">
                     {{ payment.paidAmount | number: '1.6-6' }}
                   </td>
-
-                  <td class="px-5 py-4">
+                  <td>
                     <span
-                      class="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
-                      [class.bg-green-50]="payment.status === 'PAID'"
-                      [class.text-green-700]="payment.status === 'PAID'"
-                      [class.bg-slate-100]="payment.status === 'CANCELLED'"
-                      [class.text-slate-600]="payment.status === 'CANCELLED'"
+                      class="app-badge"
+                      [class.app-badge-success]="payment.status === 'PAID'"
+                      [class.app-badge-neutral]="payment.status === 'CANCELLED'"
                     >
-                      {{
-                        payment.status === 'PAID'
-                          ? 'Payé'
-                          : 'Annulé'
-                      }}
+                      {{ payment.status === 'PAID' ? 'Payé' : 'Annulé' }}
                     </span>
                   </td>
-
-                  <td class="px-5 py-4 text-right">
+                  <td class="app-table-cell-right">
                     <button
                       type="button"
-                      class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                      class="app-button app-button-secondary app-button-sm"
+                      [disabled]="loadingDetail()"
                       (click)="openPayment(payment)"
                     >
+                      <svg lucideEye aria-hidden="true"></svg>
                       Détails
                     </button>
                   </td>

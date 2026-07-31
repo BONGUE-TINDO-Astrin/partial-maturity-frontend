@@ -1,10 +1,10 @@
 <nav
-  class="flex min-h-8 flex-wrap items-center gap-2 text-sm"
+  class="flex min-h-7 flex-wrap items-center gap-1 text-xs text-belife-text-secondary"
   aria-label="Chemin de navigation"
 >
   <a
     routerLink="/app/dashboard"
-    class="font-medium text-slate-500 transition hover:text-[#78060D]"
+    class="font-medium transition-colors hover:text-belife-primary"
   >
     Accueil
   </a>
@@ -14,24 +14,25 @@
     track item.url;
     let last = $last
   ) {
-    <span
-      class="text-slate-300"
+    <svg
+      lucideChevronRight
+      class="size-3.5 shrink-0 text-belife-text-muted"
       aria-hidden="true"
-    >
-      /
-    </span>
+    ></svg>
 
     @if (last) {
       <span
-        class="font-semibold text-slate-800"
+        class="max-w-64 truncate font-semibold text-belife-text"
         aria-current="page"
+        [title]="item.label"
       >
         {{ item.label }}
       </span>
     } @else {
       <a
         [routerLink]="item.url"
-        class="font-medium text-slate-500 transition hover:text-[#78060D]"
+        class="max-w-48 truncate font-medium transition-colors hover:text-belife-primary"
+        [title]="item.label"
       >
         {{ item.label }}
       </a>

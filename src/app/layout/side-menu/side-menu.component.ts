@@ -5,7 +5,10 @@ import {
   input,
   output,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive, } from '@angular/router';
+import {
+  RouterLink,
+  RouterLinkActive,
+} from '@angular/router';
 import {
   LucideClipboardList,
   LucideCreditCard,
@@ -21,8 +24,8 @@ import { AuthenticationService } from '../../core/authentication/authentication.
 /**
  * Menu principal de l'application.
  *
- * Les liens présentés dépendent du rôle de l'utilisateur.
- * Cette visibilité ne remplace pas la sécurité du backend.
+ * La visibilité des liens améliore l'expérience utilisateur.
+ * La sécurité définitive reste appliquée par le backend.
  */
 @Component({
   selector: 'app-side-menu',
@@ -42,20 +45,14 @@ import { AuthenticationService } from '../../core/authentication/authentication.
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SideMenuComponent {
-  readonly authenticationService =
-    inject(AuthenticationService);
+  readonly authenticationService = inject(AuthenticationService);
 
-  /**
-   * Détermine si le menu mobile est visible.
-   */
   readonly mobileOpen = input(false);
-
-  /**
-   * Demande au composant parent de fermer le menu mobile.
-   */
   readonly closeMobileMenu = output<void>();
 
   close(): void {
-    this.closeMobileMenu.emit();
+    if (this.mobileOpen()) {
+      this.closeMobileMenu.emit();
+    }
   }
 }

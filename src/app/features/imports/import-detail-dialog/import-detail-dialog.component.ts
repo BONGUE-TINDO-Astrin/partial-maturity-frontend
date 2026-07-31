@@ -11,6 +11,7 @@ import {
 import {
   LucideCircleCheckBig,
   LucideFileText,
+  LucideRefreshCw,
   LucideTriangleAlert,
   LucideX,
 } from '@lucide/angular';
@@ -22,8 +23,6 @@ import { PolicyMaturity } from '../models/policy-maturity';
  * Affiche le rapport complet d'un chargement CSV.
  *
  * Le composant ne réalise aucun appel HTTP.
- * Toutes les données sont chargées par ImportsPageComponent
- * puis transmises au moyen d'inputs.
  */
 @Component({
   selector: 'app-import-detail-dialog',
@@ -33,6 +32,7 @@ import { PolicyMaturity } from '../models/policy-maturity';
     DecimalPipe,
     LucideCircleCheckBig,
     LucideFileText,
+    LucideRefreshCw,
     LucideTriangleAlert,
     LucideX,
   ],
@@ -40,27 +40,17 @@ import { PolicyMaturity } from '../models/policy-maturity';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportDetailDialogComponent {
-  /**
-   * Informations complètes du lot consulté.
-   */
-  readonly detail =
-    input.required<ImportBatchDetail>();
+  readonly detail = input.required<ImportBatchDetail>();
 
-  /**
-   * Maturités réellement insérées par le lot.
-   *
-   * La liste reste vide pour :
-   * - un lot rejeté ;
-   * - une réimportation sans nouvelle maturité.
-   */
-  readonly maturities =
-    input<PolicyMaturity[]>([]);
+  readonly maturities = input<PolicyMaturity[]>([]);
 
   readonly loadingMaturities = input(false);
 
   readonly closeDialog = output<void>();
 
   close(): void {
-    this.closeDialog.emit();
+    if (!this.loadingMaturities()) {
+      this.closeDialog.emit();
+    }
   }
 }

@@ -39,17 +39,32 @@ export class TopBarComponent {
   readonly authenticationService = inject(AuthenticationService);
 
   readonly openMobileMenu = output<void>();
-
   readonly userMenuOpen = signal(false);
+  readonly loggingOut = signal(false);
 
   toggleUserMenu(): void {
-    this.userMenuOpen.update((value) => !value);
+    if (!this.loggingOut()) {
+      this.userMenuOpen.update((open) => !open);
+    }
   }
 
-  logout(): void {
+  closeUserMenu(): void {
     this.userMenuOpen.set(false);
+  }
+
+  async logout(): Promise<void> {
+    if (this.loggingOut()) {
+      return;
+    }
+
+    this.loggingOut.set(true);
+    this.closeUserMenu();
     this.authenticationService.logout();
 
-    void this.router.navigate(['/login']);
+    const navigationSucceeded = await this.router.navigate(['/login']);
+
+    if (!navigationSucceeded) {
+      this.loggingOut.set(false);
+    }
   }
 }

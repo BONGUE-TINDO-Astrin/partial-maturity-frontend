@@ -1,0 +1,756 @@
+<section class="app-page">
+  <!-- En-tête -->
+  <header class="app-page-header-row">
+    <div>
+      <p class="app-eyebrow">
+        Vue d’ensemble
+      </p>
+
+      <h1 class="app-page-title">
+        Tableau de bord
+      </h1>
+
+      <p class="app-page-description">
+        @if (isAdminDashboard()) {
+          Suivez les comptes, les chargements CSV
+          et les dernières actions sensibles.
+        } @else if (isAccountingDashboard()) {
+          Consultez les principaux indicateurs
+          du portefeuille et des paiements.
+        } @else {
+          Chargement des indicateurs de votre activité.
+        }
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="app-button app-button-secondary"
+      [disabled]="loading()"
+      (click)="loadDashboard()"
+    >
+      <svg
+        lucideRefreshCw
+        [class.app-spinner]="loading()"
+        aria-hidden="true"
+      ></svg>
+
+      Actualiser
+    </button>
+  </header>
+
+  <!-- Erreur -->
+  @if (pageError()) {
+    <div
+      class="app-alert app-alert-error app-section"
+      role="alert"
+    >
+      <div class="app-alert-content">
+        <p class="app-alert-title">
+          Impossible de charger le tableau de bord
+        </p>
+
+        <p class="app-alert-message">
+          {{ pageError() }}
+        </p>
+      </div>
+    </div>
+  }
+
+  <!-- Chargement initial -->
+  @if (loading() && !dashboard()) {
+    <div class="app-card app-section">
+      <div class="app-loading-state">
+        <svg
+          lucideRefreshCw
+          class="app-spinner text-belife-accent"
+          aria-hidden="true"
+        ></svg>
+
+        <span>
+          Chargement des indicateurs...
+        </span>
+      </div>
+    </div>
+  }
+
+  @if (dashboard(); as data) {
+    <!-- Date de génération -->
+    <div class="mt-3 flex justify-end">
+      <p class="text-xs text-belife-text-secondary">
+        Données générées le
+        {{
+          data.generatedAt
+            | date: 'dd/MM/yyyy à HH:mm:ss'
+        }}
+      </p>
+    </div>
+
+    <!-- =================================================== -->
+    <!-- TABLEAU DE BORD ADMIN                                -->
+    <!-- =================================================== -->
+
+    @if (
+      data.role === 'ADMIN' &&
+      data.administration;
+      as administration
+    ) {
+      <section class="app-section">
+        <div class="app-section-header">
+          <div class="app-section-icon">
+            <svg
+              lucideUsers
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <div>
+            <h2 class="app-section-title">
+              Administration des comptes
+            </h2>
+
+            <p class="app-section-description">
+              Situation actuelle des utilisateurs
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+        >
+          <article class="app-metric-card">
+            <p class="app-metric-label">
+              Total des comptes
+            </p>
+
+            <p class="app-metric-value">
+              {{ administration.totalUsers }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-success"
+          >
+            <p class="app-metric-label">
+              Comptes actifs
+            </p>
+
+            <p class="app-metric-value">
+              {{ administration.activeUsers }}
+            </p>
+          </article>
+
+          <article class="app-metric-card">
+            <p class="app-metric-label">
+              Comptes inactifs
+            </p>
+
+            <p class="app-metric-value">
+              {{ administration.inactiveUsers }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card border-belife-primary bg-belife-primary-soft"
+          >
+            <p
+              class="app-metric-label text-belife-primary"
+            >
+              Administrateurs actifs
+            </p>
+
+            <p
+              class="app-metric-value text-belife-primary"
+            >
+              {{
+                administration.activeAdministrators
+              }}
+            </p>
+          </article>
+        </div>
+
+        <div class="mt-3 flex justify-end">
+          <a
+            routerLink="/app/users"
+            class="app-link"
+          >
+            Gérer les utilisateurs
+          </a>
+        </div>
+      </section>
+    }
+
+    @if (
+      data.role === 'ADMIN' &&
+      data.imports;
+      as imports
+    ) {
+      <section class="app-section">
+        <div class="app-section-header">
+          <div class="app-section-icon">
+            <svg
+              lucideFiles
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <div>
+            <h2 class="app-section-title">
+              Chargements CSV
+            </h2>
+
+            <p class="app-section-description">
+              Résultats des imports de maturités
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+        >
+          <article class="app-metric-card">
+            <p class="app-metric-label">
+              Tentatives
+            </p>
+
+            <p class="app-metric-value">
+              {{ imports.totalImports }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-success"
+          >
+            <p class="app-metric-label">
+              Fichiers importés
+            </p>
+
+            <p class="app-metric-value">
+              {{ imports.importedFiles }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-error"
+          >
+            <p class="app-metric-label">
+              Fichiers rejetés
+            </p>
+
+            <p class="app-metric-value">
+              {{ imports.rejectedFiles }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-info"
+          >
+            <p class="app-metric-label">
+              Maturités insérées
+            </p>
+
+            <p class="app-metric-value">
+              {{ imports.totalInsertedRows }}
+            </p>
+          </article>
+        </div>
+
+        @if (imports.lastImport; as lastImport) {
+          <article class="app-card mt-3">
+            <div class="app-card-body">
+              <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div
+                  class="flex min-w-0 items-start gap-3"
+                >
+                  <div
+                    class="flex size-9 shrink-0 items-center justify-center rounded-lg"
+                    [class.bg-belife-success-soft]="
+                      lastImport.status === 'IMPORTED'
+                    "
+                    [class.text-belife-success]="
+                      lastImport.status === 'IMPORTED'
+                    "
+                    [class.bg-belife-error-soft]="
+                      lastImport.status === 'REJECTED'
+                    "
+                    [class.text-belife-error]="
+                      lastImport.status === 'REJECTED'
+                    "
+                  >
+                    @if (
+                      lastImport.status === 'IMPORTED'
+                    ) {
+                      <svg
+                        lucideCircleCheckBig
+                        class="size-4"
+                        aria-hidden="true"
+                      ></svg>
+                    } @else {
+                      <svg
+                        lucideCircleX
+                        class="size-4"
+                        aria-hidden="true"
+                      ></svg>
+                    }
+                  </div>
+
+                  <div class="min-w-0">
+                    <p class="app-card-description">
+                      Dernier chargement
+                    </p>
+
+                    <p
+                      class="truncate font-semibold text-belife-text"
+                    >
+                      {{ lastImport.fileName }}
+                    </p>
+
+                    <p
+                      class="mt-0.5 text-xs text-belife-text-secondary"
+                    >
+                      {{
+                        lastImport.occurredAt
+                          | date: 'dd/MM/yyyy HH:mm'
+                      }}
+                      par
+                      {{ lastImport.actor ?? 'SYSTEM' }}
+                    </p>
+                  </div>
+                </div>
+
+                <span
+                  class="app-badge"
+                  [class.app-badge-success]="
+                    lastImport.status === 'IMPORTED'
+                  "
+                  [class.app-badge-error]="
+                    lastImport.status === 'REJECTED'
+                  "
+                >
+                  {{
+                    lastImport.status === 'IMPORTED'
+                      ? 'Importé'
+                      : 'Rejeté'
+                  }}
+                </span>
+              </div>
+            </div>
+          </article>
+        }
+
+        <div class="mt-3 flex justify-end">
+          <a
+            routerLink="/app/imports"
+            class="app-link"
+          >
+            Consulter les chargements
+          </a>
+        </div>
+      </section>
+    }
+
+    @if (
+      data.role === 'ADMIN' &&
+      data.audit;
+      as audit
+    ) {
+      <section class="app-card app-section">
+        <div class="app-card-body">
+          <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+          >
+            <div class="flex items-start gap-3">
+              <div class="app-section-icon">
+                <svg
+                  lucideShieldCheck
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <h2 class="app-card-title">
+                  Activité auditée
+                </h2>
+
+                <p class="app-card-description">
+                  {{ audit.totalEvents }}
+                  événement(s) au total,
+                  {{ audit.eventsToday }}
+                  aujourd’hui
+                </p>
+              </div>
+            </div>
+
+            <a
+              routerLink="/app/audit"
+              class="app-link"
+            >
+              Ouvrir le journal
+            </a>
+          </div>
+
+          @if (audit.lastEvent; as lastEvent) {
+            <div class="app-panel-muted mt-4">
+              <div
+                class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+              >
+                <div class="min-w-0">
+                  <span
+                    class="app-badge app-badge-primary"
+                  >
+                    {{
+                      auditEventLabel(
+                        lastEvent.eventType
+                      )
+                    }}
+                  </span>
+
+                  <p
+                    class="mt-2 font-medium text-belife-text"
+                  >
+                    {{ lastEvent.summary }}
+                  </p>
+
+                  <p
+                    class="mt-1 text-xs text-belife-text-secondary"
+                  >
+                    par {{ lastEvent.actorUsername }}
+                  </p>
+                </div>
+
+                <p
+                  class="shrink-0 text-xs text-belife-text-secondary"
+                >
+                  {{
+                    lastEvent.occurredAt
+                      | date: 'dd/MM/yyyy HH:mm:ss'
+                  }}
+                </p>
+              </div>
+            </div>
+          } @else {
+            <div class="app-empty-state">
+              <p class="app-empty-state-message">
+                Aucun événement d’audit disponible.
+              </p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- =================================================== -->
+    <!-- TABLEAU DE BORD COMPTABILITE                         -->
+    <!-- =================================================== -->
+
+    @if (
+      data.role === 'COMPTABILITE' &&
+      data.portfolio;
+      as portfolio
+    ) {
+      <section class="app-section">
+        <div class="app-section-header">
+          <div class="app-section-icon">
+            <svg
+              lucideWalletCards
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <div>
+            <h2 class="app-section-title">
+              Portefeuille de maturités
+            </h2>
+
+            <p class="app-section-description">
+              Vue globale des polices importées
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+        >
+          <article class="app-metric-card">
+            <p class="app-metric-label">
+              Polices
+            </p>
+
+            <p class="app-metric-value">
+              {{ portfolio.totalPolicies }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-info"
+          >
+            <p class="app-metric-label">
+              Maturités
+            </p>
+
+            <p class="app-metric-value">
+              {{ portfolio.totalMaturities }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-success sm:col-span-2 xl:col-span-1"
+          >
+            <p class="app-metric-label">
+              Montant total des maturités
+            </p>
+
+            <p class="app-metric-value">
+              {{
+                portfolio.totalMaturityAmount
+                  | number: '1.6-6'
+              }}
+            </p>
+          </article>
+        </div>
+
+        <div class="app-card mt-3">
+          <div
+            class="app-card-body grid gap-4 sm:grid-cols-2"
+          >
+            <div class="flex items-start gap-2.5">
+              <svg
+                lucideCalendarDays
+                class="mt-0.5 size-4 text-belife-info"
+                aria-hidden="true"
+              ></svg>
+
+              <div>
+                <p class="app-metric-label">
+                  Première maturité
+                </p>
+
+                <p
+                  class="mt-1 font-semibold text-belife-text"
+                >
+                  @if (
+                    portfolio.firstMaturityDate
+                  ) {
+                    {{
+                      portfolio.firstMaturityDate
+                        | date: 'dd/MM/yyyy': 'UTC'
+                    }}
+                  } @else {
+                    Aucune
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2.5">
+              <svg
+                lucideCalendarDays
+                class="mt-0.5 size-4 text-belife-accent"
+                aria-hidden="true"
+              ></svg>
+
+              <div>
+                <p class="app-metric-label">
+                  Dernière maturité
+                </p>
+
+                <p
+                  class="mt-1 font-semibold text-belife-text"
+                >
+                  @if (
+                    portfolio.lastMaturityDate
+                  ) {
+                    {{
+                      portfolio.lastMaturityDate
+                        | date: 'dd/MM/yyyy': 'UTC'
+                    }}
+                  } @else {
+                    Aucune
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 flex justify-end">
+          <a
+            routerLink="/app/policies"
+            class="app-link"
+          >
+            Rechercher une police
+          </a>
+        </div>
+      </section>
+    }
+
+    @if (
+      data.role === 'COMPTABILITE' &&
+      data.payments;
+      as payments
+    ) {
+      <section class="app-section">
+        <div class="app-section-header">
+          <div class="app-section-icon">
+            <svg
+              lucideCoins
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <div>
+            <h2 class="app-section-title">
+              Paiements
+            </h2>
+
+            <p class="app-section-description">
+              Situation des paiements enregistrés
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+        >
+          <article class="app-metric-card">
+            <p class="app-metric-label">
+              Total
+            </p>
+
+            <p class="app-metric-value">
+              {{ payments.totalPayments }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-success"
+          >
+            <p class="app-metric-label">
+              Paiements valides
+            </p>
+
+            <p class="app-metric-value">
+              {{ payments.paidPayments }}
+            </p>
+          </article>
+
+          <article class="app-metric-card">
+            <p class="app-metric-label">
+              Paiements annulés
+            </p>
+
+            <p class="app-metric-value">
+              {{ payments.cancelledPayments }}
+            </p>
+          </article>
+
+          <article
+            class="app-metric-card app-metric-card-info"
+          >
+            <p class="app-metric-label">
+              Montant total payé
+            </p>
+
+            <p class="app-metric-value">
+              {{
+                payments.totalPaidAmount
+                  | number: '1.6-6'
+              }}
+            </p>
+          </article>
+        </div>
+
+        @if (
+          payments.lastPayment;
+          as lastPayment
+        ) {
+          <article class="app-card mt-3">
+            <div class="app-card-body">
+              <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div
+                  class="flex min-w-0 items-start gap-3"
+                >
+                  <div
+                    class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+                  >
+                    <svg
+                      lucideReceiptText
+                      class="size-4"
+                      aria-hidden="true"
+                    ></svg>
+                  </div>
+
+                  <div class="min-w-0">
+                    <p class="app-card-description">
+                      Dernier paiement
+                    </p>
+
+                    <p
+                      class="font-semibold text-belife-text"
+                    >
+                      Police
+                      {{ lastPayment.policyNumber }}
+                    </p>
+
+                    <p
+                      class="app-financial-value mt-0.5 text-sm"
+                    >
+                      {{
+                        lastPayment.paidAmount
+                          | number: '1.6-6'
+                      }}
+                    </p>
+
+                    <p
+                      class="mt-0.5 text-xs text-belife-text-secondary"
+                    >
+                      {{
+                        lastPayment.paymentDate
+                          | date: 'dd/MM/yyyy': 'UTC'
+                      }}
+                      par
+                      {{
+                        lastPayment.createdBy ??
+                          'SYSTEM'
+                      }}
+                    </p>
+                  </div>
+                </div>
+
+                <span
+                  class="app-badge"
+                  [class.app-badge-success]="
+                    lastPayment.status === 'PAID'
+                  "
+                  [class.app-badge-neutral]="
+                    lastPayment.status ===
+                    'CANCELLED'
+                  "
+                >
+                  {{
+                    lastPayment.status === 'PAID'
+                      ? 'Payé'
+                      : 'Annulé'
+                  }}
+                </span>
+              </div>
+            </div>
+          </article>
+        }
+
+        <div class="mt-3 flex justify-end">
+          <a
+            routerLink="/app/payments"
+            class="app-link"
+          >
+            Consulter les paiements
+          </a>
+        </div>
+      </section>
+    }
+  }
+</section>

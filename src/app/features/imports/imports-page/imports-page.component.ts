@@ -12,9 +12,9 @@ import {
   signal,
 } from '@angular/core';
 import {
-  LucideCircleCheckBig,
   LucideChevronLeft,
   LucideChevronRight,
+  LucideCircleCheckBig,
   LucideCloudUpload,
   LucideFileSearch,
   LucideFileUp,
@@ -39,17 +39,8 @@ import { PolicyMaturity } from '../models/policy-maturity';
 /**
  * Écran principal des chargements CSV.
  *
- * Responsabilités :
- * - sélectionner et contrôler localement un fichier ;
- * - envoyer le CSV au backend ;
- * - présenter le rapport d'importation ou de rejet ;
- * - consulter l'historique paginé ;
- * - afficher le détail d'un chargement ;
- * - afficher les maturités insérées.
- *
- * Les validations effectuées dans ce composant améliorent
- * l'expérience utilisateur. Le backend reste responsable
- * de toutes les validations définitives.
+ * Les contrôles locaux améliorent l'expérience utilisateur.
+ * Le backend reste responsable des validations définitives.
  */
 @Component({
   selector: 'app-imports-page',
@@ -58,9 +49,9 @@ import { PolicyMaturity } from '../models/policy-maturity';
     DatePipe,
     DecimalPipe,
     ImportDetailDialogComponent,
-    LucideCircleCheckBig,
     LucideChevronLeft,
     LucideChevronRight,
+    LucideCircleCheckBig,
     LucideCloudUpload,
     LucideFileSearch,
     LucideFileUp,
@@ -73,16 +64,10 @@ import { PolicyMaturity } from '../models/policy-maturity';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportsPageComponent implements OnInit {
-  /**
-   * Taille maximale autorisée par le frontend : 10 Mo.
-   *
-   * La même limite doit également être appliquée côté backend.
-   */
   private static readonly MAXIMUM_FILE_SIZE =
     10 * 1024 * 1024;
 
-  private readonly importsService =
-    inject(ImportsService);
+  private readonly importsService = inject(ImportsService);
 
   readonly selectedFile = signal<File | null>(null);
   readonly dragActive = signal(false);
@@ -94,19 +79,9 @@ export class ImportsPageComponent implements OnInit {
 
   readonly pageError = signal<string | null>(null);
   readonly fileError = signal<string | null>(null);
-
-  /**
-   * Dernier rapport retourné par le backend.
-   *
-   * Il peut représenter :
-   * - une importation réussie avec HTTP 201 ;
-   * - un rejet métier avec HTTP 422.
-   */
-  readonly lastImportResult =
-    signal<CsvImportResponse | null>(null);
+  readonly lastImportResult = signal<CsvImportResponse | null>(null);
 
   readonly history = signal<ImportBatchSummary[]>([]);
-
   readonly currentPage = signal(0);
   readonly pageSize = signal(10);
   readonly totalElements = signal(0);
@@ -114,16 +89,9 @@ export class ImportsPageComponent implements OnInit {
   readonly firstPage = signal(true);
   readonly lastPage = signal(true);
 
-  readonly selectedDetail =
-    signal<ImportBatchDetail | null>(null);
+  readonly selectedDetail = signal<ImportBatchDetail | null>(null);
+  readonly selectedMaturities = signal<PolicyMaturity[]>([]);
 
-  readonly selectedMaturities =
-    signal<PolicyMaturity[]>([]);
-
-  /**
-   * Le bouton est actif uniquement lorsqu'un fichier
-   * correctement présélectionné est disponible.
-   */
   readonly canImport = computed(
     () =>
       this.selectedFile() !== null &&
@@ -135,28 +103,12 @@ export class ImportsPageComponent implements OnInit {
     this.loadHistory(0);
   }
 
-  /**
-   * Traite une sélection effectuée avec l'explorateur de fichiers.
-   */
   selectFile(event: Event): void {
-    const input =
-      event.target as HTMLInputElement;
-
-    const file =
-      input.files?.item(0) ?? null;
-
-    this.setSelectedFile(file);
-
-    /*
-     * Permet de sélectionner une seconde fois le même fichier
-     * après son retrait ou après une première importation.
-     */
+    const input = event.target as HTMLInputElement;
+    this.setSelectedFile(input.files?.item(0) ?? null);
     input.value = '';
   }
 
-  /**
-   * Active l'apparence de la zone de dépôt.
-   */
   onDragOver(event: DragEvent): void {
     event.preventDefault();
 
@@ -165,18 +117,11 @@ export class ImportsPageComponent implements OnInit {
     }
   }
 
-  /**
-   * Restaure l'apparence normale lorsque le fichier
-   * quitte la zone de dépôt.
-   */
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
     this.dragActive.set(false);
   }
 
-  /**
-   * Récupère le premier fichier déposé dans la zone.
-   */
   onFileDrop(event: DragEvent): void {
     event.preventDefault();
     this.dragActive.set(false);
@@ -185,15 +130,11 @@ export class ImportsPageComponent implements OnInit {
       return;
     }
 
-    const file =
-      event.dataTransfer?.files.item(0) ?? null;
-
-    this.setSelectedFile(file);
+    this.setSelectedFile(
+      event.dataTransfer?.files.item(0) ?? null,
+    );
   }
 
-  /**
-   * Retire le fichier actuellement sélectionné.
-   */
   removeSelectedFile(): void {
     if (this.importing()) {
       return;
@@ -203,13 +144,6 @@ export class ImportsPageComponent implements OnInit {
     this.fileError.set(null);
   }
 
-  /**
-   * Envoie le fichier sélectionné au backend.
-   *
-   * Un statut HTTP 422 est un rejet métier du fichier.
-   * Le rapport retourné est donc affiché à l'utilisateur
-   * au lieu d'être présenté comme une panne technique.
-   */
   importCsv(): void {
     const file = this.selectedFile();
 
@@ -224,102 +158,65 @@ export class ImportsPageComponent implements OnInit {
 
     this.importsService
       .importCsv(file)
-      .pipe(
-        finalize(() => {
-          this.importing.set(false);
-        }),
-      )
+      .pipe(finalize(() => this.importing.set(false)))
       .subscribe({
-        next: (result) => {
-          this.displayImportResult(result);
-        },
-
+        next: (result) => this.displayImportResult(result),
         error: (error: HttpErrorResponse) => {
-          const rejectedImport =
-            this.extractRejectedImport(error);
+          const rejectedImport = this.extractRejectedImport(error);
 
           if (rejectedImport) {
-            this.displayImportResult(
-              rejectedImport,
-            );
+            this.displayImportResult(rejectedImport);
             return;
           }
 
-          this.pageError.set(
-            this.resolveErrorMessage(error),
-          );
+          this.pageError.set(this.resolveErrorMessage(error));
         },
       });
   }
 
-  /**
-   * Charge une page de l'historique.
-   *
-   * Cette méthode ne supprime pas le dernier rapport affiché.
-   */
   loadHistory(page: number): void {
+    if (this.loadingHistory()) {
+      return;
+    }
+
     this.loadingHistory.set(true);
+    this.pageError.set(null);
 
     this.importsService
       .getHistory(page, this.pageSize())
-      .pipe(
-        finalize(() => {
-          this.loadingHistory.set(false);
-        }),
-      )
+      .pipe(finalize(() => this.loadingHistory.set(false)))
       .subscribe({
         next: (response) => {
           this.history.set(response.content);
           this.currentPage.set(response.page);
-          this.totalElements.set(
-            response.totalElements,
-          );
-          this.totalPages.set(
-            response.totalPages,
-          );
+          this.totalElements.set(response.totalElements);
+          this.totalPages.set(response.totalPages);
           this.firstPage.set(response.first);
           this.lastPage.set(response.last);
         },
-
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(
-            this.resolveErrorMessage(error),
-          );
+          this.pageError.set(this.resolveErrorMessage(error));
         },
       });
   }
 
   previousPage(): void {
-    if (this.firstPage()) {
-      return;
+    if (!this.firstPage() && !this.loadingHistory()) {
+      this.loadHistory(this.currentPage() - 1);
     }
-
-    this.loadHistory(
-      this.currentPage() - 1,
-    );
   }
 
   nextPage(): void {
-    if (this.lastPage()) {
+    if (!this.lastPage() && !this.loadingHistory()) {
+      this.loadHistory(this.currentPage() + 1);
+    }
+  }
+
+  openDetail(batch: ImportBatchSummary): void {
+    if (this.loadingDetail()) {
       return;
     }
 
-    this.loadHistory(
-      this.currentPage() + 1,
-    );
-  }
-
-  /**
-   * Charge le détail d'un lot.
-   *
-   * Pour un lot importé, le détail et les maturités
-   * sont chargés en parallèle.
-   *
-   * Pour un lot rejeté, seul le détail est nécessaire.
-   */
-  openDetail(
-    batch: ImportBatchSummary,
-  ): void {
     this.loadingDetail.set(true);
     this.pageError.set(null);
     this.selectedDetail.set(null);
@@ -329,14 +226,8 @@ export class ImportsPageComponent implements OnInit {
       this.loadingMaturities.set(true);
 
       forkJoin({
-        detail: this.importsService.getDetail(
-          batch.id,
-        ),
-
-        maturities:
-          this.importsService.getMaturities(
-            batch.id,
-          ),
+        detail: this.importsService.getDetail(batch.id),
+        maturities: this.importsService.getMaturities(batch.id),
       })
         .pipe(
           finalize(() => {
@@ -347,15 +238,10 @@ export class ImportsPageComponent implements OnInit {
         .subscribe({
           next: ({ detail, maturities }) => {
             this.selectedDetail.set(detail);
-            this.selectedMaturities.set(
-              maturities,
-            );
+            this.selectedMaturities.set(maturities);
           },
-
           error: (error: HttpErrorResponse) => {
-            this.pageError.set(
-              this.resolveErrorMessage(error),
-            );
+            this.pageError.set(this.resolveErrorMessage(error));
           },
         });
 
@@ -364,45 +250,29 @@ export class ImportsPageComponent implements OnInit {
 
     this.importsService
       .getDetail(batch.id)
-      .pipe(
-        finalize(() => {
-          this.loadingDetail.set(false);
-        }),
-      )
+      .pipe(finalize(() => this.loadingDetail.set(false)))
       .subscribe({
-        next: (detail) => {
-          this.selectedDetail.set(detail);
-        },
-
+        next: (detail) => this.selectedDetail.set(detail),
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(
-            this.resolveErrorMessage(error),
-          );
+          this.pageError.set(this.resolveErrorMessage(error));
         },
       });
   }
 
-  /**
-   * Ferme la fenêtre de consultation d'un lot.
-   */
   closeDetail(): void {
+    if (this.loadingDetail()) {
+      return;
+    }
+
     this.selectedDetail.set(null);
     this.selectedMaturities.set([]);
   }
 
-  /**
-   * Masque le dernier rapport sans modifier l'historique.
-   */
   dismissImportResult(): void {
     this.lastImportResult.set(null);
   }
 
-  /**
-   * Contrôle localement le fichier sélectionné.
-   */
-  private setSelectedFile(
-    file: File | null,
-  ): void {
+  private setSelectedFile(file: File | null): void {
     this.fileError.set(null);
     this.pageError.set(null);
 
@@ -411,75 +281,37 @@ export class ImportsPageComponent implements OnInit {
       return;
     }
 
-    if (
-      !file.name
-        .toLowerCase()
-        .endsWith('.csv')
-    ) {
-      this.selectedFile.set(null);
-
-      this.fileError.set(
-        'Seuls les fichiers CSV sont acceptés.',
-      );
-
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      this.rejectSelectedFile('Seuls les fichiers CSV sont acceptés.');
       return;
     }
 
     if (file.size === 0) {
-      this.selectedFile.set(null);
-
-      this.fileError.set(
-        'Le fichier sélectionné est vide.',
-      );
-
+      this.rejectSelectedFile('Le fichier sélectionné est vide.');
       return;
     }
 
-    if (
-      file.size >
-      ImportsPageComponent.MAXIMUM_FILE_SIZE
-    ) {
-      this.selectedFile.set(null);
-
-      this.fileError.set(
-        'Le fichier ne doit pas dépasser 10 Mo.',
-      );
-
+    if (file.size > ImportsPageComponent.MAXIMUM_FILE_SIZE) {
+      this.rejectSelectedFile('Le fichier ne doit pas dépasser 10 Mo.');
       return;
     }
 
     this.selectedFile.set(file);
   }
 
-  /**
-   * Enregistre et affiche le rapport retourné par le backend.
-   *
-   * Cette méthode est utilisée pour :
-   * - une importation réussie avec HTTP 201 ;
-   * - un fichier rejeté avec HTTP 422.
-   */
-  private displayImportResult(
-    result: CsvImportResponse,
-  ): void {
+  private rejectSelectedFile(message: string): void {
+    this.selectedFile.set(null);
+    this.fileError.set(message);
+  }
+
+  private displayImportResult(result: CsvImportResponse): void {
     this.lastImportResult.set(result);
     this.selectedFile.set(null);
     this.fileError.set(null);
     this.pageError.set(null);
-
-    /*
-     * Le nouveau chargement doit apparaître immédiatement
-     * en première page de l'historique.
-     */
     this.loadHistory(0);
   }
 
-  /**
-   * Extrait le rapport métier retourné avec HTTP 422.
-   *
-   * error.error peut être :
-   * - un objet JSON déjà désérialisé ;
-   * - une chaîne JSON selon la configuration HTTP.
-   */
   private extractRejectedImport(
     error: HttpErrorResponse,
   ): CsvImportResponse | null {
@@ -497,15 +329,11 @@ export class ImportsPageComponent implements OnInit {
       }
     }
 
-    if (
-      responseBody === null ||
-      typeof responseBody !== 'object'
-    ) {
+    if (responseBody === null || typeof responseBody !== 'object') {
       return null;
     }
 
-    const response =
-      responseBody as Partial<CsvImportResponse>;
+    const response = responseBody as Partial<CsvImportResponse>;
 
     if (
       typeof response.batchId !== 'number' ||
@@ -523,12 +351,7 @@ export class ImportsPageComponent implements OnInit {
     return response as CsvImportResponse;
   }
 
-  /**
-   * Transforme une erreur HTTP technique en message lisible.
-   */
-  private resolveErrorMessage(
-    error: HttpErrorResponse,
-  ): string {
+  private resolveErrorMessage(error: HttpErrorResponse): string {
     let responseBody: unknown = error.error;
 
     if (typeof responseBody === 'string') {
@@ -541,17 +364,14 @@ export class ImportsPageComponent implements OnInit {
       }
     }
 
-    const apiError =
-      responseBody as ApiErrorResponse | null;
+    const apiError = responseBody as ApiErrorResponse | null;
 
     if (apiError?.message) {
       return apiError.message;
     }
 
-    if (error.status === 0) {
-      return 'Le serveur est actuellement inaccessible.';
-    }
-
-    return 'Une erreur est survenue pendant le traitement.';
+    return error.status === 0
+      ? 'Le serveur est actuellement inaccessible.'
+      : 'Une erreur est survenue pendant le traitement.';
   }
 }

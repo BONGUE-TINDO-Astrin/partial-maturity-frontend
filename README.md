@@ -1,59 +1,182 @@
-# PartialMaturityFrontend
+# BeLife Partial Maturity Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.6.
+Interface Angular du module de gestion des maturités partielles de BeLife Insurance.
 
-## Development server
+## Dépôts associés
 
-To start a local development server, run:
+- Documentation fonctionnelle : `belife-partial-maturity-docs`
+- API Spring Boot : `belife-partial-maturity-backend`
+
+## Fonctionnalités
+
+- authentification et gestion de session ;
+- tableau de bord adapté au rôle ;
+- administration des utilisateurs ;
+- import CSV et historique des chargements ;
+- consultation des polices et maturités ;
+- simulation des intérêts ;
+- paiement total et annulation ;
+- historique des paiements ;
+- journal d’audit.
+
+## Stack
+
+```text
+Angular
+TypeScript
+Standalone Components
+Signals
+Reactive Forms
+RxJS
+Tailwind CSS
+Lucide Angular
+```
+
+## Prérequis
+
+- Node.js ;
+- npm ;
+- Angular CLI ;
+- backend BeLife démarré.
+
+Vérification :
+
+```bash
+node --version
+npm --version
+ng version
+```
+
+## Installation
+
+```bash
+npm install
+```
+
+## Configuration de l’API
+
+L’application doit pointer vers l’API Spring Boot, par exemple :
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8080/api/v1',
+};
+```
+
+Un exemple est fourni dans :
+
+```text
+src/environments/environment.example.ts
+```
+
+Si le projet utilise déjà `applicationConfig.apiUrl`, conserver ce mécanisme et adapter uniquement la valeur selon l’environnement.
+
+## Démarrage
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+L’application est disponible par défaut à l’adresse :
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```text
+http://localhost:4200
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Compilation
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Les artefacts de production sont générés dans `dist/`.
 
-## Running unit tests
+## Rôles
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### ADMIN
 
-```bash
-ng test
+- gestion des utilisateurs ;
+- imports CSV ;
+- consultation des polices et simulations ;
+- consultation des paiements ;
+- journal d’audit ;
+- tableau de bord administratif.
+
+### COMPTABILITE
+
+- consultation des polices ;
+- simulation des intérêts ;
+- paiement total ;
+- annulation de paiement ;
+- historique des paiements ;
+- tableau de bord comptable.
+
+Les guards et masquages Angular améliorent l’expérience utilisateur. Le backend reste responsable de la sécurité définitive.
+
+## Principes financiers
+
+Angular ne doit jamais :
+
+- recalculer les intérêts ;
+- envoyer un taux faisant autorité ;
+- envoyer le montant définitif du paiement.
+
+Le backend retourne les montants calculés avec six décimales. Angular les affiche avec :
+
+```text
+1.6-6
 ```
 
-## Running end-to-end tests
+## Structure fonctionnelle
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```text
+src/app/
+├── core/
+├── shared/
+└── features/
+    ├── authentication/
+    ├── users/
+    ├── imports/
+    ├── policies/
+    ├── payments/
+    ├── audit/
+    └── dashboard/
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Chaque fonctionnalité contient uniquement les modèles, services HTTP, pages et composants nécessaires.
 
-## Additional Resources
+## Qualité
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Conventions principales :
+
+- composants standalone ;
+- `ChangeDetectionStrategy.OnPush` ;
+- Signals pour l’état local ;
+- Reactive Forms pour les formulaires ;
+- services dédiés aux appels HTTP ;
+- dialogues Angular plutôt que `window.alert`, `window.confirm` ou `window.prompt` ;
+- aucune logique financière dupliquée dans le frontend.
+
+## Vérifications avant commit
+
+```bash
+ng build
+git status
+```
+
+Vérifier également :
+
+- aucune URL de production codée en dur ;
+- aucun JWT ou token dans Git ;
+- aucune donnée métier confidentielle ;
+- aucune icône Lucide dépréciée ;
+- aucune erreur TypeScript ou de template.
+
+## Documentation complémentaire
+
+Voir :
+
+```text
+docs/frontend-architecture-and-api.md
+```

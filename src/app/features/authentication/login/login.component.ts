@@ -6,21 +6,28 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import {FormBuilder, ReactiveFormsModule, Validators,} from '@angular/forms';
-import {ActivatedRoute,Router,RouterLink,} from '@angular/router';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import {
+  ActivatedRoute,
+  Router,
+} from '@angular/router';
+import {
+  LucideCircleAlert,
+  LucideLockKeyhole,
+  LucideLogIn,
+  LucideTriangleAlert,
+} from '@lucide/angular';
 import { finalize } from 'rxjs';
 
 import { AuthenticationService } from '../../../core/authentication/authentication.service';
-
-interface ApiErrorResponse {
-  code?: string;
-  message?: string;
-}
+import { ApiErrorResponse } from '../../../core/error-handling/api-error-response';
 
 /**
  * Écran d'authentification de l'application.
- *
- * Le composant gère uniquement le formulaire et les états visuels.
  * La gestion de la session est déléguée à AuthenticationService.
  */
 @Component({
@@ -28,14 +35,17 @@ interface ApiErrorResponse {
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    LucideCircleAlert,
+    LucideLockKeyhole,
+    LucideLogIn,
+    LucideTriangleAlert,
   ],
   templateUrl: './login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   private readonly formBuilder = inject(FormBuilder);
-  private readonly authenticationService =
-    inject(AuthenticationService);
+  private readonly authenticationService = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
 
@@ -44,9 +54,8 @@ export class LoginComponent {
 
   readonly sessionExpired = computed(
     () =>
-      this.activatedRoute.snapshot.queryParamMap.get(
-        'sessionExpired',
-      ) === 'true',
+      this.activatedRoute.snapshot.queryParamMap.get('sessionExpired') ===
+      'true',
   );
 
   readonly loginForm = this.formBuilder.nonNullable.group({
@@ -66,71 +75,65 @@ export class LoginComponent {
     ],
   });
 
-  /**
-   * Envoie les identifiants au backend et redirige
-   * l'utilisateur après une connexion réussie.
-   */
-    submit(): void {
-        this.errorMessage.set(null);
-
-        if (this.loginForm.invalid) {
-            this.loginForm.markAllAsTouched();
-            return;
-        }
-
-        this.isSubmitting.set(true);
-
-        const request = this.loginForm.getRawValue();
-
-        this.authenticationService
-            .login(request)
-            .pipe(
-            finalize(() => this.isSubmitting.set(false)),
-            )
-            .subscribe({
-            next: async () => {
-                const requestedReturnUrl =
-                this.activatedRoute.snapshot.queryParamMap.get(
-                    'returnUrl',
-                );
-
-                const targetUrl =
-                requestedReturnUrl &&
-                requestedReturnUrl.startsWith('/app/')
-                    ? requestedReturnUrl
-                    : '/app/dashboard';
-
-                const navigationSucceeded = await this.router.navigateByUrl(targetUrl);
-
-                if (!navigationSucceeded) {
-                this.errorMessage.set(
-                    'La connexion a réussi, mais la page d’accueil n’a pas pu être ouverte.',
-                );
-                }
-            },
-
-            error: (error: HttpErrorResponse) => {
-                this.errorMessage.set(
-                this.resolveErrorMessage(error),
-                );
-            },
-        });
+  submit(): void {
+    if (this.isSubmitting()) {
+      return;
     }
 
-  private resolveErrorMessage(
-    error: HttpErrorResponse,
-  ): string {
-    const apiError =
-      error.error as ApiErrorResponse | null;
+    this.errorMessage.set(null);
+
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting.set(true);
+
+    this.authenticationService
+      .login(this.loginForm.getRawValue())
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: async () => {
+          const requestedReturnUrl =
+            this.activatedRoute.snapshot.queryParamMap.get('returnUrl');
+
+          const targetUrl =
+            requestedReturnUrl?.startsWith('/app/')
+              ? requestedReturnUrl
+              : '/app/dashboard';
+
+          const navigationSucceeded =
+            await this.router.navigateByUrl(targetUrl);
+
+          if (!navigationSucceeded) {
+            this.errorMessage.set(
+              'La connexion a réussi, mais la page d’accueil n’a pas pu être ouverte.',
+            );
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage.set(this.resolveErrorMessage(error));
+        },
+      });
+  }
+
+  private resolveErrorMessage(error: HttpErrorResponse): string {
+    let body: unknown = error.error;
+
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = null;
+      }
+    }
+
+    const apiError = body as ApiErrorResponse | null;
 
     if (
-      error.status === 401 &&
+      (error.status === 401 || error.status === 403) &&
       apiError?.message
     ) {
-      return apiError.message;
-    }
-
-    if (error.status === 403 && apiError?.message) {
       return apiError.message;
     }
 
@@ -138,8 +141,9 @@ export class LoginComponent {
       return 'Le serveur est actuellement inaccessible.';
     }
 
-    return 'Une erreur est survenue pendant la connexion.';
+    return (
+      apiError?.message ??
+      'Une erreur est survenue pendant la connexion.'
+    );
   }
-
-
 }

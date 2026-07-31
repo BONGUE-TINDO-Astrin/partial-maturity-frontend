@@ -1,3 +1,1030 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+/* ============================================================
+   BELIFE DESIGN SYSTEM
+   Charte graphique et styles partagés
+   ============================================================ */
+
+:root {
+  /* ----------------------------------------------------------
+     Couleurs officielles
+     ---------------------------------------------------------- */
+
+  --belife-primary: #78060d;
+  --belife-primary-hover: #65050b;
+  --belife-primary-soft: #fdf2f2;
+
+  --belife-accent: #f4511e;
+  --belife-accent-hover: #dc4317;
+  --belife-accent-soft: #fff3ed;
+
+  --belife-gold: #eda23c;
+  --belife-gold-soft: #fff8e8;
+
+  --belife-background: #f6f7f9;
+  --belife-surface: #ffffff;
+  --belife-surface-muted: #f8fafc;
+
+  --belife-text: #262626;
+  --belife-text-secondary: #64748b;
+  --belife-text-muted: #94a3b8;
+
+  --belife-border: #e2e8f0;
+  --belife-border-strong: #cbd5e1;
+
+  --belife-success: #2e7d32;
+  --belife-success-hover: #256629;
+  --belife-success-soft: #edf7ed;
+  --belife-success-border: #bbdfbd;
+
+  --belife-error: #b3261e;
+  --belife-error-hover: #931f19;
+  --belife-error-soft: #fdf0ef;
+  --belife-error-border: #f0c3bf;
+
+  --belife-warning: #a15c00;
+  --belife-warning-soft: #fff7e6;
+  --belife-warning-border: #f4d49a;
+
+  --belife-info: #1d5f91;
+  --belife-info-soft: #edf6fc;
+  --belife-info-border: #bddcf0;
+
+  /* ----------------------------------------------------------
+     Dimensions
+     ---------------------------------------------------------- */
+
+  --belife-content-max-width: 1440px;
+
+  --belife-radius-sm: 0.375rem;
+  --belife-radius-md: 0.5rem;
+  --belife-radius-lg: 0.75rem;
+  --belife-radius-xl: 1rem;
+
+  --belife-shadow-sm:
+    0 1px 2px rgb(15 23 42 / 0.05);
+
+  --belife-shadow-md:
+    0 4px 12px rgb(15 23 42 / 0.08);
+
+  --belife-shadow-dialog:
+    0 20px 50px rgb(15 23 42 / 0.22);
+
+  /* ----------------------------------------------------------
+     Transitions
+     ---------------------------------------------------------- */
+
+  --belife-transition-fast: 150ms ease;
+  --belife-transition-normal: 200ms ease;
+}
+
+/* ============================================================
+   CONFIGURATION TAILWIND 4
+   Ces variables créent des utilitaires comme :
+   bg-belife-primary, text-belife-accent, border-belife-border
+   ============================================================ */
+
+@theme {
+  --color-belife-primary: var(--belife-primary);
+  --color-belife-primary-hover: var(--belife-primary-hover);
+  --color-belife-primary-soft: var(--belife-primary-soft);
+
+  --color-belife-accent: var(--belife-accent);
+  --color-belife-accent-hover: var(--belife-accent-hover);
+  --color-belife-accent-soft: var(--belife-accent-soft);
+
+  --color-belife-gold: var(--belife-gold);
+  --color-belife-gold-soft: var(--belife-gold-soft);
+
+  --color-belife-background: var(--belife-background);
+  --color-belife-surface: var(--belife-surface);
+  --color-belife-surface-muted: var(--belife-surface-muted);
+
+  --color-belife-text: var(--belife-text);
+  --color-belife-text-secondary: var(--belife-text-secondary);
+  --color-belife-text-muted: var(--belife-text-muted);
+
+  --color-belife-border: var(--belife-border);
+  --color-belife-border-strong: var(--belife-border-strong);
+
+  --color-belife-success: var(--belife-success);
+  --color-belife-success-soft: var(--belife-success-soft);
+
+  --color-belife-error: var(--belife-error);
+  --color-belife-error-soft: var(--belife-error-soft);
+
+  --color-belife-warning: var(--belife-warning);
+  --color-belife-warning-soft: var(--belife-warning-soft);
+
+  --color-belife-info: var(--belife-info);
+  --color-belife-info-soft: var(--belife-info-soft);
+}
+
+/* ============================================================
+   STYLES DE BASE
+   ============================================================ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-height: 100%;
+    background-color: var(--belife-background);
+    color-scheme: light;
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--belife-background);
+    color: var(--belife-text);
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img,
+  svg {
+    display: block;
+  }
+
+  ::selection {
+    background-color: rgb(244 81 30 / 0.18);
+    color: var(--belife-text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--belife-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================
+   STRUCTURE DES PAGES
+   ============================================================ */
+
+@layer components {
+  .app-page {
+    width: 100%;
+    max-width: var(--belife-content-max-width);
+    margin-inline: auto;
+    padding: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .app-page {
+      padding: 1.5rem;
+    }
+  }
+
+  .app-page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .app-page-header-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .app-page-header-row {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+  }
+
+  .app-eyebrow {
+    color: var(--belife-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1rem;
+    text-transform: uppercase;
+  }
+
+  .app-page-title {
+    margin: 0.25rem 0 0;
+    color: var(--belife-text);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 2rem;
+  }
+
+  .app-page-description {
+    max-width: 48rem;
+    margin: 0.25rem 0 0;
+    color: var(--belife-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+
+  .app-section {
+    margin-top: 1.5rem;
+  }
+
+  .app-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+  }
+
+  .app-section-title {
+    color: var(--belife-text);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+  }
+
+  .app-section-description {
+    margin-top: 0.125rem;
+    color: var(--belife-text-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .app-section-icon {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--belife-radius-lg);
+    background-color: var(--belife-accent-soft);
+    color: var(--belife-accent);
+  }
+
+  .app-section-icon svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+/* ============================================================
+   CARTES ET PANNEAUX
+   ============================================================ */
+
+@layer components {
+  .app-card {
+    border: 1px solid var(--belife-border);
+    border-radius: var(--belife-radius-lg);
+    background-color: var(--belife-surface);
+    box-shadow: var(--belife-shadow-sm);
+  }
+
+  .app-card-body {
+    padding: 1rem;
+  }
+
+  .app-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--belife-border);
+  }
+
+  .app-card-footer {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid var(--belife-border);
+  }
+
+  .app-card-title {
+    color: var(--belife-text);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+  }
+
+  .app-card-description {
+    margin-top: 0.125rem;
+    color: var(--belife-text-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .app-panel-muted {
+    border-radius: var(--belife-radius-lg);
+    background-color: var(--belife-surface-muted);
+    padding: 1rem;
+  }
+
+  .app-metric-card {
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid var(--belife-border);
+    border-radius: var(--belife-radius-lg);
+    background-color: var(--belife-surface);
+  }
+
+  .app-metric-label {
+    color: var(--belife-text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+  }
+
+  .app-metric-value {
+    margin-top: 0.375rem;
+    color: var(--belife-text);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 2rem;
+    overflow-wrap: anywhere;
+  }
+
+  .app-metric-card-success {
+    border-color: var(--belife-success-border);
+    background-color: var(--belife-success-soft);
+  }
+
+  .app-metric-card-success .app-metric-label,
+  .app-metric-card-success .app-metric-value {
+    color: var(--belife-success);
+  }
+
+  .app-metric-card-error {
+    border-color: var(--belife-error-border);
+    background-color: var(--belife-error-soft);
+  }
+
+  .app-metric-card-error .app-metric-label,
+  .app-metric-card-error .app-metric-value {
+    color: var(--belife-error);
+  }
+
+  .app-metric-card-warning {
+    border-color: var(--belife-warning-border);
+    background-color: var(--belife-warning-soft);
+  }
+
+  .app-metric-card-warning .app-metric-label,
+  .app-metric-card-warning .app-metric-value {
+    color: var(--belife-warning);
+  }
+
+  .app-metric-card-info {
+    border-color: var(--belife-info-border);
+    background-color: var(--belife-info-soft);
+  }
+
+  .app-metric-card-info .app-metric-label,
+  .app-metric-card-info .app-metric-value {
+    color: var(--belife-info);
+  }
+}
+
+/* ============================================================
+   BOUTONS
+   ============================================================ */
+
+@layer components {
+  .app-button {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--belife-radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    transition:
+      background-color var(--belife-transition-fast),
+      border-color var(--belife-transition-fast),
+      color var(--belife-transition-fast),
+      box-shadow var(--belife-transition-fast),
+      opacity var(--belife-transition-fast);
+  }
+
+  .app-button svg {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+  }
+
+  .app-button:disabled {
+    opacity: 0.5;
+  }
+
+  .app-button-primary {
+    background-color: var(--belife-primary);
+    color: white;
+  }
+
+  .app-button-primary:hover:not(:disabled) {
+    background-color: var(--belife-primary-hover);
+  }
+
+  .app-button-accent {
+    background-color: var(--belife-accent);
+    color: white;
+  }
+
+  .app-button-accent:hover:not(:disabled) {
+    background-color: var(--belife-accent-hover);
+  }
+
+  .app-button-secondary {
+    border-color: var(--belife-border-strong);
+    background-color: var(--belife-surface);
+    color: var(--belife-text);
+  }
+
+  .app-button-secondary:hover:not(:disabled) {
+    background-color: var(--belife-surface-muted);
+    border-color: var(--belife-text-muted);
+  }
+
+  .app-button-success {
+    background-color: var(--belife-success);
+    color: white;
+  }
+
+  .app-button-success:hover:not(:disabled) {
+    background-color: var(--belife-success-hover);
+  }
+
+  .app-button-danger {
+    background-color: var(--belife-error);
+    color: white;
+  }
+
+  .app-button-danger:hover:not(:disabled) {
+    background-color: var(--belife-error-hover);
+  }
+
+  .app-button-ghost {
+    background-color: transparent;
+    color: var(--belife-text-secondary);
+  }
+
+  .app-button-ghost:hover:not(:disabled) {
+    background-color: var(--belife-surface-muted);
+    color: var(--belife-text);
+  }
+
+  .app-button-sm {
+    min-height: 2.125rem;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .app-button-icon {
+    width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0;
+  }
+
+  .app-button-block {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   FORMULAIRES
+   ============================================================ */
+
+@layer components {
+  .app-form-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .app-field {
+    min-width: 0;
+  }
+
+  .app-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    color: var(--belife-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+  }
+
+  .app-input,
+  .app-select,
+  .app-textarea {
+    width: 100%;
+    border: 1px solid var(--belife-border-strong);
+    border-radius: var(--belife-radius-md);
+    background-color: var(--belife-surface);
+    color: var(--belife-text);
+    font-size: 0.875rem;
+    outline: none;
+    transition:
+      border-color var(--belife-transition-fast),
+      box-shadow var(--belife-transition-fast),
+      background-color var(--belife-transition-fast);
+  }
+
+  .app-input,
+  .app-select {
+    min-height: 2.625rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-textarea {
+    min-height: 6rem;
+    padding: 0.625rem 0.75rem;
+    resize: vertical;
+  }
+
+  .app-input::placeholder,
+  .app-textarea::placeholder {
+    color: var(--belife-text-muted);
+  }
+
+  .app-input:focus,
+  .app-select:focus,
+  .app-textarea:focus {
+    border-color: var(--belife-accent);
+    box-shadow: 0 0 0 3px rgb(244 81 30 / 0.12);
+  }
+
+  .app-input:disabled,
+  .app-select:disabled,
+  .app-textarea:disabled {
+    cursor: not-allowed;
+    background-color: var(--belife-surface-muted);
+    color: var(--belife-text-muted);
+  }
+
+  .app-input-invalid {
+    border-color: var(--belife-error);
+  }
+
+  .app-input-invalid:focus {
+    border-color: var(--belife-error);
+    box-shadow: 0 0 0 3px rgb(179 38 30 / 0.12);
+  }
+
+  .app-field-help {
+    margin-top: 0.375rem;
+    color: var(--belife-text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+
+  .app-field-error {
+    margin-top: 0.375rem;
+    color: var(--belife-error);
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+}
+
+/* ============================================================
+   ALERTES
+   ============================================================ */
+
+@layer components {
+  .app-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid;
+    border-radius: var(--belife-radius-lg);
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+  }
+
+  .app-alert-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex: 0 0 auto;
+    margin-top: 0.125rem;
+  }
+
+  .app-alert-content {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .app-alert-title {
+    font-weight: 600;
+  }
+
+  .app-alert-message {
+    margin-top: 0.125rem;
+  }
+
+  .app-alert-success {
+    border-color: var(--belife-success-border);
+    background-color: var(--belife-success-soft);
+    color: var(--belife-success);
+  }
+
+  .app-alert-error {
+    border-color: var(--belife-error-border);
+    background-color: var(--belife-error-soft);
+    color: var(--belife-error);
+  }
+
+  .app-alert-warning {
+    border-color: var(--belife-warning-border);
+    background-color: var(--belife-warning-soft);
+    color: var(--belife-warning);
+  }
+
+  .app-alert-info {
+    border-color: var(--belife-info-border);
+    background-color: var(--belife-info-soft);
+    color: var(--belife-info);
+  }
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+
+@layer components {
+  .app-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    width: fit-content;
+    padding: 0.1875rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.125rem;
+    white-space: nowrap;
+  }
+
+  .app-badge-success {
+    background-color: var(--belife-success-soft);
+    color: var(--belife-success);
+  }
+
+  .app-badge-error {
+    background-color: var(--belife-error-soft);
+    color: var(--belife-error);
+  }
+
+  .app-badge-warning {
+    background-color: var(--belife-warning-soft);
+    color: var(--belife-warning);
+  }
+
+  .app-badge-info {
+    background-color: var(--belife-info-soft);
+    color: var(--belife-info);
+  }
+
+  .app-badge-neutral {
+    background-color: var(--belife-surface-muted);
+    color: var(--belife-text-secondary);
+  }
+
+  .app-badge-primary {
+    background-color: var(--belife-primary-soft);
+    color: var(--belife-primary);
+  }
+}
+
+/* ============================================================
+   TABLEAUX
+   ============================================================ */
+
+@layer components {
+  .app-table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .app-table {
+    width: 100%;
+    min-width: 42rem;
+    border-collapse: collapse;
+  }
+
+  .app-table thead {
+    background-color: var(--belife-surface-muted);
+  }
+
+  .app-table th {
+    padding: 0.75rem 1rem;
+    color: var(--belife-text-secondary);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1rem;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .app-table td {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--belife-border);
+    color: var(--belife-text);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    vertical-align: middle;
+  }
+
+  .app-table tbody tr {
+    transition: background-color var(--belife-transition-fast);
+  }
+
+  .app-table tbody tr:hover {
+    background-color: var(--belife-surface-muted);
+  }
+
+  .app-table .app-table-cell-right {
+    text-align: right;
+  }
+
+  .app-table .app-table-cell-muted {
+    color: var(--belife-text-secondary);
+  }
+}
+
+/* ============================================================
+   ÉTATS VIDES ET CHARGEMENTS
+   ============================================================ */
+
+@layer components {
+  .app-empty-state {
+    padding: 2rem 1rem;
+    text-align: center;
+  }
+
+  .app-empty-state-icon {
+    display: flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-inline: auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--belife-radius-lg);
+    background-color: var(--belife-surface-muted);
+    color: var(--belife-text-muted);
+  }
+
+  .app-empty-state-icon svg {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .app-empty-state-title {
+    margin-top: 0.75rem;
+    color: var(--belife-text);
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  .app-empty-state-message {
+    max-width: 30rem;
+    margin: 0.25rem auto 0;
+    color: var(--belife-text-secondary);
+    font-size: 0.8125rem;
+  }
+
+  .app-loading-state {
+    display: flex;
+    min-height: 8rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    color: var(--belife-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .app-spinner {
+    width: 1.125rem;
+    height: 1.125rem;
+    animation: app-spin 0.8s linear infinite;
+  }
+
+  @keyframes app-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* ============================================================
+   DIALOGUES
+   ============================================================ */
+
+@layer components {
+  .app-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-color: rgb(15 23 42 / 0.55);
+  }
+
+  .app-modal {
+    display: flex;
+    width: 100%;
+    max-height: 92vh;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--belife-radius-xl);
+    background-color: var(--belife-surface);
+    box-shadow: var(--belife-shadow-dialog);
+  }
+
+  .app-modal-sm {
+    max-width: 28rem;
+  }
+
+  .app-modal-md {
+    max-width: 36rem;
+  }
+
+  .app-modal-lg {
+    max-width: 56rem;
+  }
+
+  .app-modal-xl {
+    max-width: 72rem;
+  }
+
+  .app-modal-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--belife-border);
+  }
+
+  .app-modal-title {
+    color: var(--belife-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.75rem;
+  }
+
+  .app-modal-description {
+    margin-top: 0.125rem;
+    color: var(--belife-text-secondary);
+    font-size: 0.8125rem;
+  }
+
+  .app-modal-body {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 1.25rem;
+  }
+
+  .app-modal-footer {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column-reverse;
+    gap: 0.625rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--belife-border);
+  }
+
+  @media (min-width: 640px) {
+    .app-modal-footer {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+  }
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+
+@layer components {
+  .app-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--belife-border);
+  }
+
+  .app-pagination-label {
+    color: var(--belife-text-secondary);
+    font-size: 0.8125rem;
+  }
+
+  .app-pagination-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+}
+
+/* ============================================================
+   UTILITAIRES MÉTIER
+   ============================================================ */
+
+@layer components {
+  .app-financial-value {
+    color: var(--belife-text);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .app-code-value {
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      monospace;
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  .app-divider {
+    height: 1px;
+    background-color: var(--belife-border);
+  }
+
+  .app-link {
+    color: var(--belife-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: color var(--belife-transition-fast);
+  }
+
+  .app-link:hover {
+    color: var(--belife-primary-hover);
+    text-decoration: underline;
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITÉ ET PRÉFÉRENCES
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,7 +1,29 @@
-<section class="feature-placeholder">
-  <div class="box">
-    <h2>{{ title }}</h2>
-    <p>{{ message }}</p>
-    <ng-content></ng-content>
-  </div>
+<section class="app-page">
+  <article class="app-card">
+    <div class="app-empty-state py-8">
+      <div class="app-empty-state-icon bg-belife-warning-soft text-belife-warning">
+        <svg lucideConstruction aria-hidden="true"></svg>
+      </div>
+
+      <p class="app-eyebrow mt-4">
+        Fonctionnalité planifiée
+      </p>
+
+      <h1 class="app-page-title">
+        {{ title }}
+      </h1>
+
+      <p class="app-empty-state-message">
+        {{ description }}
+      </p>
+
+      <span class="app-badge app-badge-warning mt-4">
+        Bientôt disponible
+      </span>
+
+      <div class="mt-4">
+        <ng-content />
+      </div>
+    </div>
+  </article>
 </section>

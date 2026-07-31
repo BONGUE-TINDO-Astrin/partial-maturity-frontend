@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50">
+<div class="min-h-screen bg-belife-background">
   <app-side-menu
     [mobileOpen]="mobileMenuOpen()"
     (closeMobileMenu)="closeMobileMenu()"
@@ -9,8 +9,10 @@
       (openMobileMenu)="openMobileMenu()"
     />
 
-    <main>
-      <div class="px-4 pt-5 sm:px-6 lg:px-8">
+    <main class="min-w-0" id="main-content">
+      <div
+        class="mx-auto w-full max-w-[var(--belife-content-max-width)] px-4 pt-3 lg:px-6"
+      >
         <app-navigation-path />
       </div>
 
@@ -18,21 +20,3 @@
     </main>
   </div>
 </div>
-
-<!-- <div class="min-h-screen bg-slate-50">
-  <app-side-menu />
-
-  <div class="min-h-screen lg:pl-72">
-    <app-top-bar />
-
-    <main>
-      <div class="px-4 pt-5 sm:px-6 lg:px-8">
-        <p class="text-sm text-slate-500">
-          Accueil / Tableau de bord
-        </p>
-      </div>
-
-      <router-outlet />
-    </main>
-  </div>
-</div> -->
