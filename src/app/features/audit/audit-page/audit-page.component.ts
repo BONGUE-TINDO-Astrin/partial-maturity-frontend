@@ -27,14 +27,13 @@ import {
 } from '@lucide/angular';
 import { finalize } from 'rxjs';
 
-import { ApiErrorResponse } from '../../../core/error-handling/api-error-response';
 import { AuditDetailDialogComponent } from '../audit-detail-dialog/audit-detail-dialog.component';
 import { AuditService } from '../audit.service';
 import { AuditEventType } from '../models/audit-event-type';
 import { AuditLogDetail } from '../models/audit-log-detail';
 import { AuditLogSummary } from '../models/audit-log-summary';
 import { AuditResourceType } from '../models/audit-resource-type';
-
+import { resolveApiErrorMessage } from '../../../core/error-handling/api-error-utils';
 interface AuditFilterOption<T> {
   value: T;
   label: string;
@@ -194,8 +193,13 @@ export class AuditPageComponent implements OnInit {
           this.lastPage.set(response.last);
         },
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(this.resolveErrorMessage(error));
-        },
+          this.pageError.set(
+            resolveApiErrorMessage(
+              error,
+              'Le journal d’audit ne peut pas être chargé.',
+            ),
+          );
+        }
       });
   }
 
@@ -229,7 +233,12 @@ export class AuditPageComponent implements OnInit {
       .subscribe({
         next: (detail) => this.selectedAudit.set(detail),
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(this.resolveErrorMessage(error));
+          this.pageError.set(
+            resolveApiErrorMessage(
+              error,
+              'Le détail de l’événement d’audit ne peut pas être chargé.',
+            ),
+          );
         },
       });
   }
@@ -274,25 +283,4 @@ export class AuditPageComponent implements OnInit {
     );
   }
 
-  private resolveErrorMessage(error: HttpErrorResponse): string {
-    let body: unknown = error.error;
-
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = null;
-      }
-    }
-
-    const apiError = body as ApiErrorResponse | null;
-
-    if (apiError?.message) {
-      return apiError.message;
-    }
-
-    return error.status === 0
-      ? 'Le serveur est actuellement inaccessible.'
-      : 'Le journal d’audit ne peut pas être chargé.';
-  }
 }

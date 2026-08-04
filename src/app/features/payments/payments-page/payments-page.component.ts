@@ -1,5 +1,4 @@
 import {
-  DatePipe,
   DecimalPipe,
 } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -28,11 +27,12 @@ import {
 import { finalize } from 'rxjs';
 
 import { AuthenticationService } from '../../../core/authentication/authentication.service';
-import { ApiErrorResponse } from '../../../core/error-handling/api-error-response';
 import { CancelPaymentDialogComponent } from '../../../shared/ui-components/cancel-payment-dialog.component/cancel-payment-dialog.component';
 import { PaymentDetailDialogComponent } from '../payment-detail-dialog/payment-detail-dialog.component';
 import { PaymentResponse } from '../models/payment-response';
 import { PaymentsService } from '../payments.service';
+import { resolveApiErrorMessage } from '../../../core/error-handling/api-error-utils';
+import { LocalDatePipe } from '../../../shared/pipes/local-date.pipe';
 
 /**
  * Page de consultation de l'historique des paiements.
@@ -41,7 +41,7 @@ import { PaymentsService } from '../payments.service';
   selector: 'app-payments-page',
   standalone: true,
   imports: [
-    DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     ReactiveFormsModule,
     PaymentDetailDialogComponent,
@@ -121,7 +121,9 @@ export class PaymentsPageComponent {
       .subscribe({
         next: (payments) => this.payments.set(payments),
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(this.resolveErrorMessage(error));
+          this.pageError.set(resolveApiErrorMessage(
+            error,
+            'Les paiements de cette police ne peuvent pas être chargés.'));
         },
       });
   }
@@ -140,7 +142,7 @@ export class PaymentsPageComponent {
       .subscribe({
         next: (detail) => this.selectedPayment.set(detail),
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(this.resolveErrorMessage(error));
+          this.pageError.set(resolveApiErrorMessage(error, 'Le détail du paiement ne peut pas être chargé.'));
         },
       });
   }
@@ -195,7 +197,7 @@ export class PaymentsPageComponent {
           );
         },
         error: (error: HttpErrorResponse) => {
-          this.cancellationError.set(this.resolveErrorMessage(error));
+            this.cancellationError.set(resolveApiErrorMessage(error, 'Le paiement ne peut pas être annulé.'));
         },
       });
   }
@@ -208,25 +210,4 @@ export class PaymentsPageComponent {
     );
   }
 
-  private resolveErrorMessage(error: HttpErrorResponse): string {
-    let body: unknown = error.error;
-
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = null;
-      }
-    }
-
-    const apiError = body as ApiErrorResponse | null;
-
-    if (apiError?.message) {
-      return apiError.message;
-    }
-
-    return error.status === 0
-      ? 'Le serveur est actuellement inaccessible.'
-      : 'Une erreur est survenue pendant le traitement.';
-  }
 }

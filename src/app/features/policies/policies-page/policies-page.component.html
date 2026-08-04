@@ -2,10 +2,14 @@
   <header class="app-page-header-row">
     <div>
       <p class="app-eyebrow">Comptabilité</p>
-      <h1 class="app-page-title">Consultation des polices</h1>
+
+      <h1 class="app-page-title">
+        Consultation des polices
+      </h1>
+
       <p class="app-page-description">
         Recherchez une police pour consulter ses maturités,
-        leur chronologie et sa situation financière.
+        simuler les intérêts et enregistrer son paiement total.
       </p>
     </div>
 
@@ -13,7 +17,7 @@
       <button
         type="button"
         class="app-button app-button-secondary"
-        [disabled]="loading()"
+        [disabled]="hasPendingOperation()"
         (click)="refreshPolicy()"
       >
         <svg
@@ -21,7 +25,8 @@
           [class.app-spinner]="loading()"
           aria-hidden="true"
         ></svg>
-        Actualiser
+
+        {{ loading() ? 'Actualisation...' : 'Actualiser' }}
       </button>
     }
   </header>
@@ -35,7 +40,10 @@
         novalidate
       >
         <div class="app-field min-w-0 flex-1">
-          <label for="policyNumber" class="app-label">
+          <label
+            for="policyNumber"
+            class="app-label"
+          >
             Numéro de police
           </label>
 
@@ -45,6 +53,7 @@
               class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-belife-text-muted"
               aria-hidden="true"
             ></svg>
+
             <input
               id="policyNumber"
               type="text"
@@ -73,21 +82,28 @@
             policyNumberControl.hasError('maxlength')
           ) {
             <p class="app-field-error">
-              Le numéro de police ne doit pas dépasser 100 caractères.
+              Le numéro de police ne doit pas dépasser
+              100 caractères.
             </p>
           }
 
           <p class="app-field-help">
-            Les éventuels zéros initiaux doivent être conservés.
+            Les éventuels zéros placés au début du numéro
+            doivent être conservés.
           </p>
         </div>
 
         <button
           type="submit"
           class="app-button app-button-primary sm:mt-[1.625rem]"
-          [disabled]="loading()"
+          [disabled]="hasPendingOperation()"
         >
-          <svg lucideFileSearch aria-hidden="true"></svg>
+          <svg
+            lucideFileSearch
+            [class.app-spinner]="loading()"
+            aria-hidden="true"
+          ></svg>
+
           {{ loading() ? 'Recherche...' : 'Rechercher' }}
         </button>
       </form>
@@ -95,15 +111,24 @@
   </section>
 
   @if (pageError()) {
-    <div class="app-alert app-alert-error app-section" role="alert">
+    <div
+      class="app-alert app-alert-error app-section"
+      role="alert"
+    >
       <svg
         lucideCircleAlert
         class="app-alert-icon"
         aria-hidden="true"
       ></svg>
+
       <div class="app-alert-content">
-        <p class="app-alert-title">Recherche impossible</p>
-        <p class="app-alert-message">{{ pageError() }}</p>
+        <p class="app-alert-title">
+          Recherche impossible
+        </p>
+
+        <p class="app-alert-message">
+          {{ pageError() }}
+        </p>
       </div>
     </div>
   }
@@ -119,12 +144,17 @@
         class="app-alert-icon"
         aria-hidden="true"
       ></svg>
+
       <div class="app-alert-content">
-        <p class="app-alert-title">Paiement enregistré</p>
+        <p class="app-alert-title">
+          Paiement enregistré
+        </p>
+
         <p class="app-alert-message">
           {{ paymentSuccessMessage() }}
         </p>
       </div>
+
       <button
         type="button"
         class="app-button app-button-ghost app-button-icon app-button-sm"
@@ -138,23 +168,36 @@
 
   @if (notFoundMessage()) {
     <section
-      class="app-alert app-alert-warning app-section flex-col items-center text-center"
+      class="app-card app-section"
       role="status"
     >
-      <div class="app-empty-state-icon bg-white text-belife-warning">
-        <svg lucideFileSearch aria-hidden="true"></svg>
+      <div class="app-empty-state">
+        <div
+          class="app-empty-state-icon bg-belife-warning-soft text-belife-warning"
+        >
+          <svg
+            lucideFileSearch
+            aria-hidden="true"
+          ></svg>
+        </div>
+
+        <h2 class="app-empty-state-title">
+          Police introuvable
+        </h2>
+
+        <p class="app-empty-state-message">
+          {{ notFoundMessage() }}
+        </p>
+
+        <button
+          type="button"
+          class="app-button app-button-secondary mt-4"
+          [disabled]="hasPendingOperation()"
+          (click)="clearSearch()"
+        >
+          Effectuer une nouvelle recherche
+        </button>
       </div>
-      <div class="app-alert-content">
-        <p class="app-alert-title">Police introuvable</p>
-        <p class="app-alert-message">{{ notFoundMessage() }}</p>
-      </div>
-      <button
-        type="button"
-        class="app-button app-button-secondary app-button-sm"
-        (click)="clearSearch()"
-      >
-        Nouvelle recherche
-      </button>
     </section>
   }
 
@@ -167,14 +210,19 @@
     <section class="app-card app-section">
       <div class="app-empty-state">
         <div class="app-empty-state-icon">
-          <svg lucideFileSearch aria-hidden="true"></svg>
+          <svg
+            lucideFileSearch
+            aria-hidden="true"
+          ></svg>
         </div>
+
         <h2 class="app-empty-state-title">
           Aucune police sélectionnée
         </h2>
+
         <p class="app-empty-state-message">
           Saisissez le numéro exact d’une police pour afficher
-          ses maturités importées.
+          les maturités importées.
         </p>
       </div>
     </section>
@@ -183,200 +231,346 @@
   @if (policy(); as currentPolicy) {
     <section class="app-section">
       <div
-        class="rounded-xl bg-gradient-to-br from-belife-primary to-[#9b111e] p-4 text-white shadow-sm"
+        class="rounded-xl bg-gradient-to-br from-belife-primary to-belife-accent p-5 text-white"
       >
         <div
-          class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
         >
           <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-belife-gold">
+            <p
+              class="text-xs font-semibold uppercase tracking-wider text-belife-gold"
+            >
               Police
             </p>
+
             <h2 class="mt-1 break-all text-2xl font-bold">
               {{ currentPolicy.policyNumber }}
             </h2>
           </div>
 
-          <span class="app-badge bg-white/15 text-white">
-            <svg lucideCircleCheckBig class="size-3.5" aria-hidden="true"></svg>
-            {{ currentPolicy.maturityCount }} maturité(s)
-          </span>
+          <div
+            class="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold"
+          >
+            <svg
+              lucideCircleCheckBig
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+
+            {{ currentPolicy.maturityCount }}
+            maturité(s)
+          </div>
         </div>
       </div>
 
       <div class="mt-3 grid gap-3 md:grid-cols-3">
-        <article class="app-metric-card app-metric-card-success">
-          <p class="app-metric-label">Montant total des maturités</p>
-          <p class="app-metric-value">
-            {{ currentPolicy.totalMaturityAmount | number: '1.6-6' }}
+        <article class="app-metric-card">
+          <div
+            class="mb-3 flex size-9 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+          >
+            <svg
+              lucideCoins
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="app-metric-label">
+            Montant total des maturités
+          </p>
+
+          <p class="app-metric-value break-words">
+            {{
+              currentPolicy.totalMaturityAmount
+                | number: '1.2-6'
+            }}
           </p>
         </article>
 
-        <article class="app-metric-card app-metric-card-info">
-          <p class="app-metric-label">Première maturité</p>
-          <p class="app-metric-value">
-            {{ currentPolicy.firstMaturityDate | date: 'dd/MM/yyyy': 'UTC' }}
+        <article class="app-metric-card">
+          <div
+            class="mb-3 flex size-9 items-center justify-center rounded-lg bg-belife-info-soft text-belife-info"
+          >
+            <svg
+              lucideCalendarDays
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="app-metric-label">
+            Première maturité
+          </p>
+
+          <p class="mt-1 font-semibold text-belife-text">
+            {{
+              currentPolicy.firstMaturityDate | localDate
+            }}
           </p>
         </article>
 
-        <article class="app-metric-card app-metric-card-warning">
-          <p class="app-metric-label">Dernière maturité</p>
-          <p class="app-metric-value">
-            {{ currentPolicy.lastMaturityDate | date: 'dd/MM/yyyy': 'UTC' }}
+        <article class="app-metric-card">
+          <div
+            class="mb-3 flex size-9 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
+          >
+            <svg
+              lucideCalendarDays
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="app-metric-label">
+            Dernière maturité
+          </p>
+
+          <p class="mt-1 font-semibold text-belife-text">
+            {{
+              currentPolicy.lastMaturityDate | localDate
+            }}
           </p>
         </article>
       </div>
     </section>
 
     <section class="app-card app-section">
-      <div class="app-card-body">
-        <div
-          class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-        >
-          <div class="flex items-start gap-2.5">
-            <div class="app-section-icon">
-              <svg lucideCalculator aria-hidden="true"></svg>
-            </div>
-            <div>
-              <h2 class="app-card-title">Simulation des intérêts</h2>
-              <p class="app-card-description">
-                Cycles complets de 12 mois, taux annuel fixe de 3,2 %.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="app-button app-button-success"
-            [disabled]="simulating()"
-            (click)="simulateInterest()"
+      <header class="app-card-header flex-col sm:flex-row">
+        <div class="flex items-start gap-2.5">
+          <div
+            class="app-section-icon bg-belife-success-soft text-belife-success"
           >
             <svg
-              lucideTrendingUp
-              [class.app-spinner]="simulating()"
+              lucideCalculator
               aria-hidden="true"
             ></svg>
-            {{ simulating() ? 'Calcul en cours...' : 'Calculer les intérêts' }}
-          </button>
+          </div>
+
+          <div>
+            <h2 class="app-card-title">
+              Simulation des intérêts
+            </h2>
+
+            <p class="app-card-description">
+              Calcul selon les cycles complets de douze mois
+              avec un taux annuel fixe de 3,2 %.
+            </p>
+          </div>
         </div>
 
+        <button
+          type="button"
+          class="app-button app-button-success"
+          [disabled]="hasPendingOperation()"
+          (click)="simulateInterest()"
+        >
+          <svg
+            lucideTrendingUp
+            [class.app-spinner]="simulating()"
+            aria-hidden="true"
+          ></svg>
+
+          {{
+            simulating()
+              ? 'Calcul en cours...'
+              : 'Calculer les intérêts'
+          }}
+        </button>
+      </header>
+
+      <div class="app-card-body">
         @if (simulationError()) {
-          <div class="app-alert app-alert-error mt-4" role="alert">
-            {{ simulationError() }}
+          <div
+            class="app-alert app-alert-error"
+            role="alert"
+          >
+            <svg
+              lucideCircleAlert
+              class="app-alert-icon"
+              aria-hidden="true"
+            ></svg>
+
+            <div class="app-alert-content">
+              {{ simulationError() }}
+            </div>
           </div>
         }
 
         @if (simulation(); as result) {
-          <div class="mt-4">
-            <div class="rounded-xl bg-belife-text p-4 text-white">
-              <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-              >
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                    Solde à payer
-                  </p>
-                  <p class="mt-1 break-words text-2xl font-bold tabular-nums">
-                    {{ result.balance | number: '1.6-6' }}
-                  </p>
-                </div>
-                <div class="text-sm sm:text-right">
-                  <p class="text-slate-300">Date du calcul</p>
-                  <p class="font-semibold">
-                    {{ result.calculationDate | date: 'dd/MM/yyyy': 'UTC' }}
-                  </p>
-                  <p class="mt-1 text-slate-300">
-                    Taux : {{ result.annualRate | percent: '1.1-3' }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <dl class="mt-3 grid gap-3 sm:grid-cols-3">
-              <div class="app-metric-card app-metric-card-info">
-                <dt class="app-metric-label">Capital ouvert</dt>
-                <dd class="app-metric-value">
-                  {{ result.openCapital | number: '1.6-6' }}
-                </dd>
-              </div>
-              <div class="app-metric-card app-metric-card-success">
-                <dt class="app-metric-label">Intérêts ouverts</dt>
-                <dd class="app-metric-value">
-                  {{ result.openInterest | number: '1.6-6' }}
-                </dd>
-              </div>
-              <div class="app-metric-card app-metric-card-warning">
-                <dt class="app-metric-label">Cycles appliqués</dt>
-                <dd class="app-metric-value">{{ result.completedCycles }}</dd>
-              </div>
-            </dl>
-
-            <div class="app-card mt-3 overflow-hidden shadow-none">
-              <div class="app-table-container">
-                <table class="app-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Événement</th>
-                      <th class="app-table-cell-right">Capital ajouté</th>
-                      <th class="app-table-cell-right">Intérêt</th>
-                      <th class="app-table-cell-right">Solde après</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (line of result.lines; track line.sequence) {
-                      <tr>
-                        <td>
-                          {{ line.eventDate | date: 'dd/MM/yyyy': 'UTC' }}
-                        </td>
-                        <td>
-                          <p class="font-medium">
-                            @switch (line.eventType) {
-                              @case ('MATURITY_ADDED') { Maturité ajoutée }
-                              @case ('INTEREST_APPLIED') { Cycle d’intérêt }
-                              @case ('PAYMENT_APPLIED') { Paiement total }
-                            }
-                          </p>
-                          <p class="mt-0.5 text-xs text-belife-text-secondary">
-                            {{ line.description }}
-                          </p>
-                        </td>
-                        <td class="app-table-cell-right tabular-nums">
-                          {{ line.capitalAdded | number: '1.6-6' }}
-                        </td>
-                        <td class="app-table-cell-right tabular-nums text-belife-success">
-                          {{ line.interestAmount | number: '1.6-6' }}
-                        </td>
-                        <td class="app-table-cell-right app-financial-value">
-                          {{ line.balanceAfter | number: '1.6-6' }}
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            @if (
-              authenticationService.isAccounting() &&
-              result.balance > 0
-            ) {
-              <div class="mt-3 flex justify-end">
-                <button
-                  type="button"
-                  class="app-button app-button-primary"
-                  [disabled]="recordingPayment()"
-                  (click)="openPaymentConfirmation()"
+          <div
+            class="rounded-xl bg-belife-text p-4 text-white"
+          >
+            <div
+              class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-semibold uppercase tracking-wider text-slate-300"
                 >
-                  {{
-                    recordingPayment()
-                      ? 'Enregistrement...'
-                      : 'Enregistrer le paiement total'
-                  }}
-                </button>
+                  Solde à payer
+                </p>
+
+                <p class="mt-1 text-2xl font-bold tabular-nums">
+                  {{ result.balance | number: '1.6-6' }}
+                </p>
               </div>
-            }
+
+              <div class="sm:text-right">
+                <p class="text-xs text-slate-300">
+                  Date du calcul
+                </p>
+
+                <p class="mt-0.5 font-semibold">
+                  {{
+                    result.calculationDate | localDate
+                  }}
+                </p>
+
+                <p class="mt-1 text-xs text-slate-300">
+                  Taux annuel :
+                  {{
+                    result.annualRate
+                      | percent: '1.1-3'
+                  }}
+                </p>
+              </div>
+            </div>
           </div>
+
+          <dl class="mt-3 grid gap-3 sm:grid-cols-3">
+            <div class="app-metric-card app-metric-card-info">
+              <dt class="app-metric-label">
+                Capital ouvert
+              </dt>
+
+              <dd class="app-metric-value">
+                {{ result.openCapital | number: '1.6-6' }}
+              </dd>
+            </div>
+
+            <div class="app-metric-card app-metric-card-success">
+              <dt class="app-metric-label">
+                Intérêts ouverts
+              </dt>
+
+              <dd class="app-metric-value">
+                {{ result.openInterest | number: '1.6-6' }}
+              </dd>
+            </div>
+
+            <div class="app-metric-card">
+              <dt class="app-metric-label">
+                Cycles appliqués
+              </dt>
+
+              <dd class="app-metric-value">
+                {{ result.completedCycles }}
+              </dd>
+            </div>
+          </dl>
+
+          <div class="app-card mt-3 overflow-hidden shadow-none">
+            <div class="app-table-container">
+              <table class="app-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Événement</th>
+                    <th class="app-table-cell-right">
+                      Capital ajouté
+                    </th>
+                    <th class="app-table-cell-right">
+                      Intérêt
+                    </th>
+                    <th class="app-table-cell-right">
+                      Solde après
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (
+                    line of result.lines;
+                    track line.sequence
+                  ) {
+                    <tr>
+                      <td class="whitespace-nowrap">
+                        {{
+                          line.eventDate | localDate
+                        }}
+                      </td>
+
+                      <td>
+                        <p class="font-medium">
+                          @switch (line.eventType) {
+                            @case ('MATURITY_ADDED') {
+                              Maturité ajoutée
+                            }
+
+                            @case ('INTEREST_APPLIED') {
+                              Cycle d’intérêt
+                            }
+
+                            @case ('PAYMENT_APPLIED') {
+                              Paiement total
+                            }
+                          }
+                        </p>
+
+                        <p
+                          class="mt-0.5 text-xs text-belife-text-secondary"
+                        >
+                          {{ line.description }}
+                        </p>
+                      </td>
+
+                      <td
+                        class="app-table-cell-right tabular-nums"
+                      >
+                        {{
+                          line.capitalAdded
+                            | number: '1.6-6'
+                        }}
+                      </td>
+
+                      <td
+                        class="app-table-cell-right tabular-nums text-belife-success"
+                      >
+                        {{
+                          line.interestAmount
+                            | number: '1.6-6'
+                        }}
+                      </td>
+
+                      <td
+                        class="app-table-cell-right app-financial-value"
+                      >
+                        {{
+                          line.balanceAfter
+                            | number: '1.6-6'
+                        }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          @if (
+            authenticationService.isAccounting() &&
+            result.balance > 0
+          ) {
+            <div class="mt-4 flex justify-end">
+              <button
+                type="button"
+                class="app-button app-button-primary"
+                [disabled]="hasPendingOperation()"
+                (click)="openPaymentConfirmation()"
+              >
+                Enregistrer le paiement total
+              </button>
+            </div>
+          }
         }
       </div>
     </section>
@@ -385,12 +579,19 @@
       <header class="app-card-header">
         <div class="flex items-center gap-2.5">
           <div class="app-section-icon">
-            <svg lucideListOrdered aria-hidden="true"></svg>
+            <svg
+              lucideListOrdered
+              aria-hidden="true"
+            ></svg>
           </div>
+
           <div>
-            <h2 class="app-card-title">Séquence des maturités</h2>
+            <h2 class="app-card-title">
+              Séquence des maturités
+            </h2>
+
             <p class="app-card-description">
-              Maturités classées par rang croissant
+              Maturités classées dans l’ordre de leurs rangs
             </p>
           </div>
         </div>
@@ -404,26 +605,51 @@
                 <th>Rang</th>
                 <th>Type</th>
                 <th>Date</th>
-                <th class="app-table-cell-right">Montant</th>
-                <th class="app-table-cell-right">Source CSV</th>
+                <th class="app-table-cell-right">
+                  Montant
+                </th>
+                <th class="app-table-cell-right">
+                  Source CSV
+                </th>
               </tr>
             </thead>
+
             <tbody>
-              @for (maturity of maturities(); track maturity.id) {
+              @for (
+                maturity of maturities();
+                track maturity.id
+              ) {
                 <tr>
                   <td>
-                    <span class="app-badge app-badge-primary">
+                    <span
+                      class="inline-flex size-8 items-center justify-center rounded-full bg-belife-primary-soft text-sm font-bold text-belife-primary"
+                    >
                       {{ maturity.maturityRank }}
                     </span>
                   </td>
-                  <td class="font-medium">{{ maturity.maturityType }}</td>
-                  <td>
-                    {{ maturity.maturityDate | date: 'dd/MM/yyyy': 'UTC' }}
+
+                  <td class="font-medium">
+                    {{ maturity.maturityType }}
                   </td>
-                  <td class="app-table-cell-right app-financial-value">
-                    {{ maturity.maturityAmount | number: '1.6-6' }}
+
+                  <td class="whitespace-nowrap">
+                      {{
+                        maturity.maturityDate | localDate
+                    }}
                   </td>
-                  <td class="app-table-cell-right app-table-cell-muted">
+
+                  <td
+                    class="app-table-cell-right app-financial-value"
+                  >
+                    {{
+                      maturity.maturityAmount
+                        | number: '1.2-6'
+                    }}
+                  </td>
+
+                  <td
+                    class="app-table-cell-right app-table-cell-muted"
+                  >
                     Ligne {{ maturity.sourceRowNumber }}
                   </td>
                 </tr>
@@ -433,43 +659,70 @@
         </div>
       </div>
 
-      <div class="divide-y divide-belife-border md:hidden">
-        @for (maturity of maturities(); track maturity.id) {
+      <div
+        class="divide-y divide-belife-border md:hidden"
+      >
+        @for (
+          maturity of maturities();
+          track maturity.id
+        ) {
           <article class="p-4">
-            <div class="flex items-center gap-2.5">
-              <span class="app-badge app-badge-primary">
-                Rang {{ maturity.maturityRank }}
+            <div class="flex items-start gap-3">
+              <span
+                class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-belife-primary-soft text-sm font-bold text-belife-primary"
+              >
+                {{ maturity.maturityRank }}
               </span>
-              <p class="font-semibold text-belife-text">
-                {{ maturity.maturityType }}
-              </p>
+
+              <div class="min-w-0">
+                <p class="font-semibold text-belife-text">
+                  {{ maturity.maturityType }}
+                </p>
+
+                <p
+                  class="mt-0.5 text-xs text-belife-text-secondary"
+                >
+                  Ligne CSV {{ maturity.sourceRowNumber }}
+                </p>
+              </div>
             </div>
-            <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
+
+            <dl class="mt-3 grid grid-cols-2 gap-3">
               <div>
-                <dt class="app-metric-label">Date</dt>
-                <dd class="mt-0.5 font-medium">
-                  {{ maturity.maturityDate | date: 'dd/MM/yyyy': 'UTC' }}
+                <dt class="app-metric-label">
+                  Date
+                </dt>
+
+                <dd class="mt-0.5 font-medium text-belife-text">
+                  {{
+                    maturity.maturityDate | date: 'dd/MM/yyyy': 'UTC'
+                  }}
                 </dd>
               </div>
+
               <div class="text-right">
-                <dt class="app-metric-label">Montant</dt>
+                <dt class="app-metric-label">
+                  Montant
+                </dt>
+
                 <dd class="app-financial-value mt-0.5">
-                  {{ maturity.maturityAmount | number: '1.6-6' }}
+                  {{
+                    maturity.maturityAmount
+                      | number: '1.2-6'
+                  }}
                 </dd>
               </div>
             </dl>
-            <p class="mt-2 text-xs text-belife-text-secondary">
-              Ligne CSV {{ maturity.sourceRowNumber }}
-            </p>
           </article>
         }
       </div>
     </section>
 
-    <div class="mt-4 flex justify-end">
+    <div class="app-section flex justify-end">
       <button
         type="button"
         class="app-button app-button-secondary"
+        [disabled]="hasPendingOperation()"
         (click)="clearSearch()"
       >
         Nouvelle recherche

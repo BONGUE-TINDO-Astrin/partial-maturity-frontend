@@ -17,6 +17,7 @@ import {
 } from '@lucide/angular';
 
 import { PaymentResponse } from '../models/payment-response';
+import { LocalDatePipe } from '../../../shared/pipes/local-date.pipe';
 
 /**
  * Présente un paiement et les étapes financières
@@ -27,6 +28,7 @@ import { PaymentResponse } from '../models/payment-response';
   standalone: true,
   imports: [
     DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     PercentPipe,
     LucideBan,

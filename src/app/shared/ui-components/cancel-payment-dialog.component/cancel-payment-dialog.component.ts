@@ -1,5 +1,4 @@
 import {
-  DatePipe,
   DecimalPipe,
 } from '@angular/common';
 import {
@@ -21,6 +20,7 @@ import {
 } from '@lucide/angular';
 
 import { PaymentResponse } from '../../../features/payments/models/payment-response';
+import { LocalDatePipe } from '../../pipes/local-date.pipe';
 
 /**
  * Fenêtre de confirmation et de saisie du motif
@@ -30,7 +30,7 @@ import { PaymentResponse } from '../../../features/payments/models/payment-respo
   selector: 'app-cancel-payment-dialog',
   standalone: true,
   imports: [
-    DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     ReactiveFormsModule,
     LucideBan,

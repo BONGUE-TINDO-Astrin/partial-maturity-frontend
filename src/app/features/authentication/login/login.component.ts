@@ -24,7 +24,7 @@ import {
 import { finalize } from 'rxjs';
 
 import { AuthenticationService } from '../../../core/authentication/authentication.service';
-import { ApiErrorResponse } from '../../../core/error-handling/api-error-response';
+import { resolveApiErrorMessage } from '../../../core/error-handling/api-error-utils';
 
 /**
  * Écran d'authentification de l'application.
@@ -102,8 +102,7 @@ export class LoginComponent {
               ? requestedReturnUrl
               : '/app/dashboard';
 
-          const navigationSucceeded =
-            await this.router.navigateByUrl(targetUrl);
+          const navigationSucceeded = await this.router.navigateByUrl(targetUrl);
 
           if (!navigationSucceeded) {
             this.errorMessage.set(
@@ -112,38 +111,13 @@ export class LoginComponent {
           }
         },
         error: (error: HttpErrorResponse) => {
-          this.errorMessage.set(this.resolveErrorMessage(error));
+          this.errorMessage.set(
+            resolveApiErrorMessage(
+              error,
+              'Une erreur est survenue pendant la connexion.',
+            ),
+          );
         },
       });
-  }
-
-  private resolveErrorMessage(error: HttpErrorResponse): string {
-    let body: unknown = error.error;
-
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = null;
-      }
-    }
-
-    const apiError = body as ApiErrorResponse | null;
-
-    if (
-      (error.status === 401 || error.status === 403) &&
-      apiError?.message
-    ) {
-      return apiError.message;
-    }
-
-    if (error.status === 0) {
-      return 'Le serveur est actuellement inaccessible.';
-    }
-
-    return (
-      apiError?.message ??
-      'Une erreur est survenue pendant la connexion.'
-    );
   }
 }

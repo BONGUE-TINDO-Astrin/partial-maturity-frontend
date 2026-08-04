@@ -534,8 +534,7 @@
                     portfolio.firstMaturityDate
                   ) {
                     {{
-                      portfolio.firstMaturityDate
-                        | date: 'dd/MM/yyyy': 'UTC'
+                      portfolio.firstMaturityDate | localDate
                     }}
                   } @else {
                     Aucune
@@ -563,8 +562,7 @@
                     portfolio.lastMaturityDate
                   ) {
                     {{
-                      portfolio.lastMaturityDate
-                        | date: 'dd/MM/yyyy': 'UTC'
+                      portfolio.lastMaturityDate | localDate
                     }}
                   } @else {
                     Aucune
@@ -709,8 +707,7 @@
                       class="mt-0.5 text-xs text-belife-text-secondary"
                     >
                       {{
-                        lastPayment.paymentDate
-                          | date: 'dd/MM/yyyy': 'UTC'
+                        lastPayment.paymentDate | localDate
                       }}
                       par
                       {{

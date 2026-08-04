@@ -102,7 +102,7 @@
         <div class="app-metric-card">
           <dt class="app-metric-label">Date du paiement</dt>
           <dd class="mt-1 font-semibold text-belife-text">
-            {{ payment().paymentDate | date: 'dd/MM/yyyy': 'UTC' }}
+            {{ payment().paymentDate | localDate }}
           </dd>
         </div>
         <div class="app-metric-card">
@@ -194,7 +194,7 @@
                 ) {
                   <tr>
                     <td class="whitespace-nowrap">
-                      {{ detail.eventDate | date: 'dd/MM/yyyy': 'UTC' }}
+                      {{ detail.eventDate | localDate }}
                     </td>
                     <td>
                       <p class="font-medium">

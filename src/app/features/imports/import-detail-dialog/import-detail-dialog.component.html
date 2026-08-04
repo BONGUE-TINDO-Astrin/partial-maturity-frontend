@@ -102,18 +102,18 @@
                 {{ detail().createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}
               </dd>
             </div>
-            <div>
+            <!-- <div>
               <dt class="app-metric-label">Traité par</dt>
               <dd class="mt-0.5 font-medium text-belife-text">
                 {{ detail().createdBy ?? 'SYSTEM' }}
               </dd>
-            </div>
-            <div class="min-w-0">
+            </div> -->
+            <!-- <div class="min-w-0">
               <dt class="app-metric-label">Empreinte SHA-256</dt>
               <dd class="app-code-value mt-0.5 text-belife-text-secondary">
                 {{ detail().fileSha256 }}
               </dd>
-            </div>
+            </div> -->
           </dl>
         </div>
       </section>
@@ -194,7 +194,7 @@
                         <td class="font-medium">{{ maturity.policyNumber }}</td>
                         <td>{{ maturity.maturityType }}</td>
                         <td>
-                          {{ maturity.maturityDate | date: 'dd/MM/yyyy': 'UTC' }}
+                          {{ maturity.maturityDate | localDate }}
                         </td>
                         <td class="app-table-cell-right app-financial-value">
                           {{ maturity.maturityAmount | number: '1.6-6' }}

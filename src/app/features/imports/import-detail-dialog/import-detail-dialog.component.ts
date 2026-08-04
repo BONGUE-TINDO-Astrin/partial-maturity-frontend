@@ -18,6 +18,7 @@ import {
 
 import { ImportBatchDetail } from '../models/import-batch-detail';
 import { PolicyMaturity } from '../models/policy-maturity';
+import { LocalDatePipe } from '../../../shared/pipes/local-date.pipe';
 
 /**
  * Affiche le rapport complet d'un chargement CSV.
@@ -29,6 +30,7 @@ import { PolicyMaturity } from '../models/policy-maturity';
   standalone: true,
   imports: [
     DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     LucideCircleCheckBig,
     LucideFileText,

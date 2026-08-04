@@ -94,7 +94,7 @@
                 Date
               </dt>
               <dd class="font-semibold text-belife-text">
-                {{ payment().paymentDate | date: 'dd/MM/yyyy': 'UTC' }}
+                {{ payment().paymentDate | localDate }}
               </dd>
             </div>
 

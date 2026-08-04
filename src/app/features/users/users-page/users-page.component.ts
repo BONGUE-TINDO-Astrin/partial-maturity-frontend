@@ -28,6 +28,7 @@ import {
   UserFormSubmission,
 } from '../user-form-dialog/user-form-dialog.component';
 import { UsersService } from '../users.service';
+import { resolveApiErrorMessage } from '../../../core/error-handling/api-error-utils';
 
 /**
  * Écran d'administration des comptes utilisateurs.
@@ -38,15 +39,12 @@ import { UsersService } from '../users.service';
   imports: [
     DatePipe,
     UserFormDialogComponent,
-    LucideCircleAlert,
-    LucideCircleCheckBig,
     LucideCirclePlus,
     LucidePencil,
     LucidePower,
     LucideRefreshCw,
     LucideSearch,
     LucideUsers,
-    LucideX,
   ],
   templateUrl: './users-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -112,7 +110,12 @@ export class UsersPageComponent implements OnInit {
       .subscribe({
         next: (users) => this.users.set(users),
         error: (error: HttpErrorResponse) => {
-          this.pageError.set(this.resolveErrorMessage(error));
+          this.pageError.set(
+            resolveApiErrorMessage(
+              error,
+              'Les utilisateurs ne peuvent pas être chargés.',
+            ),
+          );
         },
       });
   }
@@ -176,7 +179,12 @@ export class UsersPageComponent implements OnInit {
             );
           },
           error: (error: HttpErrorResponse) => {
-            this.dialogError.set(this.resolveErrorMessage(error));
+            this.dialogError.set(
+              resolveApiErrorMessage(
+                error,
+                'Le compte utilisateur ne peut pas être créé.',
+              ),
+            );
           },
         });
       return;
@@ -197,7 +205,12 @@ export class UsersPageComponent implements OnInit {
             );
           },
           error: (error: HttpErrorResponse) => {
-            this.dialogError.set(this.resolveErrorMessage(error));
+            this.dialogError.set(
+              resolveApiErrorMessage(
+                error,
+                'Le compte utilisateur ne peut pas être modifié.',
+              ),
+            );
           },
         });
       return;
@@ -247,7 +260,12 @@ export class UsersPageComponent implements OnInit {
         },
         error: (error: HttpErrorResponse) => {
           this.statusConfirmationUser.set(null);
-          this.pageError.set(this.resolveErrorMessage(error));
+          this.pageError.set(
+            resolveApiErrorMessage(
+              error,
+              'Le statut de l’utilisateur ne peut pas être modifié.',
+            ),
+          );
         },
       });
   }
@@ -266,25 +284,4 @@ export class UsersPageComponent implements OnInit {
     );
   }
 
-  private resolveErrorMessage(error: HttpErrorResponse): string {
-    let body: unknown = error.error;
-
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = null;
-      }
-    }
-
-    const apiError = body as ApiErrorResponse | null;
-
-    if (apiError?.message) {
-      return apiError.message;
-    }
-
-    return error.status === 0
-      ? 'Le serveur est actuellement inaccessible.'
-      : 'Une erreur est survenue pendant le traitement.';
-  }
 }

@@ -172,7 +172,7 @@
                     Paiement n° {{ payment.id }}
                   </td>
                   <td class="app-table-cell-muted whitespace-nowrap">
-                    {{ payment.paymentDate | date: 'dd/MM/yyyy': 'UTC' }}
+                    {{ payment.paymentDate | localDate }}
                   </td>
                   <td class="app-table-cell-right app-financial-value">
                     {{ payment.paidAmount | number: '1.6-6' }}

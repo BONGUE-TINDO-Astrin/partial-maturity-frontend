@@ -1,5 +1,4 @@
 import {
-  DatePipe,
   DecimalPipe,
 } from '@angular/common';
 import {
@@ -15,6 +14,7 @@ import {
 } from '@lucide/angular';
 
 import { InterestSimulation } from '../../../features/policies/models/interest-simulation';
+import { LocalDatePipe } from '../../pipes/local-date.pipe';
 
 /**
  * Demande la confirmation avant l'enregistrement
@@ -28,7 +28,7 @@ import { InterestSimulation } from '../../../features/policies/models/interest-s
   selector: 'app-payment-confirmation-dialog',
   standalone: true,
   imports: [
-    DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     LucideCircleAlert,
     LucideCreditCard,

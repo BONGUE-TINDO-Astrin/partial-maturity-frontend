@@ -30,6 +30,7 @@ import { ApiErrorResponse } from '../../../core/error-handling/api-error-respons
 import { AuditEventType } from '../../audit/models/audit-event-type';
 import { DashboardService } from '../dashboard.service';
 import { DashboardResponse } from '../models/dashboard-response';
+import { LocalDatePipe } from '../../../shared/pipes/local-date.pipe';
 
 /**
  * Tableau de bord principal de l'application.
@@ -45,6 +46,7 @@ import { DashboardResponse } from '../models/dashboard-response';
   standalone: true,
   imports: [
     DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     RouterLink,
     LucideCalendarDays,

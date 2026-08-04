@@ -79,8 +79,7 @@
             </dt>
             <dd class="font-semibold text-belife-text">
               {{
-                simulation().calculationDate
-                  | date: 'dd/MM/yyyy': 'UTC'
+                simulation().calculationDate | localDate
               }}
             </dd>
           </div>
