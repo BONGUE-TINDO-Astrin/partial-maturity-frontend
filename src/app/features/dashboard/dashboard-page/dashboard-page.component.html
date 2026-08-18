@@ -1,6 +1,11 @@
 <section class="app-page">
-  <!-- En-tête -->
-  <header class="app-page-header-row">
+  <!-- ================================================== -->
+  <!-- EN-TÊTE                                            -->
+  <!-- ================================================== -->
+
+  <header
+    class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+  >
     <div>
       <p class="app-eyebrow">
         Vue d’ensemble
@@ -10,57 +15,90 @@
         Tableau de bord
       </h1>
 
-      <p class="app-page-description">
-        @if (isAdminDashboard()) {
-          Suivez les comptes, les chargements CSV
-          et les dernières actions sensibles.
-        } @else if (isAccountingDashboard()) {
-          Consultez les principaux indicateurs
-          du portefeuille et des paiements.
-        } @else {
-          Chargement des indicateurs de votre activité.
-        }
+      <p class="mt-1 text-sm text-belife-text-secondary">
+        Synthèse des maturités, des intérêts et des paiements.
       </p>
     </div>
 
-    <button
-      type="button"
-      class="app-button app-button-secondary"
-      [disabled]="loading()"
-      (click)="loadDashboard()"
+    <div class="flex flex-wrap items-center gap-2">
+      @if (dashboard(); as data) {
+        <div
+          class="flex items-center gap-2 rounded-lg border border-belife-border bg-belife-surface-muted px-3 py-2"
+        >
+          <svg
+            lucideCalendarDays
+            class="size-4 shrink-0 text-belife-primary"
+            aria-hidden="true"
+          ></svg>
+
+          <p class="text-sm text-belife-text-secondary">
+            Données au
+
+            <strong class="font-semibold text-belife-text">
+              {{
+                data.calculationDate
+                  | localDate
+              }}
+            </strong>
+          </p>
+        </div>
+      }
+
+      <button
+        type="button"
+        class="app-button app-button-secondary app-button-sm"
+        [disabled]="loading()"
+        (click)="loadDashboard()"
+      >
+        <svg
+          lucideRefreshCw
+          [class.app-spinner]="loading()"
+          aria-hidden="true"
+        ></svg>
+
+        {{
+          loading()
+            ? 'Actualisation...'
+            : 'Actualiser'
+        }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ================================================== -->
+  <!-- ERREUR                                             -->
+  <!-- ================================================== -->
+
+  @if (pageError(); as errorMessage) {
+    <div
+      class="app-alert app-alert-error mt-4"
+      role="alert"
     >
       <svg
-        lucideRefreshCw
-        [class.app-spinner]="loading()"
+        lucideCircleX
+        class="app-alert-icon"
         aria-hidden="true"
       ></svg>
 
-      Actualiser
-    </button>
-  </header>
-
-  <!-- Erreur -->
-  @if (pageError()) {
-    <div
-      class="app-alert app-alert-error app-section"
-      role="alert"
-    >
       <div class="app-alert-content">
         <p class="app-alert-title">
           Impossible de charger le tableau de bord
         </p>
 
         <p class="app-alert-message">
-          {{ pageError() }}
+          {{ errorMessage }}
         </p>
       </div>
     </div>
   }
 
-  <!-- Chargement initial -->
+  <!-- ================================================== -->
+  <!-- CHARGEMENT INITIAL                                 -->
+  <!-- ================================================== -->
+
   @if (loading() && !dashboard()) {
-    <div class="app-card app-section">
-      <div class="app-loading-state">
+    <section class="app-card mt-4">
+      <div class="app-loading-state py-8">
         <svg
           lucideRefreshCw
           class="app-spinner text-belife-accent"
@@ -68,686 +106,1013 @@
         ></svg>
 
         <span>
-          Chargement des indicateurs...
+          Chargement des indicateurs financiers...
         </span>
       </div>
-    </div>
+    </section>
   }
 
   @if (dashboard(); as data) {
-    <!-- Date de génération -->
-    <div class="mt-3 flex justify-end">
-      <p class="text-xs text-belife-text-secondary">
-        Données générées le
-        {{
-          data.generatedAt
-            | date: 'dd/MM/yyyy à HH:mm:ss'
-        }}
-      </p>
-    </div>
+    <!-- ================================================ -->
+    <!-- INDICATEURS ESSENTIELS                          -->
+    <!-- ================================================ -->
 
-    <!-- =================================================== -->
-    <!-- TABLEAU DE BORD ADMIN                                -->
-    <!-- =================================================== -->
+    <section
+      class="mt-4"
+      aria-labelledby="dashboard-metrics-title"
+    >
+      <div class="mb-3 flex items-center gap-2">
+        <div
+          class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+        >
+          <svg
+            lucideTrendingUp
+            class="size-4"
+            aria-hidden="true"
+          ></svg>
+        </div>
 
-    @if (
-      data.role === 'ADMIN' &&
-      data.administration;
-      as administration
-    ) {
-      <section class="app-section">
-        <div class="app-section-header">
-          <div class="app-section-icon">
+        <div>
+          <h2
+            id="dashboard-metrics-title"
+            class="text-base font-semibold text-belife-text"
+          >
+            Indicateurs essentiels
+          </h2>
+
+          <p class="text-xs text-belife-text-secondary">
+            Situation financière à la date métier courante
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"
+      >
+        <!-- Polices -->
+        <article
+          class="rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+        >
+          <div
+            class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+          >
             <svg
-              lucideUsers
+              lucideWalletCards
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="text-xs font-medium text-belife-text-secondary">
+            Polices
+          </p>
+
+          <p
+            class="mt-1 text-2xl font-bold tabular-nums text-belife-primary"
+          >
+            {{
+              data.metrics.totalPolicies
+                | number: '1.0-0'
+            }}
+          </p>
+
+          <p class="mt-1 text-[11px] text-belife-text-secondary">
+            Présente dans le système
+          </p>
+        </article>
+
+        <!-- Maturités -->
+        <article
+          class="rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+        >
+          <div
+            class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
+          >
+            <svg
+              lucideCalendarDays
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="text-xs font-medium text-belife-text-secondary">
+            Maturités
+          </p>
+
+          <p
+            class="mt-1 text-2xl font-bold tabular-nums text-belife-accent"
+          >
+            {{
+              data.metrics.totalMaturities
+                | number: '1.0-0'
+            }}
+          </p>
+
+          <p class="mt-1 text-[11px] text-belife-text-secondary">
+            Actuellement suivies
+          </p>
+        </article>
+
+        <!-- Montant des maturités -->
+        <article
+          class="rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+        >
+          <div
+            class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+          >
+            <svg
+              lucideLandmark
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="text-xs font-medium text-belife-text-secondary">
+            Montant des maturités
+          </p>
+
+          <p
+            class="mt-1 break-words text-lg font-bold tabular-nums text-belife-success"
+          >
+            {{
+              data.metrics.totalMaturityAmount
+                | number: '1.2-2'
+            }}
+          </p>
+
+          <p class="mt-1 text-[11px] text-belife-text-secondary">
+            Montant nominal
+          </p>
+        </article>
+
+        <!-- Intérêts générés -->
+        <article
+          class="rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+        >
+          <div
+            class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
+          >
+            <svg
+              lucideTrendingUp
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="text-xs font-medium text-belife-text-secondary">
+            Intérêts générés
+          </p>
+
+          <p
+            class="mt-1 break-words text-lg font-bold tabular-nums text-belife-accent"
+          >
+            {{
+              data.metrics.totalGeneratedInterest
+                | number: '1.2-2'
+            }}
+          </p>
+
+          <p class="mt-1 text-[11px] text-belife-text-secondary">
+            Ouverts et payés
+          </p>
+        </article>
+
+        <!-- Intérêts payés -->
+        <article
+          class="rounded-xl border border-belife-success/20 bg-belife-success-soft/40 p-4 shadow-sm"
+        >
+          <div
+            class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+          >
+            <svg
+              lucidePercent
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="text-xs font-medium text-belife-text-secondary">
+            Intérêts payés
+          </p>
+
+          <p
+            class="mt-1 break-words text-lg font-bold tabular-nums text-belife-success"
+          >
+            {{
+              data.metrics.totalPaidInterest
+                | number: '1.2-2'
+            }}
+          </p>
+
+          <p class="mt-1 text-[11px] text-belife-text-secondary">
+            Déjà versés
+          </p>
+        </article>
+
+        <!-- Montant total payé -->
+        <article
+          class="rounded-xl border border-belife-primary/30 bg-belife-primary-soft p-4 shadow-sm"
+        >
+          <div
+            class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-primary text-white"
+          >
+            <svg
+              lucideCoins
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <p class="text-xs font-medium text-belife-text-secondary">
+            Montant total payé
+          </p>
+
+          <p
+            class="mt-1 break-words text-lg font-bold tabular-nums text-belife-primary"
+          >
+            {{
+              data.metrics.totalPaidAmount
+                | number: '1.2-2'
+            }}
+          </p>
+
+          <p class="mt-1 text-[11px] text-belife-text-secondary">
+            Capital et intérêts
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================================================ -->
+    <!-- STATISTIQUES                                    -->
+    <!-- ================================================ -->
+
+    <section
+      class="mt-4 grid gap-3 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)]"
+      aria-label="Statistiques financières"
+    >
+      <!-- Répartition des intérêts -->
+      <article class="app-card overflow-hidden">
+        <header
+          class="flex items-start gap-2.5 border-b border-belife-border px-4 py-3"
+        >
+          <div
+            class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+          >
+            <svg
+              lucidePercent
+              class="size-4"
               aria-hidden="true"
             ></svg>
           </div>
 
           <div>
-            <h2 class="app-section-title">
-              Administration des comptes
+            <h2 class="text-sm font-semibold text-belife-text">
+              Répartition des intérêts
             </h2>
 
-            <p class="app-section-description">
-              Situation actuelle des utilisateurs
+            <p class="mt-0.5 text-xs text-belife-text-secondary">
+              Intérêts ouverts et déjà payés
             </p>
           </div>
-        </div>
+        </header>
 
-        <div
-          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-        >
-          <article class="app-metric-card">
-            <p class="app-metric-label">
-              Total des comptes
-            </p>
-
-            <p class="app-metric-value">
-              {{ administration.totalUsers }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-success"
-          >
-            <p class="app-metric-label">
-              Comptes actifs
-            </p>
-
-            <p class="app-metric-value">
-              {{ administration.activeUsers }}
-            </p>
-          </article>
-
-          <article class="app-metric-card">
-            <p class="app-metric-label">
-              Comptes inactifs
-            </p>
-
-            <p class="app-metric-value">
-              {{ administration.inactiveUsers }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card border-belife-primary bg-belife-primary-soft"
-          >
-            <p
-              class="app-metric-label text-belife-primary"
+        <div class="p-4">
+          @if (
+            data.interestDistribution.generatedInterest > 0
+          ) {
+            <div
+              class="grid items-center gap-5 sm:grid-cols-[auto_minmax(0,1fr)] xl:grid-cols-1 2xl:grid-cols-[auto_minmax(0,1fr)]"
             >
-              Administrateurs actifs
-            </p>
-
-            <p
-              class="app-metric-value text-belife-primary"
-            >
-              {{
-                administration.activeAdministrators
-              }}
-            </p>
-          </article>
-        </div>
-
-        <div class="mt-3 flex justify-end">
-          <a
-            routerLink="/app/users"
-            class="app-link"
-          >
-            Gérer les utilisateurs
-          </a>
-        </div>
-      </section>
-    }
-
-    @if (
-      data.role === 'ADMIN' &&
-      data.imports;
-      as imports
-    ) {
-      <section class="app-section">
-        <div class="app-section-header">
-          <div class="app-section-icon">
-            <svg
-              lucideFiles
-              aria-hidden="true"
-            ></svg>
-          </div>
-
-          <div>
-            <h2 class="app-section-title">
-              Chargements CSV
-            </h2>
-
-            <p class="app-section-description">
-              Résultats des imports de maturités
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-        >
-          <article class="app-metric-card">
-            <p class="app-metric-label">
-              Tentatives
-            </p>
-
-            <p class="app-metric-value">
-              {{ imports.totalImports }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-success"
-          >
-            <p class="app-metric-label">
-              Fichiers importés
-            </p>
-
-            <p class="app-metric-value">
-              {{ imports.importedFiles }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-error"
-          >
-            <p class="app-metric-label">
-              Fichiers rejetés
-            </p>
-
-            <p class="app-metric-value">
-              {{ imports.rejectedFiles }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-info"
-          >
-            <p class="app-metric-label">
-              Maturités insérées
-            </p>
-
-            <p class="app-metric-value">
-              {{ imports.totalInsertedRows }}
-            </p>
-          </article>
-        </div>
-
-        @if (imports.lastImport; as lastImport) {
-          <article class="app-card mt-3">
-            <div class="app-card-body">
+              <!-- Anneau natif -->
               <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                class="mx-auto flex size-40 items-center justify-center rounded-full p-4 shadow-inner"
+                [ngStyle]="interestDonutStyle()"
+                role="img"
+                [attr.aria-label]="
+                  'Répartition des intérêts : ' +
+                  data.interestDistribution.paidPercentage +
+                  ' pour cent payés'
+                "
               >
                 <div
-                  class="flex min-w-0 items-start gap-3"
+                  class="flex size-full flex-col items-center justify-center rounded-full border border-belife-border bg-white text-center shadow-sm"
+                >
+                  <p
+                    class="text-[10px] font-semibold uppercase tracking-wider text-belife-text-secondary"
+                  >
+                    Générés
+                  </p>
+
+                  <p
+                    class="mt-1 max-w-28 break-words text-base font-bold tabular-nums text-belife-primary"
+                  >
+                    {{
+                      data.interestDistribution.generatedInterest
+                        | number: '1.2-2'
+                    }}
+                  </p>
+
+                  <p
+                    class="mt-1 text-xs font-semibold text-belife-success"
+                  >
+                    {{
+                      data.interestDistribution.paidPercentage
+                        | number: '1.1-2'
+                    }}
+                    % payés
+                  </p>
+                </div>
+              </div>
+
+              <!-- Légende -->
+              <div class="space-y-2.5">
+                <div
+                  class="rounded-lg border border-belife-border bg-belife-accent-soft/40 p-3"
                 >
                   <div
-                    class="flex size-9 shrink-0 items-center justify-center rounded-lg"
-                    [class.bg-belife-success-soft]="
-                      lastImport.status === 'IMPORTED'
-                    "
-                    [class.text-belife-success]="
-                      lastImport.status === 'IMPORTED'
-                    "
-                    [class.bg-belife-error-soft]="
-                      lastImport.status === 'REJECTED'
-                    "
-                    [class.text-belife-error]="
-                      lastImport.status === 'REJECTED'
+                    class="flex items-center justify-between gap-3"
+                  >
+                    <div class="flex min-w-0 items-center gap-2">
+                      <span
+                        class="size-2.5 shrink-0 rounded-full bg-belife-accent"
+                        aria-hidden="true"
+                      ></span>
+
+                      <p
+                        class="truncate text-xs font-medium text-belife-text"
+                      >
+                        Intérêts ouverts
+                      </p>
+                    </div>
+
+                    <p
+                      class="shrink-0 text-sm font-bold tabular-nums text-belife-accent"
+                    >
+                      {{
+                        data.interestDistribution.openInterest
+                          | number: '1.2-2'
+                      }}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  class="rounded-lg border border-belife-success/20 bg-belife-success-soft/40 p-3"
+                >
+                  <div
+                    class="flex items-center justify-between gap-3"
+                  >
+                    <div class="flex min-w-0 items-center gap-2">
+                      <span
+                        class="size-2.5 shrink-0 rounded-full bg-belife-success"
+                        aria-hidden="true"
+                      ></span>
+
+                      <p
+                        class="truncate text-xs font-medium text-belife-text"
+                      >
+                        Intérêts payés
+                      </p>
+                    </div>
+
+                    <p
+                      class="shrink-0 text-sm font-bold tabular-nums text-belife-success"
+                    >
+                      {{
+                        data.interestDistribution.paidInterest
+                          | number: '1.2-2'
+                      }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="app-empty-state py-6">
+              <div class="app-empty-state-icon">
+                <svg
+                  lucidePercent
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <h3 class="app-empty-state-title">
+                Aucun intérêt généré
+              </h3>
+
+              <p class="app-empty-state-message">
+                La répartition apparaîtra lorsque des intérêts
+                auront été générés.
+              </p>
+            </div>
+          }
+        </div>
+      </article>
+
+      <!-- Paiements mensuels -->
+      <article class="app-card overflow-hidden">
+        <header
+          class="flex items-start gap-2.5 border-b border-belife-border px-4 py-3"
+        >
+          <div
+            class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+          >
+            <svg
+              lucideReceiptText
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          </div>
+
+          <div>
+            <h2 class="text-sm font-semibold text-belife-text">
+              Paiements par mois
+            </h2>
+
+            <p class="mt-0.5 text-xs text-belife-text-secondary">
+              Montants des douze derniers mois
+            </p>
+          </div>
+        </header>
+
+        <div class="p-4">
+          <div
+            class="relative h-52 border-b border-l border-belife-border"
+            role="img"
+            aria-label="Histogramme des paiements des douze derniers mois"
+          >
+            <!-- Repères horizontaux -->
+            <div
+              class="pointer-events-none absolute inset-0 flex flex-col justify-between"
+              aria-hidden="true"
+            >
+              <span
+                class="block border-t border-dashed border-belife-border/60"
+              ></span>
+
+              <span
+                class="block border-t border-dashed border-belife-border/60"
+              ></span>
+
+              <span
+                class="block border-t border-dashed border-belife-border/60"
+              ></span>
+
+              <span
+                class="block border-t border-dashed border-belife-border/60"
+              ></span>
+
+              <span></span>
+            </div>
+
+            <!-- Barres -->
+            <div
+              class="absolute inset-x-2 bottom-0 top-3 grid grid-cols-12 items-end gap-1 sm:inset-x-3 sm:gap-2"
+            >
+              @for (
+                statistic of data.monthlyPayments;
+                track statistic.month
+              ) {
+                <div
+                  class="group relative flex h-full min-w-0 flex-col items-center justify-end"
+                  [attr.aria-label]="
+                    fullMonthLabel(statistic.month) +
+                    ' : ' +
+                    statistic.paymentCount +
+                    ' paiement(s), ' +
+                    statistic.paidAmount +
+                    ' payés'
+                  "
+                >
+                  <!-- Infobulle -->
+                  <div
+                    class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-40 -translate-x-1/2 rounded-lg bg-belife-primary p-2.5 text-left text-xs text-white shadow-lg group-hover:block group-focus-within:block"
+                  >
+                    <p class="font-semibold">
+                      {{
+                        fullMonthLabel(
+                          statistic.month
+                        )
+                      }}
+                    </p>
+
+                    <p class="mt-1 text-white/75">
+                      {{ statistic.paymentCount }}
+                      paiement(s)
+                    </p>
+
+                    <p class="mt-1 font-semibold tabular-nums">
+                      {{
+                        statistic.paidAmount
+                          | number: '1.2-2'
+                      }}
+                    </p>
+
+                    <p class="mt-1 text-white/75">
+                      dont
+                      {{
+                        statistic.interestAmount
+                          | number: '1.2-2'
+                      }}
+                      d’intérêts
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="relative flex h-full w-full cursor-default items-end justify-center rounded-t-md focus:outline-none focus:ring-2 focus:ring-belife-primary focus:ring-offset-1"
+                    [attr.aria-label]="
+                      fullMonthLabel(statistic.month)
                     "
                   >
-                    @if (
-                      lastImport.status === 'IMPORTED'
-                    ) {
+                    @if (statistic.paidAmount > 0) {
+                      <span
+                        class="block w-full max-w-7 rounded-t-md bg-belife-primary transition-colors duration-200 group-hover:bg-belife-accent sm:max-w-9"
+                        [style.height.%]="
+                          paymentBarHeight(statistic)
+                        "
+                        aria-hidden="true"
+                      ></span>
+                    } @else {
+                      <span
+                        class="block h-1 w-full max-w-7 rounded-t-md bg-belife-border sm:max-w-9"
+                        aria-hidden="true"
+                      ></span>
+                    }
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Libellés des mois -->
+          <div
+            class="ml-1 grid grid-cols-12 gap-1 pt-2 sm:ml-3 sm:gap-2"
+            aria-hidden="true"
+          >
+            @for (
+              statistic of data.monthlyPayments;
+              track statistic.month
+            ) {
+              <p
+                class="min-w-0 truncate text-center text-[9px] font-medium text-belife-text-secondary sm:text-[11px]"
+                [title]="
+                  fullMonthLabel(
+                    statistic.month
+                  )
+                "
+              >
+                {{
+                  monthLabel(
+                    statistic.month
+                  )
+                }}
+              </p>
+            }
+          </div>
+
+          <!-- Résumé -->
+          <div
+            class="mt-3 flex flex-col gap-2 border-t border-belife-border pt-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p class="text-xs text-belife-text-secondary">
+              @if (data.monthlyPayments.length > 0) {
+                {{
+                  fullMonthLabel(
+                    data.monthlyPayments[0].month
+                  )
+                }}
+                —
+                {{
+                  fullMonthLabel(
+                    data.monthlyPayments[
+                      data.monthlyPayments.length - 1
+                    ].month
+                  )
+                }}
+              }
+            </p>
+
+            <p
+              class="text-xs font-medium text-belife-text-secondary"
+            >
+              Maximum mensuel :
+
+              <strong
+                class="font-semibold tabular-nums text-belife-primary"
+              >
+                {{
+                  maximumMonthlyPaidAmount()
+                    | number: '1.2-2'
+                }}
+              </strong>
+            </p>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ================================================ -->
+    <!-- OPÉRATIONS RÉCENTES                             -->
+    <!-- ================================================ -->
+
+    <section
+      class="mt-4 grid gap-3 xl:grid-cols-2"
+      aria-label="Opérations récentes"
+    >
+      <!-- Derniers chargements -->
+      <article class="app-card overflow-hidden">
+        <header
+          class="flex items-center justify-between gap-3 border-b border-belife-border px-4 py-3"
+        >
+          <div class="flex min-w-0 items-center gap-2.5">
+            <div
+              class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
+            >
+              <svg
+                lucideFiles
+                class="size-4"
+                aria-hidden="true"
+              ></svg>
+            </div>
+
+            <div class="min-w-0">
+              <h2 class="text-sm font-semibold text-belife-text">
+                Derniers chargements
+              </h2>
+
+              <p class="text-xs text-belife-text-secondary">
+                Les cinq opérations les plus récentes
+              </p>
+            </div>
+          </div>
+
+          <a
+            routerLink="/app/imports"
+            class="app-link shrink-0 text-xs"
+          >
+            Voir tous
+          </a>
+        </header>
+
+        @if (data.recentImports.length === 0) {
+          <div class="app-empty-state py-7">
+            <div class="app-empty-state-icon">
+              <svg
+                lucideFileClock
+                aria-hidden="true"
+              ></svg>
+            </div>
+
+            <h3 class="app-empty-state-title">
+              Aucun chargement
+            </h3>
+
+            <p class="app-empty-state-message">
+              Les chargements récents apparaîtront ici.
+            </p>
+          </div>
+        } @else {
+          <div class="divide-y divide-belife-border">
+            @for (
+              item of data.recentImports;
+              track item.id
+            ) {
+              <div
+                class="flex items-start gap-2.5 px-4 py-3 transition-colors hover:bg-belife-surface-muted"
+              >
+                <div
+                  class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg"
+                  [class.bg-belife-success-soft]="
+                    item.status === 'IMPORTED'
+                  "
+                  [class.text-belife-success]="
+                    item.status === 'IMPORTED'
+                  "
+                  [class.bg-belife-error-soft]="
+                    item.status === 'REJECTED'
+                  "
+                  [class.text-belife-error]="
+                    item.status === 'REJECTED'
+                  "
+                  [class.bg-belife-accent-soft]="
+                    item.status === 'REVERSED'
+                  "
+                  [class.text-belife-accent]="
+                    item.status === 'REVERSED'
+                  "
+                  [class.bg-belife-primary-soft]="
+                    item.status === 'PROCESSING'
+                  "
+                  [class.text-belife-primary]="
+                    item.status === 'PROCESSING'
+                  "
+                >
+                  @switch (item.status) {
+                    @case ('IMPORTED') {
                       <svg
                         lucideCircleCheckBig
                         class="size-4"
                         aria-hidden="true"
                       ></svg>
-                    } @else {
+                    }
+
+                    @case ('REJECTED') {
                       <svg
                         lucideCircleX
                         class="size-4"
                         aria-hidden="true"
                       ></svg>
                     }
-                  </div>
 
-                  <div class="min-w-0">
-                    <p class="app-card-description">
-                      Dernier chargement
-                    </p>
+                    @case ('REVERSED') {
+                      <svg
+                        lucideArchiveX
+                        class="size-4"
+                        aria-hidden="true"
+                      ></svg>
+                    }
 
-                    <p
-                      class="truncate font-semibold text-belife-text"
-                    >
-                      {{ lastImport.fileName }}
-                    </p>
-
-                    <p
-                      class="mt-0.5 text-xs text-belife-text-secondary"
-                    >
-                      {{
-                        lastImport.occurredAt
-                          | date: 'dd/MM/yyyy HH:mm'
-                      }}
-                      par
-                      {{ lastImport.actor ?? 'SYSTEM' }}
-                    </p>
-                  </div>
+                    @default {
+                      <svg
+                        lucideFileClock
+                        class="size-4"
+                        aria-hidden="true"
+                      ></svg>
+                    }
+                  }
                 </div>
 
-                <span
-                  class="app-badge"
-                  [class.app-badge-success]="
-                    lastImport.status === 'IMPORTED'
-                  "
-                  [class.app-badge-error]="
-                    lastImport.status === 'REJECTED'
-                  "
-                >
-                  {{
-                    lastImport.status === 'IMPORTED'
-                      ? 'Importé'
-                      : 'Rejeté'
-                  }}
-                </span>
-              </div>
-            </div>
-          </article>
-        }
+                <div class="min-w-0 flex-1">
+                  <div
+                    class="flex items-start justify-between gap-2"
+                  >
+                    <div class="min-w-0">
+                      <p
+                        class="truncate text-sm font-semibold text-belife-text"
+                        [title]="item.fileName"
+                      >
+                        {{ item.fileName }}
+                      </p>
 
-        <div class="mt-3 flex justify-end">
-          <a
-            routerLink="/app/imports"
-            class="app-link"
-          >
-            Consulter les chargements
-          </a>
-        </div>
-      </section>
-    }
+                      <p
+                        class="mt-0.5 text-xs text-belife-text-secondary"
+                      >
+                        {{ item.insertedRows }}
+                        maturité(s)
+                        ·
+                        {{ item.actor ?? 'SYSTEM' }}
+                      </p>
+                    </div>
 
-    @if (
-      data.role === 'ADMIN' &&
-      data.audit;
-      as audit
-    ) {
-      <section class="app-card app-section">
-        <div class="app-card-body">
-          <div
-            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-          >
-            <div class="flex items-start gap-3">
-              <div class="app-section-icon">
-                <svg
-                  lucideShieldCheck
-                  aria-hidden="true"
-                ></svg>
-              </div>
+                    <span
+                      class="app-badge shrink-0"
+                      [class.app-badge-success]="
+                        item.status === 'IMPORTED'
+                      "
+                      [class.app-badge-error]="
+                        item.status === 'REJECTED'
+                      "
+                      [class.app-badge-info]="
+                        item.status === 'PROCESSING'
+                      "
+                      [class.app-badge-neutral]="
+                        item.status === 'REVERSED'
+                      "
+                    >
+                      {{
+                        importStatusLabel(
+                          item.status
+                        )
+                      }}
+                    </span>
+                  </div>
 
-              <div>
-                <h2 class="app-card-title">
-                  Activité auditée
-                </h2>
-
-                <p class="app-card-description">
-                  {{ audit.totalEvents }}
-                  événement(s) au total,
-                  {{ audit.eventsToday }}
-                  aujourd’hui
-                </p>
-              </div>
-            </div>
-
-            <a
-              routerLink="/app/audit"
-              class="app-link"
-            >
-              Ouvrir le journal
-            </a>
-          </div>
-
-          @if (audit.lastEvent; as lastEvent) {
-            <div class="app-panel-muted mt-4">
-              <div
-                class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
-              >
-                <div class="min-w-0">
-                  <span
-                    class="app-badge app-badge-primary"
+                  <p
+                    class="mt-1 text-[11px] text-belife-text-secondary"
                   >
                     {{
-                      auditEventLabel(
-                        lastEvent.eventType
+                      formatInstant(
+                        item.occurredAt
                       )
+                    }}
+                  </p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </article>
+
+      <!-- Derniers paiements -->
+      <article class="app-card overflow-hidden">
+        <header
+          class="flex items-center justify-between gap-3 border-b border-belife-border px-4 py-3"
+        >
+          <div class="flex min-w-0 items-center gap-2.5">
+            <div
+              class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+            >
+              <svg
+                lucideReceiptText
+                class="size-4"
+                aria-hidden="true"
+              ></svg>
+            </div>
+
+            <div class="min-w-0">
+              <h2 class="text-sm font-semibold text-belife-text">
+                Derniers paiements
+              </h2>
+
+              <p class="text-xs text-belife-text-secondary">
+                Les cinq opérations les plus récentes
+              </p>
+            </div>
+          </div>
+
+          <a
+            routerLink="/app/payments"
+            class="app-link shrink-0 text-xs"
+          >
+            Voir tous
+          </a>
+        </header>
+
+        @if (data.recentPayments.length === 0) {
+          <div class="app-empty-state py-7">
+            <div class="app-empty-state-icon">
+              <svg
+                lucideReceiptText
+                aria-hidden="true"
+              ></svg>
+            </div>
+
+            <h3 class="app-empty-state-title">
+              Aucun paiement
+            </h3>
+
+            <p class="app-empty-state-message">
+              Les paiements enregistrés apparaîtront ici.
+            </p>
+          </div>
+        } @else {
+          <!-- Tableau desktop -->
+          <div class="hidden sm:block">
+            <div class="app-table-container">
+              <table class="app-table">
+                <thead>
+                  <tr>
+                    <th>Paiement</th>
+                    <th>Police</th>
+                    <th>Date</th>
+
+                    <th class="app-table-cell-right">
+                      Intérêts
+                    </th>
+
+                    <th class="app-table-cell-right">
+                      Montant
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (
+                    payment of data.recentPayments;
+                    track payment.id
+                  ) {
+                    <tr>
+                      <td>
+                        <div class="flex items-center gap-2">
+                          <div
+                            class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+                          >
+                            <svg
+                              lucideReceiptText
+                              class="size-3.5"
+                              aria-hidden="true"
+                            ></svg>
+                          </div>
+
+                          <div>
+                            <p
+                              class="text-sm font-semibold text-belife-text"
+                            >
+                              N° {{ payment.id }}
+                            </p>
+
+                            <p
+                              class="text-[11px] text-belife-text-secondary"
+                            >
+                              {{
+                                payment.createdBy
+                                  ?? 'SYSTEM'
+                              }}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td>
+                        <p
+                          class="max-w-32 break-all text-sm font-medium text-belife-text"
+                        >
+                          {{ payment.policyNumber }}
+                        </p>
+                      </td>
+
+                      <td class="whitespace-nowrap text-sm">
+                        {{
+                          payment.paymentDate
+                            | localDate
+                        }}
+                      </td>
+
+                      <td
+                        class="app-table-cell-right text-sm tabular-nums text-belife-success"
+                      >
+                        {{
+                          payment.interestAmount
+                            | number: '1.2-2'
+                        }}
+                      </td>
+
+                      <td
+                        class="app-table-cell-right text-sm font-semibold tabular-nums text-belife-primary"
+                      >
+                        {{
+                          payment.paidAmount
+                            | number: '1.2-2'
+                        }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Cartes mobiles -->
+          <div
+            class="divide-y divide-belife-border sm:hidden"
+          >
+            @for (
+              payment of data.recentPayments;
+              track payment.id
+            ) {
+              <article class="px-4 py-3">
+                <div
+                  class="flex items-start justify-between gap-3"
+                >
+                  <div class="min-w-0">
+                    <p
+                      class="text-sm font-semibold text-belife-text"
+                    >
+                      Paiement n° {{ payment.id }}
+                    </p>
+
+                    <p
+                      class="mt-0.5 break-all text-xs text-belife-text-secondary"
+                    >
+                      Police {{ payment.policyNumber }}
+                    </p>
+                  </div>
+
+                  <p
+                    class="shrink-0 text-sm font-bold tabular-nums text-belife-primary"
+                  >
+                    {{
+                      payment.paidAmount
+                        | number: '1.2-2'
+                    }}
+                  </p>
+                </div>
+
+                <div
+                  class="mt-2 flex items-center justify-between gap-3 text-[11px] text-belife-text-secondary"
+                >
+                  <span>
+                    {{
+                      payment.paymentDate
+                        | localDate
                     }}
                   </span>
 
-                  <p
-                    class="mt-2 font-medium text-belife-text"
-                  >
-                    {{ lastEvent.summary }}
-                  </p>
-
-                  <p
-                    class="mt-1 text-xs text-belife-text-secondary"
-                  >
-                    par {{ lastEvent.actorUsername }}
-                  </p>
-                </div>
-
-                <p
-                  class="shrink-0 text-xs text-belife-text-secondary"
-                >
-                  {{
-                    lastEvent.occurredAt
-                      | date: 'dd/MM/yyyy HH:mm:ss'
-                  }}
-                </p>
-              </div>
-            </div>
-          } @else {
-            <div class="app-empty-state">
-              <p class="app-empty-state-message">
-                Aucun événement d’audit disponible.
-              </p>
-            </div>
-          }
-        </div>
-      </section>
-    }
-
-    <!-- =================================================== -->
-    <!-- TABLEAU DE BORD COMPTABILITE                         -->
-    <!-- =================================================== -->
-
-    @if (
-      data.role === 'COMPTABILITE' &&
-      data.portfolio;
-      as portfolio
-    ) {
-      <section class="app-section">
-        <div class="app-section-header">
-          <div class="app-section-icon">
-            <svg
-              lucideWalletCards
-              aria-hidden="true"
-            ></svg>
-          </div>
-
-          <div>
-            <h2 class="app-section-title">
-              Portefeuille de maturités
-            </h2>
-
-            <p class="app-section-description">
-              Vue globale des polices importées
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-        >
-          <article class="app-metric-card">
-            <p class="app-metric-label">
-              Polices
-            </p>
-
-            <p class="app-metric-value">
-              {{ portfolio.totalPolicies }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-info"
-          >
-            <p class="app-metric-label">
-              Maturités
-            </p>
-
-            <p class="app-metric-value">
-              {{ portfolio.totalMaturities }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-success sm:col-span-2 xl:col-span-1"
-          >
-            <p class="app-metric-label">
-              Montant total des maturités
-            </p>
-
-            <p class="app-metric-value">
-              {{
-                portfolio.totalMaturityAmount
-                  | number: '1.6-6'
-              }}
-            </p>
-          </article>
-        </div>
-
-        <div class="app-card mt-3">
-          <div
-            class="app-card-body grid gap-4 sm:grid-cols-2"
-          >
-            <div class="flex items-start gap-2.5">
-              <svg
-                lucideCalendarDays
-                class="mt-0.5 size-4 text-belife-info"
-                aria-hidden="true"
-              ></svg>
-
-              <div>
-                <p class="app-metric-label">
-                  Première maturité
-                </p>
-
-                <p
-                  class="mt-1 font-semibold text-belife-text"
-                >
-                  @if (
-                    portfolio.firstMaturityDate
-                  ) {
+                  <span>
                     {{
-                      portfolio.firstMaturityDate | localDate
+                      payment.interestAmount
+                        | number: '1.2-2'
                     }}
-                  } @else {
-                    Aucune
-                  }
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-start gap-2.5">
-              <svg
-                lucideCalendarDays
-                class="mt-0.5 size-4 text-belife-accent"
-                aria-hidden="true"
-              ></svg>
-
-              <div>
-                <p class="app-metric-label">
-                  Dernière maturité
-                </p>
-
-                <p
-                  class="mt-1 font-semibold text-belife-text"
-                >
-                  @if (
-                    portfolio.lastMaturityDate
-                  ) {
-                    {{
-                      portfolio.lastMaturityDate | localDate
-                    }}
-                  } @else {
-                    Aucune
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-3 flex justify-end">
-          <a
-            routerLink="/app/policies"
-            class="app-link"
-          >
-            Rechercher une police
-          </a>
-        </div>
-      </section>
-    }
-
-    @if (
-      data.role === 'COMPTABILITE' &&
-      data.payments;
-      as payments
-    ) {
-      <section class="app-section">
-        <div class="app-section-header">
-          <div class="app-section-icon">
-            <svg
-              lucideCoins
-              aria-hidden="true"
-            ></svg>
-          </div>
-
-          <div>
-            <h2 class="app-section-title">
-              Paiements
-            </h2>
-
-            <p class="app-section-description">
-              Situation des paiements enregistrés
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-        >
-          <article class="app-metric-card">
-            <p class="app-metric-label">
-              Total
-            </p>
-
-            <p class="app-metric-value">
-              {{ payments.totalPayments }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-success"
-          >
-            <p class="app-metric-label">
-              Paiements valides
-            </p>
-
-            <p class="app-metric-value">
-              {{ payments.paidPayments }}
-            </p>
-          </article>
-
-          <article class="app-metric-card">
-            <p class="app-metric-label">
-              Paiements annulés
-            </p>
-
-            <p class="app-metric-value">
-              {{ payments.cancelledPayments }}
-            </p>
-          </article>
-
-          <article
-            class="app-metric-card app-metric-card-info"
-          >
-            <p class="app-metric-label">
-              Montant total payé
-            </p>
-
-            <p class="app-metric-value">
-              {{
-                payments.totalPaidAmount
-                  | number: '1.6-6'
-              }}
-            </p>
-          </article>
-        </div>
-
-        @if (
-          payments.lastPayment;
-          as lastPayment
-        ) {
-          <article class="app-card mt-3">
-            <div class="app-card-body">
-              <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div
-                  class="flex min-w-0 items-start gap-3"
-                >
-                  <div
-                    class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
-                  >
-                    <svg
-                      lucideReceiptText
-                      class="size-4"
-                      aria-hidden="true"
-                    ></svg>
-                  </div>
-
-                  <div class="min-w-0">
-                    <p class="app-card-description">
-                      Dernier paiement
-                    </p>
-
-                    <p
-                      class="font-semibold text-belife-text"
-                    >
-                      Police
-                      {{ lastPayment.policyNumber }}
-                    </p>
-
-                    <p
-                      class="app-financial-value mt-0.5 text-sm"
-                    >
-                      {{
-                        lastPayment.paidAmount
-                          | number: '1.6-6'
-                      }}
-                    </p>
-
-                    <p
-                      class="mt-0.5 text-xs text-belife-text-secondary"
-                    >
-                      {{
-                        lastPayment.paymentDate | localDate
-                      }}
-                      par
-                      {{
-                        lastPayment.createdBy ??
-                          'SYSTEM'
-                      }}
-                    </p>
-                  </div>
+                    d’intérêts
+                  </span>
                 </div>
-
-                <span
-                  class="app-badge"
-                  [class.app-badge-success]="
-                    lastPayment.status === 'PAID'
-                  "
-                  [class.app-badge-neutral]="
-                    lastPayment.status ===
-                    'CANCELLED'
-                  "
-                >
-                  {{
-                    lastPayment.status === 'PAID'
-                      ? 'Payé'
-                      : 'Annulé'
-                  }}
-                </span>
-              </div>
-            </div>
-          </article>
+              </article>
+            }
+          </div>
         }
-
-        <div class="mt-3 flex justify-end">
-          <a
-            routerLink="/app/payments"
-            class="app-link"
-          >
-            Consulter les paiements
-          </a>
-        </div>
-      </section>
-    }
+      </article>
+    </section>
   }
 </section>

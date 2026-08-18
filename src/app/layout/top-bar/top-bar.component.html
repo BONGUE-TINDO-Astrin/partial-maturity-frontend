@@ -1,21 +1,29 @@
 <header
-  class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-belife-border bg-belife-surface/95 px-4 backdrop-blur lg:px-6"
+  class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-belife-border bg-white/90 px-4 backdrop-blur-md lg:px-6"
 >
-  <div class="flex min-w-0 items-center gap-2.5">
+  <div class="flex min-w-0 items-center gap-3">
     <button
       type="button"
-      class="app-button app-button-ghost app-button-icon lg:hidden"
+      class="app-button app-button-ghost app-button-icon text-belife-primary lg:hidden"
       aria-label="Ouvrir le menu principal"
       (click)="openMobileMenu.emit()"
     >
-      <svg lucideMenu aria-hidden="true"></svg>
+      <svg
+        lucideMenu
+        aria-hidden="true"
+      ></svg>
     </button>
 
     <div class="min-w-0">
-      <p class="truncate text-sm font-semibold text-belife-text">
+      <p
+        class="truncate text-sm font-semibold text-belife-text"
+      >
         Maturités partielles
       </p>
-      <p class="hidden text-xs text-belife-text-secondary sm:block">
+
+      <p
+        class="hidden text-xs text-belife-text-secondary sm:block"
+      >
         Gestion des intérêts et paiements
       </p>
     </div>
@@ -24,7 +32,7 @@
   <div class="relative">
     <button
       type="button"
-      class="flex min-h-10 items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-belife-surface-muted"
+      class="flex min-h-10 items-center gap-2 rounded-xl border border-transparent px-2 py-1.5 text-left transition-colors hover:border-belife-border hover:bg-belife-primary-soft/50"
       [attr.aria-expanded]="userMenuOpen()"
       aria-haspopup="menu"
       aria-controls="user-menu"
@@ -33,25 +41,50 @@
       (click)="toggleUserMenu()"
     >
       <span
-        class="flex size-8 shrink-0 items-center justify-center rounded-full bg-belife-primary-soft text-belife-primary"
+        class="flex size-8 shrink-0 items-center justify-center rounded-full bg-belife-primary text-white shadow-sm"
       >
-        <svg lucideUserRound class="size-4" aria-hidden="true"></svg>
+        <span
+          class="text-xs font-bold uppercase"
+          aria-hidden="true"
+        >
+          {{
+            authenticationService
+              .currentUser()
+              ?.fullName
+              ?.charAt(0)
+              || 'U'
+          }}
+        </span>
       </span>
 
       <span class="hidden min-w-0 sm:block">
         <span
           class="block max-w-44 truncate text-sm font-semibold text-belife-text"
         >
-          {{ authenticationService.currentUser()?.fullName }}
+          {{
+            authenticationService
+              .currentUser()
+              ?.fullName
+          }}
         </span>
-        <span class="block text-xs text-belife-text-secondary">
-          {{ authenticationService.currentUser()?.role }}
+
+        <span
+          class="block text-xs text-belife-text-secondary"
+        >
+          @if (
+            authenticationService.currentUser()?.role
+              === 'ADMIN'
+          ) {
+            Administrateur
+          } @else {
+            Comptabilité
+          }
         </span>
       </span>
 
       <svg
         lucideChevronDown
-        class="hidden size-4 text-belife-text-muted transition-transform sm:block"
+        class="hidden size-4 text-belife-accent transition-transform sm:block"
         [class.rotate-180]="userMenuOpen()"
         aria-hidden="true"
       ></svg>
@@ -60,22 +93,38 @@
     @if (userMenuOpen()) {
       <div
         id="user-menu"
-        class="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-belife-border bg-belife-surface p-2 shadow-md"
+        class="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-xl border border-belife-border bg-white p-2 shadow-xl"
         role="menu"
         aria-label="Actions utilisateur"
       >
-        <div class="border-b border-belife-border px-3 py-2">
-          <p class="truncate text-sm font-semibold text-belife-text">
-            {{ authenticationService.currentUser()?.username }}
+        <div
+          class="rounded-lg bg-belife-primary-soft/50 px-3 py-2.5"
+        >
+          <p
+            class="truncate text-sm font-semibold text-belife-text"
+          >
+            {{
+              authenticationService
+                .currentUser()
+                ?.username
+            }}
           </p>
-          <p class="mt-0.5 text-xs text-belife-text-secondary">
+
+          <div
+            class="mt-1 flex items-center gap-1.5 text-xs text-belife-text-secondary"
+          >
+            <span
+              class="size-1.5 rounded-full bg-belife-success"
+              aria-hidden="true"
+            ></span>
+
             Session active
-          </p>
+          </div>
         </div>
 
         <button
           type="button"
-          class="mt-1 flex min-h-9 w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-belife-error transition-colors hover:bg-belife-error-soft disabled:opacity-50"
+          class="mt-2 flex min-h-9 w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-belife-error transition-colors hover:bg-belife-error-soft disabled:opacity-50"
           role="menuitem"
           [disabled]="loggingOut()"
           (click)="logout()"
@@ -86,7 +135,12 @@
             [class.app-spinner]="loggingOut()"
             aria-hidden="true"
           ></svg>
-          {{ loggingOut() ? 'Déconnexion...' : 'Se déconnecter' }}
+
+          {{
+            loggingOut()
+              ? 'Déconnexion...'
+              : 'Se déconnecter'
+          }}
         </button>
       </div>
     }

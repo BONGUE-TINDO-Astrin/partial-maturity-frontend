@@ -1,0 +1,1609 @@
+<div
+  class="app-modal-backdrop z-50"
+  role="presentation"
+  (click)="close()"
+>
+  <section
+    class="app-modal flex max-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="policy-financial-detail-title"
+    aria-describedby="policy-financial-detail-description"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- ================================================ -->
+    <!-- EN-TÊTE                                         -->
+    <!-- ================================================ -->
+
+    <header class="app-modal-header shrink-0">
+      <div class="min-w-0">
+        <p class="app-eyebrow">
+          Situation financière
+        </p>
+
+        <h2
+          id="policy-financial-detail-title"
+          class="app-modal-title break-all"
+        >
+          Police {{ detail().policyNumber }}
+        </h2>
+
+        <p
+          id="policy-financial-detail-description"
+          class="mt-1 text-sm text-belife-text-secondary"
+        >
+          Situation actuelle, paiements et maturités enregistrées.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="app-button app-button-ghost app-button-icon"
+        aria-label="Fermer le détail de la police"
+        [disabled]="
+          recordingPayment() ||
+          loadingPayment()
+        "
+        (click)="close()"
+      >
+        <svg
+          lucideX
+          aria-hidden="true"
+        ></svg>
+      </button>
+    </header>
+
+    <!-- ================================================ -->
+    <!-- NAVIGATION PRINCIPALE                           -->
+    <!-- ================================================ -->
+
+    <nav
+      class="shrink-0 border-b border-belife-border bg-white px-4 sm:px-6"
+      aria-label="Sections du détail financier"
+    >
+      <div
+        class="flex items-center gap-1 overflow-x-auto"
+        role="tablist"
+      >
+        <!-- Vue d’ensemble -->
+        <button
+          type="button"
+          role="tab"
+          class="relative flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-medium transition-colors"
+          [class.text-belife-primary]="
+            activeTab() === 'OVERVIEW'
+          "
+          [class.text-belife-text-secondary]="
+            activeTab() !== 'OVERVIEW'
+          "
+          [class.after:absolute]="
+            activeTab() === 'OVERVIEW'
+          "
+          [class.after:inset-x-2]="
+            activeTab() === 'OVERVIEW'
+          "
+          [class.after:bottom-0]="
+            activeTab() === 'OVERVIEW'
+          "
+          [class.after:h-0.5]="
+            activeTab() === 'OVERVIEW'
+          "
+          [class.after:rounded-full]="
+            activeTab() === 'OVERVIEW'
+          "
+          [class.after:bg-belife-primary]="
+            activeTab() === 'OVERVIEW'
+          "
+          [attr.aria-selected]="
+            activeTab() === 'OVERVIEW'
+          "
+          [disabled]="
+            recordingPayment() ||
+            loadingPayment()
+          "
+          (click)="selectTab('OVERVIEW')"
+        >
+          <svg
+            lucideLandmark
+            class="size-4"
+            aria-hidden="true"
+          ></svg>
+
+          Vue d’ensemble
+        </button>
+
+        <!-- Paiements -->
+        @if (hasPayments()) {
+          <button
+            type="button"
+            role="tab"
+            class="relative flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-medium transition-colors"
+            [class.text-belife-primary]="
+              activeTab() === 'PAYMENTS'
+            "
+            [class.text-belife-text-secondary]="
+              activeTab() !== 'PAYMENTS'
+            "
+            [class.after:absolute]="
+              activeTab() === 'PAYMENTS'
+            "
+            [class.after:inset-x-2]="
+              activeTab() === 'PAYMENTS'
+            "
+            [class.after:bottom-0]="
+              activeTab() === 'PAYMENTS'
+            "
+            [class.after:h-0.5]="
+              activeTab() === 'PAYMENTS'
+            "
+            [class.after:rounded-full]="
+              activeTab() === 'PAYMENTS'
+            "
+            [class.after:bg-belife-primary]="
+              activeTab() === 'PAYMENTS'
+            "
+            [attr.aria-selected]="
+              activeTab() === 'PAYMENTS'
+            "
+            [disabled]="
+              recordingPayment() ||
+              loadingPayment()
+            "
+            (click)="selectTab('PAYMENTS')"
+          >
+            <svg
+              lucideHistory
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+
+            Paiements
+
+            <span
+              class="inline-flex min-w-5 items-center justify-center rounded-full bg-belife-primary-soft px-1.5 py-0.5 text-[10px] font-bold text-belife-primary"
+            >
+              {{ detail().payments.length }}
+            </span>
+          </button>
+        }
+
+        <!-- Maturités -->
+        <button
+          type="button"
+          role="tab"
+          class="relative flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-medium transition-colors"
+          [class.text-belife-primary]="
+            activeTab() === 'MATURITIES'
+          "
+          [class.text-belife-text-secondary]="
+            activeTab() !== 'MATURITIES'
+          "
+          [class.after:absolute]="
+            activeTab() === 'MATURITIES'
+          "
+          [class.after:inset-x-2]="
+            activeTab() === 'MATURITIES'
+          "
+          [class.after:bottom-0]="
+            activeTab() === 'MATURITIES'
+          "
+          [class.after:h-0.5]="
+            activeTab() === 'MATURITIES'
+          "
+          [class.after:rounded-full]="
+            activeTab() === 'MATURITIES'
+          "
+          [class.after:bg-belife-primary]="
+            activeTab() === 'MATURITIES'
+          "
+          [attr.aria-selected]="
+            activeTab() === 'MATURITIES'
+          "
+          [disabled]="
+            recordingPayment() ||
+            loadingPayment()
+          "
+          (click)="selectTab('MATURITIES')"
+        >
+          <svg
+            lucideListOrdered
+            class="size-4"
+            aria-hidden="true"
+          ></svg>
+
+          Maturités
+
+          <span
+            class="inline-flex min-w-5 items-center justify-center rounded-full bg-belife-accent-soft px-1.5 py-0.5 text-[10px] font-bold text-belife-accent"
+          >
+            {{ detail().maturityCount }}
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ================================================ -->
+    <!-- CONTENU DÉFILABLE                               -->
+    <!-- ================================================ -->
+
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      <!-- ============================================== -->
+      <!-- VUE D’ENSEMBLE                                -->
+      <!-- ============================================== -->
+
+      @if (activeTab() === 'OVERVIEW') {
+        <div
+          role="tabpanel"
+          class="space-y-4 p-4 sm:p-6"
+        >
+          <!-- État de production des intérêts -->
+          <section
+            class="app-alert"
+            [class.app-alert-success]="
+              !detail().interestAccrualClosed
+            "
+            [class.app-alert-info]="
+              detail().interestAccrualClosed
+            "
+            role="status"
+          >
+            @if (detail().interestAccrualClosed) {
+              <svg
+                lucideLockKeyhole
+                class="app-alert-icon"
+                aria-hidden="true"
+              ></svg>
+
+              <div class="app-alert-content">
+                <p class="app-alert-title">
+                  Production des intérêts clôturée
+                </p>
+
+                <p class="app-alert-message">
+                  Aucun nouvel intérêt n’est produit après le
+                  {{
+                    detail().interestEndDate
+                      | localDate
+                  }}.
+                  Le solde restant demeure payable.
+                </p>
+              </div>
+            } @else {
+              <svg
+                lucideCircleDot
+                class="app-alert-icon"
+                aria-hidden="true"
+              ></svg>
+
+              <div class="app-alert-content">
+                <p class="app-alert-title">
+                  Production des intérêts en cours
+                </p>
+
+                <p class="app-alert-message">
+                  Les cycles annuels complets peuvent être
+                  appliqués jusqu’au
+                  {{
+                    detail().interestEndDate
+                      | localDate
+                  }}.
+                </p>
+              </div>
+            }
+          </section>
+
+          <!-- Synthèse principale -->
+          <section
+            class="rounded-xl bg-linear-to-r from-belife-primary to-belife-accent p-4 text-white sm:p-5"
+          >
+            <div
+              class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-semibold uppercase tracking-wider text-white/75"
+                >
+                  Solde actuellement payable
+                </p>
+
+                <p
+                  class="mt-1 break-words text-2xl font-bold tabular-nums sm:text-3xl"
+                >
+                  {{
+                    detail().simulation.balance
+                      | number: '1.2-6'
+                  }}
+                  FCFA
+                </p>
+              </div>
+
+              <dl
+                class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:min-w-[28rem] lg:text-right"
+              >
+                <div>
+                  <dt class="text-white/70">
+                    Date du calcul
+                  </dt>
+
+                  <dd class="mt-0.5 font-semibold">
+                    {{
+                      detail().simulation.calculationDate
+                        | localDate
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt class="text-white/70">
+                    Taux annuel
+                  </dt>
+
+                  <dd class="mt-0.5 font-semibold">
+                    {{
+                      detail().simulation.annualRate
+                        | percent: '1.1-3'
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt class="text-white/70">
+                    Cycles appliqués
+                  </dt>
+
+                  <dd class="mt-0.5 font-semibold">
+                    {{
+                      detail().simulation.completedCycles
+                    }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </section>
+
+          <!-- Indicateurs financiers -->
+          <dl
+            class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          >
+            <!-- Capital ouvert -->
+            <div
+              class="rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+            >
+              <div
+                class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+              >
+                <svg
+                  lucideLandmark
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <dt
+                class="text-xs font-medium text-belife-text-secondary"
+              >
+                Capital ouvert
+              </dt>
+
+              <dd
+                class="mt-1 break-words text-lg font-bold tabular-nums text-belife-primary"
+              >
+                {{
+                  detail().simulation.openCapital
+                    | number: '1.2-6'
+                }}
+                FCFA
+              </dd>
+            </div>
+
+            <!-- Intérêts ouverts -->
+            <div
+              class="rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+            >
+              <div
+                class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+              >
+                <svg
+                  lucideTrendingUp
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <dt
+                class="text-xs font-medium text-belife-text-secondary"
+              >
+                Intérêts ouverts
+              </dt>
+
+              <dd
+                class="mt-1 break-words text-lg font-bold tabular-nums text-belife-success"
+              >
+                {{
+                  detail().simulation.openInterest
+                    | number: '1.2-6'
+                }}
+                FCFA
+              </dd>
+            </div>
+
+            <!-- Montants payés -->
+            <div
+              class="rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+            >
+              <div
+                class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
+              >
+                <svg
+                  lucideCreditCard
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <dt
+                class="text-xs font-medium text-belife-text-secondary"
+              >
+                Montants déjà payés
+              </dt>
+
+              <dd
+                class="mt-1 break-words text-lg font-bold tabular-nums text-belife-accent"
+              >
+                {{
+                  detail().totalPaidAmount
+                    | number: '1.2-6'
+                }}
+                FCFA
+              </dd>
+            </div>
+
+            <!-- Intérêts générés -->
+            <div
+              class="rounded-xl border border-belife-border bg-belife-success-soft/30 p-4 shadow-sm"
+            >
+              <div
+                class="mb-3 flex size-8 items-center justify-center rounded-lg bg-belife-success-soft text-belife-success"
+              >
+                <svg
+                  lucideCoins
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <dt
+                class="text-xs font-medium text-belife-text-secondary"
+              >
+                Intérêts générés
+              </dt>
+
+              <dd
+                class="mt-1 break-words text-lg font-bold tabular-nums text-belife-success"
+              >
+                {{
+                  detail().totalGeneratedInterestAmount
+                    | number: '1.2-6'
+                }}
+                FCFA
+              </dd>
+            </div>
+          </dl>
+
+          <!-- Repères de la police -->
+          <section
+            class="rounded-xl border border-belife-border bg-belife-surface-muted p-4"
+          >
+            <dl
+              class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-5"
+            >
+              <div>
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Maturités
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold text-belife-text"
+                >
+                  {{ detail().maturityCount }}
+                </dd>
+              </div>
+
+              <div>
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Montant cumulé
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold tabular-nums text-belife-text"
+                >
+                  {{
+                    detail().totalMaturityAmount
+                      | number: '1.2-6'
+                  }}
+                </dd>
+              </div>
+
+              <div>
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Première maturité
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold text-belife-text"
+                >
+                  {{
+                    detail().firstMaturityDate
+                      | localDate
+                  }}
+                </dd>
+              </div>
+
+              <div>
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Dernière maturité
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold text-belife-text"
+                >
+                  {{
+                    detail().lastMaturityDate
+                      | localDate
+                  }}
+                </dd>
+              </div>
+
+              <div>
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Fin des intérêts
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold text-belife-text"
+                >
+                  {{
+                    detail().interestEndDate
+                      | localDate
+                  }}
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- Détail du calcul courant repliable -->
+          <section
+            class="overflow-hidden rounded-xl border border-belife-border bg-white"
+          >
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-belife-surface-muted"
+              [attr.aria-expanded]="
+                currentCalculationExpanded()
+              "
+              (click)="toggleCurrentCalculation()"
+            >
+              <div class="flex min-w-0 items-center gap-2.5">
+                <div
+                  class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+                >
+                  <svg
+                    lucideReceiptText
+                    class="size-4"
+                    aria-hidden="true"
+                  ></svg>
+                </div>
+
+                <div class="min-w-0">
+                  <h3
+                    class="text-sm font-semibold text-belife-text"
+                  >
+                    Détail du calcul actuel
+                  </h3>
+
+                  <p
+                    class="mt-0.5 text-xs text-belife-text-secondary"
+                  >
+                    Consulter les événements justifiant le
+                    solde payable.
+                  </p>
+                </div>
+              </div>
+
+              @if (currentCalculationExpanded()) {
+                <svg
+                  lucideChevronUp
+                  class="size-4 shrink-0 text-belife-text-secondary"
+                  aria-hidden="true"
+                ></svg>
+              } @else {
+                <svg
+                  lucideChevronDown
+                  class="size-4 shrink-0 text-belife-text-secondary"
+                  aria-hidden="true"
+                ></svg>
+              }
+            </button>
+
+            @if (currentCalculationExpanded()) {
+              @if (
+                detail().simulation.lines.length === 0
+              ) {
+                <div
+                  class="border-t border-belife-border px-4 py-6 text-center text-sm text-belife-text-secondary"
+                >
+                  Aucun événement financier à présenter.
+                </div>
+              } @else {
+                <div
+                  class="border-t border-belife-border"
+                >
+                  <div class="app-table-container">
+                    <table class="app-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Événement</th>
+
+                          <th class="app-table-cell-right">
+                            Solde avant
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Capital
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Intérêt
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Paiement
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Solde après
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        @for (
+                          line of detail().simulation.lines;
+                          track line.sequence
+                        ) {
+                          <tr
+                            [class.bg-belife-primary-soft]="
+                              line.eventType ===
+                              'PAYMENT_APPLIED'
+                            "
+                            [class.bg-belife-success-soft]="
+                              line.eventType ===
+                              'INTEREST_APPLIED'
+                            "
+                          >
+                            <td class="whitespace-nowrap">
+                              {{
+                                line.eventDate
+                                  | localDate
+                              }}
+                            </td>
+
+                            <td>
+                              <div
+                                class="flex items-start gap-2"
+                              >
+                                <div
+                                  class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg"
+                                  [class.bg-belife-accent-soft]="
+                                    line.eventType ===
+                                    'MATURITY_ADDED'
+                                  "
+                                  [class.text-belife-accent]="
+                                    line.eventType ===
+                                    'MATURITY_ADDED'
+                                  "
+                                  [class.bg-belife-success-soft]="
+                                    line.eventType ===
+                                    'INTEREST_APPLIED'
+                                  "
+                                  [class.text-belife-success]="
+                                    line.eventType ===
+                                    'INTEREST_APPLIED'
+                                  "
+                                  [class.bg-belife-primary]="
+                                    line.eventType ===
+                                    'PAYMENT_APPLIED'
+                                  "
+                                  [class.text-white]="
+                                    line.eventType ===
+                                    'PAYMENT_APPLIED'
+                                  "
+                                >
+                                  @switch (line.eventType) {
+                                    @case ('MATURITY_ADDED') {
+                                      <svg
+                                        lucideCalendarDays
+                                        class="size-3.5"
+                                        aria-hidden="true"
+                                      ></svg>
+                                    }
+
+                                    @case ('INTEREST_APPLIED') {
+                                      <svg
+                                        lucideTrendingUp
+                                        class="size-3.5"
+                                        aria-hidden="true"
+                                      ></svg>
+                                    }
+
+                                    @case ('PAYMENT_APPLIED') {
+                                      <svg
+                                        lucideCreditCard
+                                        class="size-3.5"
+                                        aria-hidden="true"
+                                      ></svg>
+                                    }
+                                  }
+                                </div>
+
+                                <div>
+                                  <p
+                                    class="font-medium text-belife-text"
+                                  >
+                                    @switch (line.eventType) {
+                                      @case ('MATURITY_ADDED') {
+                                        Maturité ajoutée
+                                      }
+
+                                      @case ('INTEREST_APPLIED') {
+                                        Cycle d’intérêt
+                                      }
+
+                                      @case ('PAYMENT_APPLIED') {
+                                        Paiement total
+                                      }
+                                    }
+                                  </p>
+
+                                  <p
+                                    class="mt-0.5 max-w-xs text-xs text-belife-text-secondary"
+                                  >
+                                    {{ line.description }}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                            >
+                              {{
+                                line.balanceBefore
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                            >
+                              {{
+                                line.capitalAdded
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                              [class.font-semibold]="
+                                line.interestAmount > 0
+                              "
+                              [class.text-belife-success]="
+                                line.interestAmount > 0
+                              "
+                            >
+                              {{
+                                line.interestAmount
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                            >
+                              @if (
+                                line.eventType ===
+                                'PAYMENT_APPLIED'
+                              ) {
+                                <span
+                                  class="font-semibold text-belife-primary"
+                                >
+                                  {{
+                                    line.paidAmount
+                                      | number: '1.2-6'
+                                  }}
+                                </span>
+                              } @else {
+                                —
+                              }
+                            </td>
+
+                            <td
+                              class="app-table-cell-right font-semibold tabular-nums text-belife-text"
+                            >
+                              {{
+                                line.balanceAfter
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+            }
+          </section>
+        </div>
+      }
+
+      <!-- ============================================== -->
+      <!-- HISTORIQUE DES PAIEMENTS                      -->
+      <!-- ============================================== -->
+
+      @if (
+        activeTab() === 'PAYMENTS' &&
+        hasPayments()
+      ) {
+        <div
+          role="tabpanel"
+          class="p-4 sm:p-6"
+        >
+          <div
+            class="grid gap-4 lg:grid-cols-[15rem_minmax(0,1fr)]"
+          >
+            <!-- Liste des paiements -->
+            <aside
+              class="overflow-hidden rounded-xl border border-belife-border bg-white"
+              aria-label="Paiements valides de la police"
+            >
+              <header
+                class="border-b border-belife-border px-4 py-3"
+              >
+                <h3
+                  class="text-sm font-semibold text-belife-text"
+                >
+                  Paiements enregistrés
+                </h3>
+
+                <p
+                  class="mt-0.5 text-xs text-belife-text-secondary"
+                >
+                  Du plus récent au plus ancien
+                </p>
+              </header>
+
+              <div
+                class="flex gap-2 overflow-x-auto p-3 lg:block lg:space-y-2 lg:overflow-visible"
+              >
+                @for (
+                  payment of detail().payments;
+                  track payment.id
+                ) {
+                  <button
+                    type="button"
+                    class="min-w-48 rounded-lg border p-3 text-left transition-colors lg:w-full lg:min-w-0"
+                    [class.border-belife-primary]="
+                      selectedPaymentId() ===
+                      payment.id
+                    "
+                    [class.bg-belife-primary-soft]="
+                      selectedPaymentId() ===
+                      payment.id
+                    "
+                    [class.border-belife-border]="
+                      selectedPaymentId() !==
+                      payment.id
+                    "
+                    [class.bg-white]="
+                      selectedPaymentId() !==
+                      payment.id
+                    "
+                    [disabled]="
+                      loadingPayment() ||
+                      recordingPayment()
+                    "
+                    (click)="
+                      selectHistoricalPayment(
+                        payment
+                      )
+                    "
+                  >
+                    <div
+                      class="flex items-center justify-between gap-2"
+                    >
+                      <p
+                        class="text-sm font-semibold"
+                        [class.text-belife-primary]="
+                          selectedPaymentId() ===
+                          payment.id
+                        "
+                        [class.text-belife-text]="
+                          selectedPaymentId() !==
+                          payment.id
+                        "
+                      >
+                        Paiement n° {{ payment.id }}
+                      </p>
+
+                      @if (
+                        selectedPaymentId() ===
+                        payment.id
+                      ) {
+                        <svg
+                          lucideCircleCheckBig
+                          class="size-4 shrink-0 text-belife-primary"
+                          aria-hidden="true"
+                        ></svg>
+                      }
+                    </div>
+
+                    <p
+                      class="mt-1 text-xs text-belife-text-secondary"
+                    >
+                      {{
+                        payment.paymentDate
+                          | localDate
+                      }}
+                    </p>
+
+                    <p
+                      class="mt-2 text-sm font-bold tabular-nums text-belife-success"
+                    >
+                      {{
+                        payment.paidAmount
+                          | number: '1.2-6'
+                      }}
+                    </p>
+                  </button>
+                }
+              </div>
+            </aside>
+
+            <!-- Détail sélectionné -->
+            <section
+              class="min-w-0 overflow-hidden rounded-xl border border-belife-border bg-white"
+            >
+              @if (loadingPayment()) {
+                <div class="app-loading-state py-16">
+                  <svg
+                    lucideLoaderCircle
+                    class="app-spinner text-belife-primary"
+                    aria-hidden="true"
+                  ></svg>
+
+                  Chargement de la chronologie...
+                </div>
+              } @else if (
+                paymentHistoryError();
+                as errorMessage
+              ) {
+                <div class="p-4">
+                  <div
+                    class="app-alert app-alert-error"
+                    role="alert"
+                  >
+                    <div class="app-alert-content">
+                      <p class="app-alert-title">
+                        Chronologie indisponible
+                      </p>
+
+                      <p class="app-alert-message">
+                        {{ errorMessage }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              } @else if (
+                selectedPayment();
+                as payment
+              ) {
+                <!-- Résumé du paiement -->
+                <header
+                  class="border-b border-belife-border p-4"
+                >
+                  <div
+                    class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+                  >
+                    <div>
+                      <p class="app-eyebrow">
+                        Paiement n° {{ payment.id }}
+                      </p>
+
+                      <h3
+                        class="mt-1 text-xl font-bold tabular-nums text-belife-primary"
+                      >
+                        {{
+                          payment.paidAmount
+                            | number: '1.2-6'
+                        }}
+                        FCFA
+                      </h3>
+
+                      <p
+                        class="mt-1 text-sm text-belife-text-secondary"
+                      >
+                        Enregistré le
+                        {{
+                          payment.paymentDate
+                            | localDate
+                        }}
+                      </p>
+                    </div>
+
+                    <dl
+                      class="grid grid-cols-2 gap-x-5 gap-y-2 text-sm sm:grid-cols-3"
+                    >
+                      <div>
+                        <dt
+                          class="text-xs text-belife-text-secondary"
+                        >
+                          Capital payé
+                        </dt>
+
+                        <dd
+                          class="mt-0.5 font-semibold tabular-nums text-belife-text"
+                        >
+                          {{
+                            payment.capitalAmount
+                              | number: '1.2-6'
+                          }}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt
+                          class="text-xs text-belife-text-secondary"
+                        >
+                          Intérêts payés
+                        </dt>
+
+                        <dd
+                          class="mt-0.5 font-semibold tabular-nums text-belife-success"
+                        >
+                          {{
+                            payment.interestAmount
+                              | number: '1.2-6'
+                          }}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt
+                          class="text-xs text-belife-text-secondary"
+                        >
+                          Cycles
+                        </dt>
+
+                        <dd
+                          class="mt-0.5 font-semibold text-belife-text"
+                        >
+                          {{ payment.completedCycles }}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt
+                          class="text-xs text-belife-text-secondary"
+                        >
+                          Taux annuel
+                        </dt>
+
+                        <dd
+                          class="mt-0.5 font-semibold text-belife-text"
+                        >
+                          {{
+                            payment.annualRate
+                              | percent: '1.1-3'
+                          }}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt
+                          class="text-xs text-belife-text-secondary"
+                        >
+                          Calcul
+                        </dt>
+
+                        <dd
+                          class="mt-0.5 font-semibold text-belife-text"
+                        >
+                          {{
+                            payment.calculationDate
+                              | localDate
+                          }}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt
+                          class="text-xs text-belife-text-secondary"
+                        >
+                          Enregistré par
+                        </dt>
+
+                        <dd
+                          class="mt-0.5 font-semibold text-belife-text"
+                        >
+                          {{
+                            payment.createdBy
+                              ?? 'SYSTEM'
+                          }}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </header>
+
+                <!-- Chronologie du paiement -->
+                @if (payment.details.length === 0) {
+                  <div class="app-empty-state py-12">
+                    <div class="app-empty-state-icon">
+                      <svg
+                        lucideReceiptText
+                        aria-hidden="true"
+                      ></svg>
+                    </div>
+
+                    <p class="app-empty-state-title">
+                      Aucune ligne justificative
+                    </p>
+                  </div>
+                } @else {
+                  <div class="app-table-container">
+                    <table class="app-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Événement</th>
+
+                          <th class="app-table-cell-right">
+                            Solde avant
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Capital
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Intérêt
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Paiement
+                          </th>
+
+                          <th class="app-table-cell-right">
+                            Solde après
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        @for (
+                          line of payment.details;
+                          track line.id
+                        ) {
+                          <tr
+                            [class.bg-belife-primary-soft]="
+                              line.eventType ===
+                              'PAYMENT_APPLIED'
+                            "
+                            [class.bg-belife-success-soft]="
+                              line.eventType ===
+                              'INTEREST_APPLIED'
+                            "
+                          >
+                            <td class="whitespace-nowrap">
+                              {{
+                                line.eventDate
+                                  | localDate
+                              }}
+                            </td>
+
+                            <td>
+                              <div>
+                                <p
+                                  class="font-medium text-belife-text"
+                                >
+                                  @switch (line.eventType) {
+                                    @case ('MATURITY_ADDED') {
+                                      Maturité ajoutée
+                                    }
+
+                                    @case ('INTEREST_APPLIED') {
+                                      Cycle d’intérêt
+                                    }
+
+                                    @case ('PAYMENT_APPLIED') {
+                                      Paiement total
+                                    }
+                                  }
+                                </p>
+
+                                <p
+                                  class="mt-0.5 max-w-xs text-xs text-belife-text-secondary"
+                                >
+                                  {{ line.description }}
+                                </p>
+                              </div>
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                            >
+                              {{
+                                line.balanceBefore
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                            >
+                              {{
+                                line.capitalAdded
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                              [class.font-semibold]="
+                                line.interestAmount > 0
+                              "
+                              [class.text-belife-success]="
+                                line.interestAmount > 0
+                              "
+                            >
+                              {{
+                                line.interestAmount
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+
+                            <td
+                              class="app-table-cell-right tabular-nums"
+                            >
+                              @if (
+                                line.eventType ===
+                                'PAYMENT_APPLIED'
+                              ) {
+                                <span
+                                  class="font-semibold text-belife-primary"
+                                >
+                                  {{
+                                    line.paidAmount
+                                      | number: '1.2-6'
+                                  }}
+                                </span>
+                              } @else {
+                                —
+                              }
+                            </td>
+
+                            <td
+                              class="app-table-cell-right font-semibold tabular-nums text-belife-text"
+                            >
+                              {{
+                                line.balanceAfter
+                                  | number: '1.2-6'
+                              }}
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              } @else {
+                <div class="app-empty-state py-14">
+                  <div class="app-empty-state-icon">
+                    <svg
+                      lucideHistory
+                      aria-hidden="true"
+                    ></svg>
+                  </div>
+
+                  <p class="app-empty-state-title">
+                    Sélectionnez un paiement
+                  </p>
+
+                  <p class="app-empty-state-message">
+                    Sa chronologie financière apparaîtra ici.
+                  </p>
+                </div>
+              }
+            </section>
+          </div>
+        </div>
+      }
+
+      <!-- ============================================== -->
+      <!-- MATURITÉS                                     -->
+      <!-- ============================================== -->
+
+      @if (activeTab() === 'MATURITIES') {
+        <div
+          role="tabpanel"
+          class="p-4 sm:p-6"
+        >
+          <section
+            class="overflow-hidden rounded-xl border border-belife-border bg-white"
+          >
+            <header
+              class="flex items-start gap-2.5 border-b border-belife-border px-4 py-3"
+            >
+              <div
+                class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
+              >
+                <svg
+                  lucideListOrdered
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <h3
+                  class="text-sm font-semibold text-belife-text"
+                >
+                  Séquence des maturités
+                </h3>
+
+                <p
+                  class="mt-0.5 text-xs text-belife-text-secondary"
+                >
+                  Données importées et classées par rang.
+                </p>
+              </div>
+            </header>
+
+            <!-- Tableau desktop -->
+            <div class="hidden md:block">
+              <div class="app-table-container">
+                <table class="app-table">
+                  <thead>
+                    <tr>
+                      <th>Rang</th>
+                      <th>Type</th>
+                      <th>Date</th>
+
+                      <th class="app-table-cell-right">
+                        Montant
+                      </th>
+
+                      <th class="app-table-cell-right">
+                        Fin des intérêts
+                      </th>
+
+                      <th class="app-table-cell-right">
+                        Source CSV
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    @for (
+                      maturity of detail().maturities;
+                      track maturity.id
+                    ) {
+                      <tr>
+                        <td>
+                          <span
+                            class="inline-flex size-8 items-center justify-center rounded-full bg-belife-primary-soft text-sm font-bold text-belife-primary"
+                          >
+                            {{ maturity.maturityRank }}
+                          </span>
+                        </td>
+
+                        <td class="font-medium">
+                          {{ maturity.maturityType }}
+                        </td>
+
+                        <td class="whitespace-nowrap">
+                          {{
+                            maturity.maturityDate
+                              | localDate
+                          }}
+                        </td>
+
+                        <td
+                          class="app-table-cell-right font-semibold tabular-nums text-belife-primary"
+                        >
+                          {{
+                            maturity.maturityAmount
+                              | number: '1.2-6'
+                          }}
+                        </td>
+
+                        <td
+                          class="app-table-cell-right whitespace-nowrap"
+                        >
+                          {{
+                            maturity.interestEndDate
+                              | localDate
+                          }}
+                        </td>
+
+                        <td
+                          class="app-table-cell-right text-belife-text-secondary"
+                        >
+                          Ligne
+                          {{ maturity.sourceRowNumber }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Cartes mobiles -->
+            <div
+              class="divide-y divide-belife-border md:hidden"
+            >
+              @for (
+                maturity of detail().maturities;
+                track maturity.id
+              ) {
+                <article class="p-4">
+                  <div
+                    class="flex items-start justify-between gap-3"
+                  >
+                    <div class="flex min-w-0 items-start gap-3">
+                      <span
+                        class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-belife-primary-soft text-sm font-bold text-belife-primary"
+                      >
+                        {{ maturity.maturityRank }}
+                      </span>
+
+                      <div class="min-w-0">
+                        <p
+                          class="font-semibold text-belife-text"
+                        >
+                          {{ maturity.maturityType }}
+                        </p>
+
+                        <p
+                          class="mt-0.5 text-xs text-belife-text-secondary"
+                        >
+                          {{
+                            maturity.maturityDate
+                              | localDate
+                          }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p
+                      class="shrink-0 text-sm font-bold tabular-nums text-belife-primary"
+                    >
+                      {{
+                        maturity.maturityAmount
+                          | number: '1.2-6'
+                      }}
+                    </p>
+                  </div>
+
+                  <dl
+                    class="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-belife-surface-muted p-3 text-xs"
+                  >
+                    <div>
+                      <dt class="text-belife-text-secondary">
+                        Fin des intérêts
+                      </dt>
+
+                      <dd
+                        class="mt-0.5 font-semibold text-belife-text"
+                      >
+                        {{
+                          maturity.interestEndDate
+                            | localDate
+                        }}
+                      </dd>
+                    </div>
+
+                    <div class="text-right">
+                      <dt class="text-belife-text-secondary">
+                        Source
+                      </dt>
+
+                      <dd
+                        class="mt-0.5 font-semibold text-belife-text"
+                      >
+                        Ligne
+                        {{ maturity.sourceRowNumber }}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              }
+            </div>
+          </section>
+        </div>
+      }
+    </div>
+
+    <!-- ================================================ -->
+    <!-- PIED DE PAGE                                    -->
+    <!-- ================================================ -->
+
+    <footer class="app-modal-footer shrink-0">
+      <button
+        type="button"
+        class="app-button app-button-secondary"
+        [disabled]="
+          recordingPayment() ||
+          loadingPayment()
+        "
+        (click)="close()"
+      >
+        Fermer
+      </button>
+
+      @if (
+        canRecordPayment() &&
+        hasPayableBalance()
+      ) {
+        <button
+          type="button"
+          class="app-button app-button-primary"
+          [disabled]="!paymentAvailable()"
+          (click)="requestPayment()"
+        >
+          <svg
+            lucideCreditCard
+            [class.app-spinner]="
+              recordingPayment()
+            "
+            aria-hidden="true"
+          ></svg>
+
+          {{
+            recordingPayment()
+              ? 'Enregistrement...'
+              : 'Payer la situation actuelle'
+          }}
+        </button>
+      } @else if (!hasPayableBalance()) {
+        <span class="app-badge app-badge-success">
+          <svg
+            lucideCircleCheckBig
+            aria-hidden="true"
+          ></svg>
+
+          Situation soldée
+        </span>
+      } @else {
+        <span
+          class="text-sm text-belife-text-secondary"
+        >
+          Paiement réservé à la comptabilité
+        </span>
+      }
+    </footer>
+  </section>
+</div>

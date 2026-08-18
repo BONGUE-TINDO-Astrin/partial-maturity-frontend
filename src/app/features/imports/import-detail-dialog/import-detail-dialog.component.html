@@ -35,35 +35,88 @@
     </header>
 
     <div class="app-modal-body space-y-4">
+
       <div
         class="app-alert"
-        [class.app-alert-success]="detail().status === 'IMPORTED'"
-        [class.app-alert-error]="detail().status === 'REJECTED'"
+        [class.app-alert-success]="
+          detail().status === 'IMPORTED'
+        "
+        [class.app-alert-error]="
+          detail().status === 'REJECTED'
+        "
+        [class.app-alert-warning]="
+          detail().status === 'REVERSED'
+        "
       >
-        @if (detail().status === 'IMPORTED') {
-          <svg
-            lucideCircleCheckBig
-            class="app-alert-icon"
-            aria-hidden="true"
-          ></svg>
-          <div class="app-alert-content">
-            <p class="app-alert-title">Fichier importé</p>
-            <p class="app-alert-message">
-              Toutes les validations ont réussi.
-            </p>
-          </div>
-        } @else {
-          <svg
-            lucideTriangleAlert
-            class="app-alert-icon"
-            aria-hidden="true"
-          ></svg>
-          <div class="app-alert-content">
-            <p class="app-alert-title">Fichier rejeté</p>
-            <p class="app-alert-message">
-              Aucune maturité du fichier n’a été enregistrée.
-            </p>
-          </div>
+        @switch (detail().status) {
+          @case ('IMPORTED') {
+            <svg
+              lucideCircleCheckBig
+              class="app-alert-icon"
+              aria-hidden="true"
+            ></svg>
+
+            <div class="app-alert-content">
+              <p class="app-alert-title">
+                Fichier importé
+              </p>
+
+              <p class="app-alert-message">
+                Toutes les validations ont réussi.
+              </p>
+            </div>
+          }
+
+          @case ('REJECTED') {
+            <svg
+              lucideTriangleAlert
+              class="app-alert-icon"
+              aria-hidden="true"
+            ></svg>
+
+            <div class="app-alert-content">
+              <p class="app-alert-title">
+                Fichier rejeté
+              </p>
+
+              <p class="app-alert-message">
+                Aucune maturité du fichier n’a été enregistrée.
+              </p>
+            </div>
+          }
+
+          @case ('REVERSED') {
+            <svg
+              lucideBan
+              class="app-alert-icon"
+              aria-hidden="true"
+            ></svg>
+
+            <div class="app-alert-content">
+              <p class="app-alert-title">
+                Chargement annulé
+              </p>
+
+              <p class="app-alert-message">
+                Les maturités introduites par ce chargement
+                ont été retirées après validation métier.
+              </p>
+            </div>
+          }
+
+          @default {
+            <svg
+              lucideRefreshCw
+              class="app-alert-icon"
+              aria-hidden="true"
+            ></svg>
+
+            <div class="app-alert-content">
+              <p class="app-alert-title">
+                Traitement en cours
+              </p>
+            </div>
+          }
         }
       </div>
 
@@ -86,7 +139,7 @@
         </div>
       </dl>
 
-      <section class="app-card shadow-none">
+      <!-- <section class="app-card shadow-none">
         <div class="app-card-body">
           <h3 class="app-card-title">Informations techniques</h3>
           <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
@@ -102,21 +155,21 @@
                 {{ detail().createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}
               </dd>
             </div>
-            <!-- <div>
+            <div>
               <dt class="app-metric-label">Traité par</dt>
               <dd class="mt-0.5 font-medium text-belife-text">
                 {{ detail().createdBy ?? 'SYSTEM' }}
               </dd>
-            </div> -->
-            <!-- <div class="min-w-0">
+            </div>
+            <div class="min-w-0">
               <dt class="app-metric-label">Empreinte SHA-256</dt>
               <dd class="app-code-value mt-0.5 text-belife-text-secondary">
                 {{ detail().fileSha256 }}
               </dd>
-            </div> -->
+            </div>
           </dl>
         </div>
-      </section>
+      </section> -->
 
       @if (detail().errors.length > 0) {
         <section>
@@ -184,7 +237,8 @@
                       <th>Police</th>
                       <th>Type</th>
                       <th>Date</th>
-                      <th class="app-table-cell-right">Montant</th>
+                      <th class="app-table-cell-right">Montant (FCFA)</th>
+                      <th class="app-table-cell-right">Cloture interêts</th>
                       <th class="app-table-cell-right">Ligne CSV</th>
                     </tr>
                   </thead>
@@ -197,7 +251,10 @@
                           {{ maturity.maturityDate | localDate }}
                         </td>
                         <td class="app-table-cell-right app-financial-value">
-                          {{ maturity.maturityAmount | number: '1.6-6' }}
+                          {{ maturity.maturityAmount | number: '1.2-6' }}
+                        </td>
+                        <td class="app-table-cell-right app-table-cell-muted">
+                          {{ maturity.interestEndDate | localDate }}
                         </td>
                         <td class="app-table-cell-right app-table-cell-muted">
                           {{ maturity.sourceRowNumber }}
@@ -211,17 +268,145 @@
           }
         </section>
       }
+
+      @if (detail().status === 'REVERSED') {
+        <section class="app-alert app-alert-warning flex-col">
+          <div class="flex w-full items-start gap-2.5">
+            <svg
+              lucideArchiveX
+              class="app-alert-icon"
+              aria-hidden="true"
+            ></svg>
+
+            <div class="app-alert-content">
+              <p class="app-alert-title">
+                Informations d’annulation
+              </p>
+
+              <p class="app-alert-message">
+                Le chargement reste conservé dans l’historique
+                à des fins de traçabilité.
+              </p>
+            </div>
+          </div>
+
+          <dl
+            class="grid w-full gap-3 text-sm sm:grid-cols-2"
+          >
+            <div>
+              <dt class="font-medium">
+                Annulé par
+              </dt>
+
+              <dd class="mt-0.5 text-belife-text">
+                {{ detail().reversedBy ?? '—' }}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="font-medium">
+                Date technique
+              </dt>
+
+              <dd class="mt-0.5 text-belife-text">
+                @if (detail().reversedAt) {
+                  {{
+                    detail().reversedAt
+                      | date: 'dd/MM/yyyy HH:mm:ss'
+                  }}
+                } @else {
+                  —
+                }
+              </dd>
+            </div>
+
+            <div class="sm:col-span-2">
+              <dt class="font-medium">
+                Motif
+              </dt>
+
+              <dd
+                class="mt-0.5 whitespace-pre-wrap text-belife-text"
+              >
+                {{ detail().reversalReason ?? '—' }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      }
+
+      @if (detail().status === 'REVERSED') {
+      <section class="app-panel-muted">
+        <p class="font-semibold text-belife-text">
+          Maturités retirées
+        </p>
+
+        <p class="mt-1 text-sm text-belife-text-secondary">
+          Ce chargement avait initialement inséré
+          {{ detail().insertedRows }} maturité(s).
+          Ces maturités ne participent plus aux situations
+          financières.
+        </p>
+      </section>
+}
+
     </div>
+
+    <!-- @if (
+      canReverse() &&
+      detail().status === 'IMPORTED' &&
+      !detail().reversible &&
+      detail().reversalBlockedReason
+    ) {
+      <div
+        class="app-alert app-alert-info"
+        role="status"
+      >
+        <svg
+          lucideTriangleAlert
+          class="app-alert-icon"
+          aria-hidden="true"
+        ></svg>
+
+        <div class="app-alert-content">
+          <p class="app-alert-title">
+            Annulation indisponible
+          </p>
+
+          <p class="app-alert-message">
+            {{ detail().reversalBlockedReason }}
+          </p>
+        </div>
+      </div>
+    } -->
 
     <footer class="app-modal-footer">
       <button
         type="button"
         class="app-button app-button-secondary"
-        [disabled]="loadingMaturities()"
+        [disabled]="
+          loadingMaturities() ||
+          reversing()
+        "
         (click)="close()"
       >
         Fermer
       </button>
+
+      @if (reversalAvailable()) {
+        <button
+          type="button"
+          class="app-button app-button-danger"
+          (click)="reverseBatch()"
+        >
+          <svg
+            lucideArchiveX
+            aria-hidden="true"
+          ></svg>
+
+          Annuler le chargement
+        </button>
+      }
     </footer>
   </section>
 </div>

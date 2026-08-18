@@ -42,9 +42,7 @@ export const routes: Routes = [
 
       {
         path: 'imports',
-        canActivate: [roleGuard],
         data: {
-          roles: ['ADMIN'],
           breadcrumb: 'Chargements CSV',
         },
         loadComponent: () =>

@@ -12,6 +12,7 @@ export interface PolicyMaturity {
   maturityRank: number;
   maturityDate: string;
   maturityAmount: number;
+  interestEndDate: string;
   sourceRowNumber: number;
   createdAt: string;
   createdBy: string | null;

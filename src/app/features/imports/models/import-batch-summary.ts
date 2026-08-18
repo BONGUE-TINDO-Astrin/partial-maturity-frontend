@@ -14,6 +14,14 @@ export interface ImportBatchSummary {
   status: ImportBatchStatus;
   importedAt: string | null;
   importedBy: string | null;
+
+  /**
+   * Informations présentes uniquement lorsque
+   * le chargement a été annulé.
+   */
+  reversedAt: string | null;
+  reversedBy: string | null;
+
   createdAt: string;
   createdBy: string | null;
 }

@@ -1,27 +1,36 @@
-import { AdministrationDashboard } from './administration-dashboard';
-import { AuditDashboard } from './audit-dashboard';
-import { ImportDashboard } from './import-dashboard';
-import { PaymentDashboard } from './payment-dashboard';
-import { PortfolioDashboard } from './portfolio-dashboard';
+import { DashboardMetrics } from './dashboard-metrics';
+import { InterestDistribution } from './interest-distribution';
+import { MonthlyPaymentStatistic } from './monthly-payment-statistic';
+import { RecentImport } from './recent-import';
+import { RecentPayment } from './recent-payment';
 
 /**
- * Tableau de bord adapté au rôle connecté.
- *
- * ADMIN reçoit :
- * - administration ;
- * - imports ;
- * - audit.
- *
- * COMPTABILITE reçoit :
- * - portefeuille ;
- * - paiements.
+ * Tableau de bord commun aux utilisateurs
+ * ADMIN et COMPTABILITE.
  */
 export interface DashboardResponse {
-  generatedAt: string;
-  role: 'ADMIN' | 'COMPTABILITE';
-  administration: AdministrationDashboard | null;
-  imports: ImportDashboard | null;
-  audit: AuditDashboard | null;
-  portfolio: PortfolioDashboard | null;
-  payments: PaymentDashboard | null;
+  /**
+   * Date métier utilisée par les calculs financiers.
+   */
+  calculationDate: string;
+
+  metrics: DashboardMetrics;
+
+  interestDistribution: InterestDistribution;
+
+  /**
+   * Les douze derniers mois, y compris les mois
+   * ne possédant aucun paiement.
+   */
+  monthlyPayments: MonthlyPaymentStatistic[];
+
+  /**
+   * Cinq derniers chargements, tous statuts inclus.
+   */
+  recentImports: RecentImport[];
+
+  /**
+   * Cinq derniers paiements PAID.
+   */
+  recentPayments: RecentPayment[];
 }

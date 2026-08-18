@@ -4,4 +4,6 @@
 export type ImportBatchStatus =
   | 'PROCESSING'
   | 'IMPORTED'
-  | 'REJECTED';
+  | 'REJECTED'
+  | 'REVERSED'
+  ;

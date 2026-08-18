@@ -1,24 +1,25 @@
 @if (mobileOpen()) {
   <button
     type="button"
-    class="fixed inset-0 z-30 bg-slate-950/55 lg:hidden"
+    class="fixed inset-0 z-30 bg-belife-primary/25 backdrop-blur-[1px] lg:hidden"
     aria-label="Fermer le menu"
     (click)="close()"
   ></button>
 }
 
 <aside
-  class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-belife-border bg-belife-surface shadow-sm transition-transform duration-200 lg:translate-x-0 lg:shadow-none"
+  class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-belife-border bg-white shadow-xl transition-transform duration-200 lg:translate-x-0 lg:shadow-none"
   [class.-translate-x-full]="!mobileOpen()"
   [class.translate-x-0]="mobileOpen()"
   aria-label="Menu de l’application"
 >
+  <!-- Logo -->
   <div
     class="flex h-16 shrink-0 items-center justify-between border-b border-belife-border px-4"
   >
     <a
       routerLink="/app/dashboard"
-      class="inline-flex items-center"
+      class="inline-flex items-center rounded-xl px-1 py-1 transition-colors hover:bg-belife-surface-muted"
       aria-label="Accéder au tableau de bord"
       (click)="close()"
     >
@@ -35,94 +36,180 @@
       aria-label="Fermer le menu"
       (click)="close()"
     >
-      <svg lucideX aria-hidden="true"></svg>
+      <svg
+        lucideX
+        aria-hidden="true"
+      ></svg>
     </button>
   </div>
 
+  <!-- Navigation -->
   <nav
     class="flex-1 overflow-y-auto px-3 py-4"
     aria-label="Navigation principale"
   >
-    <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-belife-text-muted">
-      Navigation
+    <p
+      class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-belife-text-muted"
+    >
+      Activité
     </p>
 
     <div class="space-y-1">
       <a
         routerLink="/app/dashboard"
-        routerLinkActive="bg-belife-primary-soft text-belife-primary"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+        routerLinkActive="bg-belife-primary-soft text-belife-primary before:bg-belife-primary"
+        [routerLinkActiveOptions]="{
+          exact: true
+        }"
+        class="relative flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors before:absolute before:bottom-2 before:left-0 before:top-2 before:w-0.5 before:rounded-full hover:bg-belife-surface-muted hover:text-belife-text"
         (click)="close()"
       >
-        <svg lucideLayoutDashboard class="size-4.5" aria-hidden="true"></svg>
+        <svg
+          lucideLayoutDashboard
+          class="size-4.5"
+          aria-hidden="true"
+        ></svg>
+
         Tableau de bord
       </a>
 
-      @if (authenticationService.isAdmin()) {
-        <a
-          routerLink="/app/imports"
-          routerLinkActive="bg-belife-primary-soft text-belife-primary"
-          class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
-          (click)="close()"
-        >
-          <svg lucideFileUp class="size-4.5" aria-hidden="true"></svg>
-          Chargements CSV
-        </a>
-      }
+      <a
+        routerLink="/app/imports"
+        routerLinkActive="bg-belife-primary-soft text-belife-primary before:bg-belife-primary"
+        class="relative flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors before:absolute before:bottom-2 before:left-0 before:top-2 before:w-0.5 before:rounded-full hover:bg-belife-surface-muted hover:text-belife-text"
+        (click)="close()"
+      >
+        <svg
+          lucideFileUp
+          class="size-4.5"
+          aria-hidden="true"
+        ></svg>
+
+        Chargements CSV
+      </a>
 
       <a
         routerLink="/app/policies"
-        routerLinkActive="bg-belife-primary-soft text-belife-primary"
-        class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+        routerLinkActive="bg-belife-primary-soft text-belife-primary before:bg-belife-primary"
+        class="relative flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors before:absolute before:bottom-2 before:left-0 before:top-2 before:w-0.5 before:rounded-full hover:bg-belife-surface-muted hover:text-belife-text"
         (click)="close()"
       >
-        <svg lucideSearch class="size-4.5" aria-hidden="true"></svg>
+        <svg
+          lucideSearch
+          class="size-4.5"
+          aria-hidden="true"
+        ></svg>
+
         Polices
       </a>
 
       <a
         routerLink="/app/payments"
-        routerLinkActive="bg-belife-primary-soft text-belife-primary"
-        class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+        routerLinkActive="bg-belife-primary-soft text-belife-primary before:bg-belife-primary"
+        class="relative flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors before:absolute before:bottom-2 before:left-0 before:top-2 before:w-0.5 before:rounded-full hover:bg-belife-surface-muted hover:text-belife-text"
         (click)="close()"
       >
-        <svg lucideCreditCard class="size-4.5" aria-hidden="true"></svg>
+        <svg
+          lucideCreditCard
+          class="size-4.5"
+          aria-hidden="true"
+        ></svg>
+
         Paiements
       </a>
+    </div>
 
-      @if (authenticationService.isAdmin()) {
+    @if (authenticationService.isAdmin()) {
+      <div class="my-4 border-t border-belife-border"></div>
+
+      <p
+        class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-belife-text-muted"
+      >
+        Administration
+      </p>
+
+      <div class="space-y-1">
         <a
           routerLink="/app/audit"
-          routerLinkActive="bg-belife-primary-soft text-belife-primary"
-          class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+          routerLinkActive="bg-belife-accent-soft text-belife-accent before:bg-belife-accent"
+          class="relative flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors before:absolute before:bottom-2 before:left-0 before:top-2 before:w-0.5 before:rounded-full hover:bg-belife-surface-muted hover:text-belife-text"
           (click)="close()"
         >
-          <svg lucideClipboardList class="size-4.5" aria-hidden="true"></svg>
+          <svg
+            lucideClipboardList
+            class="size-4.5"
+            aria-hidden="true"
+          ></svg>
+
           Journal d’audit
         </a>
 
         <a
           routerLink="/app/users"
-          routerLinkActive="bg-belife-primary-soft text-belife-primary"
-          class="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors hover:bg-belife-surface-muted hover:text-belife-text"
+          routerLinkActive="bg-belife-accent-soft text-belife-accent before:bg-belife-accent"
+          class="relative flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-belife-text-secondary transition-colors before:absolute before:bottom-2 before:left-0 before:top-2 before:w-0.5 before:rounded-full hover:bg-belife-surface-muted hover:text-belife-text"
           (click)="close()"
         >
-          <svg lucideUsers class="size-4.5" aria-hidden="true"></svg>
+          <svg
+            lucideUsers
+            class="size-4.5"
+            aria-hidden="true"
+          ></svg>
+
           Utilisateurs
         </a>
-      }
-    </div>
+      </div>
+    }
   </nav>
 
-  <footer class="shrink-0 border-t border-belife-border p-3">
-    <div class="rounded-lg bg-belife-surface-muted px-3 py-2.5">
-      <p class="truncate text-sm font-semibold text-belife-text">
-        {{ authenticationService.currentUser()?.fullName }}
-      </p>
-      <p class="mt-0.5 text-xs text-belife-text-secondary">
-        {{ authenticationService.currentUser()?.role }}
-      </p>
+  <!-- Utilisateur connecté -->
+  <footer
+    class="shrink-0 border-t border-belife-border p-3"
+  >
+    <div
+      class="flex items-center gap-3 rounded-xl border border-belife-primary/10 bg-belife-primary-soft/50 px-3 py-2.5"
+    >
+      <div
+        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-belife-primary text-white"
+      >
+        <span
+          class="text-xs font-bold uppercase"
+          aria-hidden="true"
+        >
+          {{
+            authenticationService
+              .currentUser()
+              ?.fullName
+              ?.charAt(0)
+              || 'U'
+          }}
+        </span>
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <p
+          class="truncate text-sm font-semibold text-belife-text"
+        >
+          {{
+            authenticationService
+              .currentUser()
+              ?.fullName
+          }}
+        </p>
+
+        <p
+          class="mt-0.5 text-xs text-belife-text-secondary"
+        >
+          @if (
+            authenticationService.currentUser()?.role
+              === 'ADMIN'
+          ) {
+            Administrateur
+          } @else {
+            Comptabilité
+          }
+        </p>
+      </div>
     </div>
   </footer>
 </aside>

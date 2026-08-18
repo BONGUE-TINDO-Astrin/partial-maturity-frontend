@@ -26,15 +26,20 @@ import {
 import {
   finalize,
   forkJoin,
+  of,
+  switchMap,
 } from 'rxjs';
 
 import { resolveApiErrorMessage } from '../../../core/error-handling/api-error-utils';
 import { ImportDetailDialogComponent } from '../import-detail-dialog/import-detail-dialog.component';
+import { ReverseImportDialogComponent } from '../reverse-import-dialog/reverse-import-dialog.component';
 import { ImportsService } from '../imports.service';
 import { CsvImportResponse } from '../models/csv-import-response';
 import { ImportBatchDetail } from '../models/import-batch-detail';
 import { ImportBatchSummary } from '../models/import-batch-summary';
 import { PolicyMaturity } from '../models/policy-maturity';
+import { AuthenticationService } from '../../../core/authentication/authentication.service';
+import { PageResponse } from '../../../shared/models/page-response';
 /**
  * Écran principal des chargements CSV.
  *
@@ -48,6 +53,7 @@ import { PolicyMaturity } from '../models/policy-maturity';
     DatePipe,
     DecimalPipe,
     ImportDetailDialogComponent,
+    ReverseImportDialogComponent,
     LucideChevronLeft,
     LucideChevronRight,
     LucideCircleCheckBig,
@@ -63,14 +69,13 @@ import { PolicyMaturity } from '../models/policy-maturity';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportsPageComponent implements OnInit {
-  private static readonly MAXIMUM_FILE_SIZE =
-    10 * 1024 * 1024;
+  private static readonly MAXIMUM_FILE_SIZE = 10 * 1024 * 1024;
 
-  private readonly importsService =
-    inject(ImportsService);
+  private readonly importsService = inject(ImportsService);
 
-  readonly selectedFile =
-    signal<File | null>(null);
+  readonly authenticationService = inject(AuthenticationService);
+
+  readonly selectedFile = signal<File | null>(null);
 
   readonly dragActive = signal(false);
 
@@ -83,17 +88,23 @@ export class ImportsPageComponent implements OnInit {
   readonly loadingDetail = signal(false);
   readonly loadingMaturities = signal(false);
 
-  readonly pageError =
-    signal<string | null>(null);
+  /**
+   * Indique qu'une réversion de chargement
+   * est actuellement exécutée.
+   */
+  readonly reversing = signal(false);
 
-  readonly fileError =
-    signal<string | null>(null);
+  readonly pageError = signal<string | null>(null);
 
-  readonly lastImportResult =
-    signal<CsvImportResponse | null>(null);
+  readonly fileError = signal<string | null>(null);
 
-  readonly history =
-    signal<ImportBatchSummary[]>([]);
+  readonly reversalError = signal<string | null>(null);
+
+  readonly successMessage = signal<string | null>(null);
+
+  readonly lastImportResult = signal<CsvImportResponse | null>(null);
+
+  readonly history = signal<ImportBatchSummary[]>([]);
 
   readonly currentPage = signal(0);
   readonly pageSize = signal(10);
@@ -102,11 +113,15 @@ export class ImportsPageComponent implements OnInit {
   readonly firstPage = signal(true);
   readonly lastPage = signal(true);
 
-  readonly selectedDetail =
-    signal<ImportBatchDetail | null>(null);
+  readonly selectedDetail = signal<ImportBatchDetail | null>(null);
 
-  readonly selectedMaturities =
-    signal<PolicyMaturity[]>([]);
+  /**
+   * Lot pour lequel le dialogue de confirmation
+   * de réversion est ouvert.
+   */
+  readonly batchToReverse = signal<ImportBatchDetail | null>(null);
+
+  readonly selectedMaturities = signal<PolicyMaturity[]>([]);
 
   /**
    * Indique qu'une action principale susceptible de modifier
@@ -116,7 +131,9 @@ export class ImportsPageComponent implements OnInit {
     () =>
       this.importing() ||
       this.loadingHistory() ||
-      this.loadingDetail(),
+      this.loadingDetail() ||
+      this.loadingMaturities() ||
+      this.reversing(),
   );
 
   readonly canImport = computed(
@@ -135,12 +152,9 @@ export class ImportsPageComponent implements OnInit {
       return;
     }
 
-    const input =
-      event.target as HTMLInputElement;
+    const input = event.target as HTMLInputElement;
 
-    this.setSelectedFile(
-      input.files?.item(0) ?? null,
-    );
+    this.setSelectedFile(input.files?.item(0) ?? null);
 
     /*
      * La valeur est vidée afin que le même fichier puisse
@@ -220,8 +234,7 @@ export class ImportsPageComponent implements OnInit {
            * Le backend utilise HTTP 422 pour signaler un fichier
            * entièrement contrôlé mais rejeté fonctionnellement.
            */
-          const rejectedImport =
-            this.extractRejectedImport(error);
+          const rejectedImport = this.extractRejectedImport(error);
 
           if (rejectedImport) {
             this.displayImportResult(
@@ -267,16 +280,7 @@ export class ImportsPageComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.history.set(response.content);
-          this.currentPage.set(response.page);
-          this.totalElements.set(
-            response.totalElements,
-          );
-          this.totalPages.set(
-            response.totalPages,
-          );
-          this.firstPage.set(response.first);
-          this.lastPage.set(response.last);
+          this.applyHistoryPage(response);
         },
 
         error: (error: HttpErrorResponse) => {
@@ -318,15 +322,15 @@ export class ImportsPageComponent implements OnInit {
    * Les maturités sont récupérées uniquement pour un lot importé.
    * Un lot rejeté possède seulement un rapport d'erreurs.
    */
-  openDetail(
-    batch: ImportBatchSummary,
-  ): void {
+  openDetail(batch: ImportBatchSummary): void {
     if (this.hasPendingOperation()) {
       return;
     }
 
     this.loadingDetail.set(true);
     this.pageError.set(null);
+    this.reversalError.set(null);
+    this.batchToReverse.set(null);
     this.selectedDetail.set(null);
     this.selectedMaturities.set([]);
 
@@ -335,16 +339,23 @@ export class ImportsPageComponent implements OnInit {
       return;
     }
 
-    this.loadRejectedBatchDetail(batch.id);
+    this.loadBatchDetailWithoutMaturities(batch.id);
   }
 
   closeDetail(): void {
-    if (this.loadingDetail()) {
+    if (
+      this.loadingDetail() ||
+      this.loadingMaturities() ||
+      this.reversing()
+    ) {
       return;
     }
 
     this.selectedDetail.set(null);
     this.selectedMaturities.set([]);
+    this.batchToReverse.set(null);
+    this.reversalError.set(null);
+    this.successMessage.set(null);
   }
 
   dismissImportResult(): void {
@@ -355,9 +366,7 @@ export class ImportsPageComponent implements OnInit {
    * Charge simultanément les informations générales du lot
    * et les maturités réellement insérées.
    */
-  private loadImportedBatchDetail(
-    batchId: number,
-  ): void {
+  private loadImportedBatchDetail(batchId: number): void {
     this.loadingMaturities.set(true);
 
     forkJoin({
@@ -398,10 +407,11 @@ export class ImportsPageComponent implements OnInit {
   }
 
   /**
-   * Un lot rejeté ne possède aucune maturité insérée.
-   * Seul son rapport détaillé doit donc être chargé.
+   * Charge uniquement les informations générales
+   * d'un lot ne possédant aucune maturité active
+   * à présenter.
    */
-  private loadRejectedBatchDetail(
+  private loadBatchDetailWithoutMaturities(
     batchId: number,
   ): void {
     this.importsService
@@ -431,9 +441,7 @@ export class ImportsPageComponent implements OnInit {
    * Applique les contrôles locaux avant de rendre
    * le fichier disponible pour l'importation.
    */
-  private setSelectedFile(
-    file: File | null,
-  ): void {
+  private setSelectedFile(file: File | null): void {
     this.fileError.set(null);
     this.pageError.set(null);
     this.lastImportResult.set(null);
@@ -443,14 +451,9 @@ export class ImportsPageComponent implements OnInit {
       return;
     }
 
-    if (
-      !file.name
-        .toLowerCase()
-        .endsWith('.csv')
+    if (!file.name.toLowerCase().endsWith('.csv')
     ) {
-      this.rejectSelectedFile(
-        'Seuls les fichiers CSV sont acceptés.',
-      );
+      this.rejectSelectedFile('Seuls les fichiers CSV sont acceptés.');
 
       return;
     }
@@ -463,13 +466,8 @@ export class ImportsPageComponent implements OnInit {
       return;
     }
 
-    if (
-      file.size >
-      ImportsPageComponent.MAXIMUM_FILE_SIZE
-    ) {
-      this.rejectSelectedFile(
-        'Le fichier ne doit pas dépasser 10 Mo.',
-      );
+    if (file.size > ImportsPageComponent.MAXIMUM_FILE_SIZE) {
+      this.rejectSelectedFile('Le fichier ne doit pas dépasser 10 Mo.');
 
       return;
     }
@@ -477,9 +475,7 @@ export class ImportsPageComponent implements OnInit {
     this.selectedFile.set(file);
   }
 
-  private rejectSelectedFile(
-    message: string,
-  ): void {
+  private rejectSelectedFile(message: string): void {
     this.selectedFile.set(null);
     this.fileError.set(message);
   }
@@ -488,9 +484,7 @@ export class ImportsPageComponent implements OnInit {
    * Affiche le rapport retourné par le backend puis recharge
    * la première page afin de rendre le nouveau lot visible.
    */
-  private displayImportResult(
-    result: CsvImportResponse,
-  ): void {
+  private displayImportResult(result: CsvImportResponse): void {
     this.lastImportResult.set(result);
     this.selectedFile.set(null);
     this.fileError.set(null);
@@ -510,9 +504,7 @@ export class ImportsPageComponent implements OnInit {
    * Cette réponse n'est pas une erreur technique : elle confirme
    * que le fichier a été analysé puis rejeté dans son intégralité.
    */
-  private extractRejectedImport(
-    error: HttpErrorResponse,
-  ): CsvImportResponse | null {
+  private extractRejectedImport(error: HttpErrorResponse): CsvImportResponse | null {
     if (error.status !== 422) {
       return null;
     }
@@ -554,5 +546,139 @@ export class ImportsPageComponent implements OnInit {
     }
 
     return response as CsvImportResponse;
+  }
+
+  /**
+   * Ouvre la confirmation de réversion
+   * pour un lot importé possédant des maturités actives.
+   */
+  requestReversal(batch: ImportBatchDetail): void {
+    if (
+      batch.status !== 'IMPORTED' ||
+      batch.insertedRows <= 0 ||
+      this.hasPendingOperation()
+    ) {
+      return;
+    }
+
+    this.reversalError.set(null);
+    this.batchToReverse.set(batch);
+  }
+
+  closeReversalDialog(): void {
+    if (this.reversing()) {
+      return;
+    }
+
+    this.batchToReverse.set(null);
+    this.reversalError.set(null);
+  }
+
+  /**
+   * Annule le chargement puis recharge simultanément
+   * sa représentation dans l'historique.
+   *
+   * Le détail retourné par l'endpoint est utilisé
+   * directement afin d'éviter un appel supplémentaire.
+   */
+  confirmReversal(
+    reason: string,
+  ): void {
+    const batch = this.batchToReverse();
+
+    if (
+      !batch ||
+      batch.status !== 'IMPORTED' ||
+      this.reversing()
+    ) {
+      return;
+    }
+
+    this.reversing.set(true);
+    this.reversalError.set(null);
+    this.pageError.set(null);
+    this.successMessage.set(null);
+
+    this.importsService
+      .reverseImportBatch(
+        batch.id,
+        reason,
+      )
+      .pipe(
+        switchMap((reversedDetail) =>
+          forkJoin({
+            detail: of(reversedDetail),
+
+            history:
+              this.importsService.getHistory(
+                this.currentPage(),
+                this.pageSize(),
+              ),
+          }),
+        ),
+
+        finalize(() => {
+          this.reversing.set(false);
+        }),
+      )
+      .subscribe({
+        next: ({
+          detail,
+          history,
+        }) => {
+          /*
+          * Le lot reste ouvert dans la popup,
+          * mais apparaît désormais au statut REVERSED.
+          */
+          this.selectedDetail.set(detail);
+
+          /*
+          * Les maturités du lot ont été retirées.
+          */
+          this.selectedMaturities.set([]);
+
+          this.batchToReverse.set(null);
+          this.reversalError.set(null);
+
+          this.applyHistoryPage(history);
+
+          this.successMessage.set(
+            `Le chargement n° ${detail.id} (${detail.originalFileName}) a été annulé avec succès.`,
+          );
+        },
+
+        error: (error: HttpErrorResponse) => {
+          /*
+          * Le dialogue reste ouvert pour permettre
+          * à l'utilisateur de lire le refus métier
+          * et éventuellement fermer la confirmation.
+          */
+          this.reversalError.set(
+            resolveApiErrorMessage(
+              error,
+              'Le chargement ne peut pas être annulé.',
+            ),
+          );
+        },
+      });
+  }
+
+  /**
+   * Applique une réponse paginée à l'état
+   * courant de l'historique.
+   */
+  private applyHistoryPage(
+    response: PageResponse<ImportBatchSummary>,
+  ): void {
+    this.history.set(response.content);
+    this.currentPage.set(response.page);
+    this.totalElements.set(
+      response.totalElements,
+    );
+    this.totalPages.set(
+      response.totalPages,
+    );
+    this.firstPage.set(response.first);
+    this.lastPage.set(response.last);
   }
 }

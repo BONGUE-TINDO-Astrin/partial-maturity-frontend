@@ -27,5 +27,11 @@ export interface PaymentResponse {
   updatedAt: string;
   updatedBy: string | null;
   version: number;
+  /**
+  * Éligibilité calculée par le backend.
+  */
+  cancellable: boolean;
+  cancellationBlockedReason: string | null;
+
   details: PaymentDetail[];
 }

@@ -1,83 +1,57 @@
 <section class="app-page">
-  <header class="app-page-header">
-    <p class="app-eyebrow">Suivi financier</p>
-    <h1 class="app-page-title">Paiements</h1>
-    <p class="app-page-description">
-      Consultez les paiements valides et annulés d’une police.
-    </p>
+  <!-- ================================================== -->
+  <!-- EN-TÊTE                                            -->
+  <!-- ================================================== -->
+
+  <header
+    class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div>
+      <p class="app-eyebrow">
+        Suivi financier
+      </p>
+
+      <h1 class="app-page-title">
+        Paiements
+      </h1>
+
+      <p class="mt-1 text-sm text-belife-text-secondary">
+        @if (isAdmin()) {
+          Consultez les paiements enregistrés et leur statut.
+        } @else {
+          Consultez les paiements valides et leur justification
+          financière.
+        }
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="app-button app-button-secondary app-button-sm"
+      [disabled]="hasPendingOperation()"
+      (click)="loadPayments(currentPage())"
+    >
+      <svg
+        lucideRefreshCw
+        [class.app-spinner]="loading()"
+        aria-hidden="true"
+      ></svg>
+
+      {{
+        loading()
+          ? 'Actualisation...'
+          : 'Actualiser'
+      }}
+    </button>
   </header>
 
-  <section class="app-card app-section">
-    <div class="app-card-body">
-      <form
-        [formGroup]="searchForm"
-        class="flex flex-col gap-3 sm:flex-row sm:items-start"
-        (ngSubmit)="searchPayments()"
-        novalidate
-      >
-        <div class="app-field min-w-0 flex-1">
-          <label for="paymentPolicyNumber" class="app-label">
-            Numéro de police
-          </label>
+  <!-- ================================================== -->
+  <!-- MESSAGES                                           -->
+  <!-- ================================================== -->
 
-          <div class="relative">
-            <svg
-              lucideSearch
-              class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-belife-text-muted"
-              aria-hidden="true"
-            ></svg>
-            <input
-              id="paymentPolicyNumber"
-              type="text"
-              formControlName="policyNumber"
-              autocomplete="off"
-              class="app-input pl-10"
-              [class.app-input-invalid]="
-                policyNumberControl.touched &&
-                policyNumberControl.invalid
-              "
-              placeholder="Exemple : POL001"
-            />
-          </div>
-
-          @if (
-            policyNumberControl.touched &&
-            policyNumberControl.hasError('required')
-          ) {
-            <p class="app-field-error">
-              Le numéro de police est obligatoire.
-            </p>
-          }
-
-          @if (
-            policyNumberControl.touched &&
-            policyNumberControl.hasError('maxlength')
-          ) {
-            <p class="app-field-error">
-              Le numéro de police ne doit pas dépasser 100 caractères.
-            </p>
-          }
-        </div>
-
-        <button
-          type="submit"
-          class="app-button app-button-primary sm:mt-[1.625rem]"
-          [disabled]="loading()"
-        >
-          <svg
-            lucideFileSearch
-            [class.app-spinner]="loading()"
-            aria-hidden="true"
-          ></svg>
-          {{ loading() ? 'Recherche...' : 'Rechercher' }}
-        </button>
-      </form>
-    </div>
-  </section>
-
-  @if (successMessage()) {
+  @if (successMessage(); as message) {
     <div
-      class="app-alert app-alert-success app-section"
+      class="app-alert app-alert-success mt-4"
       role="status"
       aria-live="polite"
     >
@@ -86,136 +60,885 @@
         class="app-alert-icon"
         aria-hidden="true"
       ></svg>
+
       <div class="app-alert-content">
-        <p class="app-alert-title">Opération réussie</p>
-        <p class="app-alert-message">{{ successMessage() }}</p>
+        <p class="app-alert-title">
+          Opération réussie
+        </p>
+
+        <p class="app-alert-message">
+          {{ message }}
+        </p>
       </div>
+
       <button
         type="button"
         class="app-button app-button-ghost app-button-icon app-button-sm"
-        aria-label="Fermer le message"
+        aria-label="Fermer le message de succès"
         (click)="successMessage.set(null)"
       >
-        <svg lucideX aria-hidden="true"></svg>
+        <svg
+          lucideX
+          aria-hidden="true"
+        ></svg>
       </button>
     </div>
   }
 
-  @if (pageError()) {
-    <div class="app-alert app-alert-error app-section" role="alert">
+  @if (pageError(); as errorMessage) {
+    <div
+      class="app-alert app-alert-error mt-4"
+      role="alert"
+    >
       <svg
         lucideCircleAlert
         class="app-alert-icon"
         aria-hidden="true"
       ></svg>
-      <div class="app-alert-content">{{ pageError() }}</div>
+
+      <div class="app-alert-content">
+        <p class="app-alert-title">
+          Chargement impossible
+        </p>
+
+        <p class="app-alert-message">
+          {{ errorMessage }}
+        </p>
+      </div>
     </div>
   }
 
-  @if (loading()) {
-    <div class="app-card app-section">
-      <div class="app-loading-state">
+  @if (detailError(); as errorMessage) {
+    <div
+      class="app-alert app-alert-error mt-4"
+      role="alert"
+    >
+      <svg
+        lucideCircleAlert
+        class="app-alert-icon"
+        aria-hidden="true"
+      ></svg>
+
+      <div class="app-alert-content">
+        <p class="app-alert-title">
+          Détail indisponible
+        </p>
+
+        <p class="app-alert-message">
+          {{ errorMessage }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="app-button app-button-ghost app-button-icon app-button-sm"
+        aria-label="Fermer le message d’erreur"
+        (click)="detailError.set(null)"
+      >
         <svg
-          lucideSearch
+          lucideX
+          aria-hidden="true"
+        ></svg>
+      </button>
+    </div>
+  }
+
+  <!-- ================================================== -->
+  <!-- RECHERCHE ET FILTRES                               -->
+  <!-- ================================================== -->
+
+  <section
+    class="mt-4 rounded-xl border border-belife-border bg-white p-4 shadow-sm"
+  >
+    <div
+      class="grid gap-4"
+      [class.lg:grid-cols-[minmax(0,1fr)_auto]]="
+        isAdmin()
+      "
+    >
+      <!-- Recherche disponible pour les deux rôles -->
+      <form
+        class="min-w-0"
+        (submit)="
+          $event.preventDefault();
+          searchPayments()
+        "
+      >
+        <label
+          for="paymentSearch"
+          class="mb-1.5 block text-xs font-semibold text-belife-text"
+        >
+          Rechercher une police
+        </label>
+
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <div class="relative min-w-0 flex-1">
+            <svg
+              lucideSearch
+              class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-belife-accent"
+              aria-hidden="true"
+            ></svg>
+
+            <input
+              id="paymentSearch"
+              type="search"
+              class="app-input h-10 pl-10 pr-10"
+              autocomplete="off"
+              placeholder="Saisir un numéro de police"
+              [value]="searchTerm()"
+              [disabled]="hasPendingOperation()"
+              (input)="updateSearchTerm($event)"
+            />
+
+            @if (searchTerm().trim()) {
+              <button
+                type="button"
+                class="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-lg text-belife-text-secondary transition-colors hover:bg-belife-primary-soft hover:text-belife-primary"
+                aria-label="Effacer la recherche"
+                [disabled]="hasPendingOperation()"
+                (click)="
+                  searchTerm.set('');
+                  searchPayments()
+                "
+              >
+                <svg
+                  lucideX
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </button>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="app-button app-button-primary app-button-sm"
+            [disabled]="hasPendingOperation()"
+          >
+            <svg
+              lucideSearch
+              aria-hidden="true"
+            ></svg>
+
+            Rechercher
+          </button>
+        </div>
+
+        <p class="mt-1.5 text-xs text-belife-text-secondary">
+          Recherche appliquée au numéro de police.
+
+          @if (!isAdmin()) {
+            Seuls les paiements valides sont consultés.
+          }
+        </p>
+      </form>
+
+      <!-- Filtres de statut réservés à ADMIN -->
+      @if (isAdmin()) {
+        <div>
+          <p
+            class="mb-1.5 text-xs font-semibold text-belife-text"
+          >
+            Statut
+          </p>
+
+          <div
+            class="inline-flex flex-wrap gap-1 rounded-lg bg-belife-surface-muted p-1"
+            aria-label="Filtrer par statut"
+          >
+            <button
+              type="button"
+              class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+              [class.bg-belife-primary]="
+                selectedStatus() === null
+              "
+              [class.text-white]="
+                selectedStatus() === null
+              "
+              [class.text-belife-text-secondary]="
+                selectedStatus() !== null
+              "
+              [disabled]="hasPendingOperation()"
+              (click)="selectStatus(null)"
+            >
+              Tous
+            </button>
+
+            <button
+              type="button"
+              class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+              [class.bg-belife-success]="
+                selectedStatus() === 'PAID'
+              "
+              [class.text-white]="
+                selectedStatus() === 'PAID'
+              "
+              [class.text-belife-text-secondary]="
+                selectedStatus() !== 'PAID'
+              "
+              [disabled]="hasPendingOperation()"
+              (click)="selectStatus('PAID')"
+            >
+              Payés
+            </button>
+
+            <button
+              type="button"
+              class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+              [class.bg-belife-accent]="
+                selectedStatus() === 'CANCELLED'
+              "
+              [class.text-white]="
+                selectedStatus() === 'CANCELLED'
+              "
+              [class.text-belife-text-secondary]="
+                selectedStatus() !== 'CANCELLED'
+              "
+              [disabled]="hasPendingOperation()"
+              (click)="selectStatus('CANCELLED')"
+            >
+              Annulés
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (hasActiveFilters()) {
+      <div
+        class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-belife-border pt-3"
+      >
+        <p class="text-xs text-belife-text-secondary">
+          {{ totalElements() }}
+          résultat(s) correspondant aux critères.
+        </p>
+
+        <button
+          type="button"
+          class="app-button app-button-ghost app-button-sm"
+          [disabled]="hasPendingOperation()"
+          (click)="clearFilters()"
+        >
+          <svg
+            lucideX
+            aria-hidden="true"
+          ></svg>
+
+          @if (isAdmin()) {
+            Effacer les filtres
+          } @else {
+            Effacer la recherche
+          }
+        </button>
+      </div>
+    }
+  </section>
+
+  <!-- ================================================== -->
+  <!-- CHARGEMENT ET ÉTAT VIDE                            -->
+  <!-- ================================================== -->
+
+  @if (loading()) {
+    <section class="app-card mt-4">
+      <div class="app-loading-state py-8">
+        <svg
+          lucideRefreshCw
           class="app-spinner text-belife-accent"
           aria-hidden="true"
         ></svg>
+
         Chargement des paiements...
       </div>
-    </div>
-  } @else if (searchedPolicyNumber()) {
-    <section class="app-card app-section overflow-hidden">
-      <header class="app-card-header">
+    </section>
+  } @else if (
+    payments().length === 0 &&
+    !pageError()
+  ) {
+    <section class="app-card mt-4">
+      <div class="app-empty-state py-8">
+        <div class="app-empty-state-icon">
+          <svg
+            lucideReceiptText
+            aria-hidden="true"
+          ></svg>
+        </div>
+
+        @if (hasActiveFilters()) {
+          <h2 class="app-empty-state-title">
+            Aucun paiement trouvé
+          </h2>
+
+          <p class="app-empty-state-message">
+            Aucun paiement ne correspond aux critères
+            actuellement sélectionnés.
+          </p>
+
+          <button
+            type="button"
+            class="app-button app-button-secondary app-button-sm mt-4"
+            (click)="clearFilters()"
+          >
+            @if (isAdmin()) {
+              Effacer les filtres
+            } @else {
+              Effacer la recherche
+            }
+          </button>
+        } @else {
+          <h2 class="app-empty-state-title">
+            Aucun paiement disponible
+          </h2>
+
+          <p class="app-empty-state-message">
+            @if (isAdmin()) {
+              Les paiements enregistrés apparaîtront ici.
+            } @else {
+              Aucun paiement valide n’est actuellement
+              disponible.
+            }
+          </p>
+        }
+      </div>
+    </section>
+  } @else {
+    <!-- ================================================ -->
+    <!-- TABLEAU DESKTOP                                  -->
+    <!-- ================================================ -->
+
+    <section
+      class="mt-4 hidden overflow-hidden rounded-xl border border-belife-border bg-white shadow-sm lg:block"
+    >
+      <header
+        class="flex items-center justify-between gap-3 border-b border-belife-border px-4 py-3"
+      >
         <div class="flex items-center gap-2.5">
-          <div class="app-section-icon">
-            <svg lucideHistory aria-hidden="true"></svg>
+          <div
+            class="flex size-8 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+          >
+            <svg
+              lucideHistory
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
           </div>
+
           <div>
-            <h2 class="app-card-title">
-              Police {{ searchedPolicyNumber() }}
+            <h2 class="text-sm font-semibold text-belife-text">
+              Historique des paiements
             </h2>
-            <p class="app-card-description">
-              {{ payments().length }} paiement(s)
+
+            <p class="text-xs text-belife-text-secondary">
+              {{ totalElements() }}
+              paiement(s)
             </p>
           </div>
         </div>
+
+        @if (!isAdmin()) {
+          <span
+            class="rounded-full bg-belife-success-soft px-2.5 py-1 text-xs font-medium text-belife-success"
+          >
+            Paiements valides
+          </span>
+        }
       </header>
 
-      @if (payments().length === 0) {
-        <div class="app-empty-state">
-          <div class="app-empty-state-icon">
-            <svg lucideReceiptText aria-hidden="true"></svg>
-          </div>
-          <p class="app-empty-state-title">
-            Aucun paiement enregistré
-          </p>
-          <p class="app-empty-state-message">
-            Aucun paiement n’est associé à cette police.
-          </p>
-        </div>
-      } @else {
-        <div class="app-table-container">
-          <table class="app-table">
-            <thead>
-              <tr>
-                <th>Référence</th>
-                <th>Date</th>
-                <th class="app-table-cell-right">Montant</th>
+      <div class="app-table-container">
+        <table class="app-table">
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Police</th>
+              <th>Date</th>
+
+              <th class="app-table-cell-right">
+                Capital (FCFA)
+              </th>
+
+              <th class="app-table-cell-right">
+                Intérêts (FCFA)
+              </th>
+
+              <th class="app-table-cell-right">
+                Montant total (FCFA)
+              </th>
+
+              <th class="app-table-cell-right">
+                Cycles
+              </th>
+
+              @if (isAdmin()) {
                 <th>Statut</th>
-                <th class="app-table-cell-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (payment of payments(); track payment.id) {
-                <tr>
-                  <td class="font-semibold">
+              }
+
+              <th>Enregistré par</th>
+
+              <th class="app-table-cell-right">
+                Action
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              payment of payments();
+              track payment.id
+            ) {
+              <tr
+                [class.bg-belife-surface-muted]="
+                  isAdmin() &&
+                  payment.status === 'CANCELLED'
+                "
+              >
+                <td>
+                  <p class="font-semibold text-belife-text">
                     Paiement n° {{ payment.id }}
-                  </td>
-                  <td class="app-table-cell-muted whitespace-nowrap">
-                    {{ payment.paymentDate | localDate }}
-                  </td>
-                  <td class="app-table-cell-right app-financial-value">
-                    {{ payment.paidAmount | number: '1.6-6' }}
-                  </td>
+                  </p>
+
+                  <p
+                    class="mt-0.5 text-xs text-belife-text-secondary"
+                  >
+                    Calcul du
+                    {{
+                      payment.calculationDate
+                        | localDate
+                    }}
+                  </p>
+                </td>
+
+                <td>
+                  <p
+                    class="max-w-48 break-all font-medium text-belife-text"
+                  >
+                    {{ payment.policyNumber }}
+                  </p>
+                </td>
+
+                <td class="whitespace-nowrap">
+                  {{
+                    payment.paymentDate
+                      | localDate
+                  }}
+                </td>
+
+                <td
+                  class="app-table-cell-right font-medium tabular-nums text-belife-primary"
+                >
+                  {{
+                    payment.capitalAmount
+                      | number: '1.2-6'
+                  }}
+                </td>
+
+                <td
+                  class="app-table-cell-right font-semibold tabular-nums text-belife-success"
+                >
+                  {{
+                    payment.interestAmount
+                      | number: '1.2-6'
+                  }}
+                </td>
+
+                <td
+                  class="app-table-cell-right text-base font-bold tabular-nums text-belife-primary"
+                >
+                  {{
+                    payment.paidAmount
+                      | number: '1.2-6'
+                  }}
+                </td>
+
+                <td class="app-table-cell-right">
+                  {{ payment.completedCycles }}
+                </td>
+
+                @if (isAdmin()) {
                   <td>
                     <span
                       class="app-badge"
-                      [class.app-badge-success]="payment.status === 'PAID'"
-                      [class.app-badge-neutral]="payment.status === 'CANCELLED'"
+                      [class.app-badge-success]="
+                        payment.status === 'PAID'
+                      "
+                      [class.app-badge-neutral]="
+                        payment.status ===
+                        'CANCELLED'
+                      "
                     >
-                      {{ payment.status === 'PAID' ? 'Payé' : 'Annulé' }}
+                      {{
+                        payment.status === 'PAID'
+                          ? 'Payé'
+                          : 'Annulé'
+                      }}
                     </span>
                   </td>
-                  <td class="app-table-cell-right">
-                    <button
-                      type="button"
-                      class="app-button app-button-secondary app-button-sm"
-                      [disabled]="loadingDetail()"
-                      (click)="openPayment(payment)"
-                    >
-                      <svg lucideEye aria-hidden="true"></svg>
-                      Détails
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+                }
+
+                <td>
+                  {{
+                    payment.createdBy
+                      ?? 'SYSTEM'
+                  }}
+                </td>
+
+                <td class="app-table-cell-right">
+                  <button
+                    type="button"
+                    class="app-button app-button-secondary app-button-sm"
+                    [disabled]="hasPendingOperation()"
+                    (click)="openPayment(payment)"
+                  >
+                    <svg
+                      lucideEye
+                      aria-hidden="true"
+                    ></svg>
+
+                    Détails
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination desktop -->
+      <footer class="app-pagination">
+        <p class="app-pagination-label">
+          Page {{ displayedPageNumber() }}
+          sur {{ totalPages() || 1 }}
+        </p>
+
+        <div class="app-pagination-actions">
+          <button
+            type="button"
+            class="app-button app-button-secondary app-button-icon app-button-sm"
+            aria-label="Page précédente"
+            [disabled]="
+              firstPage() ||
+              hasPendingOperation()
+            "
+            (click)="previousPage()"
+          >
+            <svg
+              lucideChevronLeft
+              aria-hidden="true"
+            ></svg>
+          </button>
+
+          <button
+            type="button"
+            class="app-button app-button-secondary app-button-icon app-button-sm"
+            aria-label="Page suivante"
+            [disabled]="
+              lastPage() ||
+              hasPendingOperation()
+            "
+            (click)="nextPage()"
+          >
+            <svg
+              lucideChevronRight
+              aria-hidden="true"
+            ></svg>
+          </button>
         </div>
+      </footer>
+    </section>
+
+    <!-- ================================================ -->
+    <!-- CARTES TABLETTE ET MOBILE                        -->
+    <!-- ================================================ -->
+
+    <section
+      class="mt-4 grid gap-3 sm:grid-cols-2 lg:hidden"
+    >
+      @for (
+        payment of payments();
+        track payment.id
+      ) {
+        <article
+          class="overflow-hidden rounded-xl border border-belife-border bg-white shadow-sm"
+          [class.opacity-75]="
+            isAdmin() &&
+            payment.status === 'CANCELLED'
+          "
+        >
+          <header
+            class="flex items-start justify-between gap-3 border-b border-belife-border px-4 py-3"
+          >
+            <div>
+              <p
+                class="text-[10px] font-semibold uppercase tracking-wider text-belife-accent"
+              >
+                Paiement
+              </p>
+
+              <h2
+                class="mt-0.5 text-base font-semibold text-belife-text"
+              >
+                N° {{ payment.id }}
+              </h2>
+            </div>
+
+            @if (isAdmin()) {
+              <span
+                class="app-badge"
+                [class.app-badge-success]="
+                  payment.status === 'PAID'
+                "
+                [class.app-badge-neutral]="
+                  payment.status ===
+                  'CANCELLED'
+                "
+              >
+                {{
+                  payment.status === 'PAID'
+                    ? 'Payé'
+                    : 'Annulé'
+                }}
+              </span>
+            }
+          </header>
+
+          <div class="p-4">
+            <div>
+              <p
+                class="text-xs text-belife-text-secondary"
+              >
+                Police
+              </p>
+
+              <p
+                class="mt-0.5 break-all font-semibold text-belife-text"
+              >
+                {{ payment.policyNumber }}
+              </p>
+            </div>
+
+            <dl
+              class="mt-3 grid grid-cols-2 gap-3 border-t border-belife-border pt-3"
+            >
+              <div>
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Date
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold text-belife-text"
+                >
+                  {{
+                    payment.paymentDate
+                      | localDate
+                  }}
+                </dd>
+              </div>
+
+              <div class="text-right">
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Cycles
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold text-belife-accent"
+                >
+                  {{ payment.completedCycles }}
+                </dd>
+              </div>
+
+              <div>
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Capital
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold tabular-nums text-belife-primary"
+                >
+                  {{
+                    payment.capitalAmount
+                      | number: '1.2-6'
+                  }}
+                </dd>
+              </div>
+
+              <div class="text-right">
+                <dt
+                  class="text-xs text-belife-text-secondary"
+                >
+                  Intérêts
+                </dt>
+
+                <dd
+                  class="mt-0.5 font-semibold tabular-nums text-belife-success"
+                >
+                  {{
+                    payment.interestAmount
+                      | number: '1.2-6'
+                  }}
+                </dd>
+              </div>
+            </dl>
+
+            <div
+              class="mt-3 rounded-xl border border-belife-primary/20 bg-belife-primary-soft p-3"
+            >
+              <p
+                class="text-[10px] font-semibold uppercase tracking-wider text-belife-primary/70"
+              >
+                Montant payé
+              </p>
+
+              <p
+                class="mt-1 break-words text-xl font-bold tabular-nums text-belife-primary"
+              >
+                {{
+                  payment.paidAmount
+                    | number: '1.2-6'
+                }}
+              </p>
+            </div>
+
+            <div
+              class="mt-3 flex items-center justify-between gap-3"
+            >
+              <p
+                class="text-xs text-belife-text-secondary"
+              >
+                Par
+                {{
+                  payment.createdBy
+                    ?? 'SYSTEM'
+                }}
+              </p>
+
+              <button
+                type="button"
+                class="app-button app-button-secondary app-button-sm"
+                [disabled]="hasPendingOperation()"
+                (click)="openPayment(payment)"
+              >
+                <svg
+                  lucideEye
+                  aria-hidden="true"
+                ></svg>
+
+                Détails
+              </button>
+            </div>
+          </div>
+        </article>
       }
+
+      <!-- Pagination mobile -->
+      <div
+        class="overflow-hidden rounded-xl border border-belife-border bg-white shadow-sm sm:col-span-2"
+      >
+        <footer class="app-pagination">
+          <p class="app-pagination-label">
+            Page {{ displayedPageNumber() }}
+            sur {{ totalPages() || 1 }}
+          </p>
+
+          <div class="app-pagination-actions">
+            <button
+              type="button"
+              class="app-button app-button-secondary app-button-icon app-button-sm"
+              aria-label="Page précédente"
+              [disabled]="
+                firstPage() ||
+                hasPendingOperation()
+              "
+              (click)="previousPage()"
+            >
+              <svg
+                lucideChevronLeft
+                aria-hidden="true"
+              ></svg>
+            </button>
+
+            <button
+              type="button"
+              class="app-button app-button-secondary app-button-icon app-button-sm"
+              aria-label="Page suivante"
+              [disabled]="
+                lastPage() ||
+                hasPendingOperation()
+              "
+              (click)="nextPage()"
+            >
+              <svg
+                lucideChevronRight
+                aria-hidden="true"
+              ></svg>
+            </button>
+          </div>
+        </footer>
+      </div>
     </section>
   }
+
+  <!-- ================================================== -->
+  <!-- CHARGEMENT DU DÉTAIL                               -->
+  <!-- ================================================== -->
+
+  @if (loadingDetail()) {
+    <div
+      class="fixed inset-0 z-40 flex items-center justify-center bg-belife-primary/15 p-4 backdrop-blur-[1px]"
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        class="rounded-xl border border-belife-border bg-white px-5 py-4 shadow-xl"
+      >
+        <div class="flex items-center gap-3">
+          <svg
+            lucideRefreshCw
+            class="app-spinner size-5 text-belife-accent"
+            aria-hidden="true"
+          ></svg>
+
+          <div>
+            <p class="text-sm font-semibold text-belife-text">
+              Chargement du paiement
+            </p>
+
+            <p
+              class="mt-0.5 text-xs text-belife-text-secondary"
+            >
+              Préparation de la justification financière...
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </section>
+
+<!-- ==================================================== -->
+<!-- DÉTAIL DU PAIEMENT                                   -->
+<!-- ==================================================== -->
 
 @if (selectedPayment(); as payment) {
   <app-payment-detail-dialog
     [payment]="payment"
-    [canCancel]="authenticationService.isAccounting()"
+    [canCancel]="
+      authenticationService.isAccounting()
+    "
     [cancelling]="cancelling()"
     (closeDialog)="closePayment()"
-    (requestCancellation)="requestCancellation($event)"
+    (requestCancellation)="
+      requestCancellation($event)
+    "
   />
 }
+
+<!-- ==================================================== -->
+<!-- CONFIRMATION D’ANNULATION                            -->
+<!-- ==================================================== -->
 
 @if (paymentToCancel(); as payment) {
   <app-cancel-payment-dialog
@@ -223,6 +946,8 @@
     [submitting]="cancelling()"
     [serverError]="cancellationError()"
     (closeDialog)="closeCancellationDialog()"
-    (confirmCancellation)="confirmCancellation($event)"
+    (confirmCancellation)="
+      confirmCancellation($event)
+    "
   />
 }

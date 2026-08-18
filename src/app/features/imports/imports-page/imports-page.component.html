@@ -31,6 +31,42 @@
     </div>
   }
 
+  @if (successMessage(); as message) {
+    <div
+      class="app-alert app-alert-success app-section"
+      role="status"
+      aria-live="polite"
+    >
+      <svg
+        lucideCircleCheckBig
+        class="app-alert-icon"
+        aria-hidden="true"
+      ></svg>
+
+      <div class="app-alert-content">
+        <p class="app-alert-title">
+          Chargement annulé
+        </p>
+
+        <p class="app-alert-message">
+          {{ message }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="app-button app-button-ghost app-button-icon app-button-sm"
+        aria-label="Fermer le message de succès"
+        (click)="successMessage.set(null)"
+      >
+        <svg
+          lucideX
+          aria-hidden="true"
+        ></svg>
+      </button>
+    </div>
+  }
+
   @if (lastImportResult(); as result) {
     <section
       class="app-alert app-section flex-col"
@@ -358,6 +394,11 @@
             <strong>5.</strong>
             Type au format MATURITE_N
           </li>
+
+          <li>
+            <strong>6.</strong>
+            Date de fin des intérêts au format yyyy-MM-dd
+          </li>
         </ol>
 
         <div
@@ -365,8 +406,8 @@
         >
           <code
             class="whitespace-pre text-xs leading-5 text-white"
-          >num_police;type_maturite;date_maturite;montant_maturite
-            POL001;MATURITE_1;2020-03-15;2500000.00</code>
+          >num_police;type_maturite;date_maturite;montant_maturite;date_fin_interets
+            POL001;MATURITE_1;2020-03-15;2500000.00;2030-03-15</code>
         </div>
       </div>
     </aside>
@@ -480,8 +521,13 @@
                   <p
                     class="mt-0.5 text-xs text-belife-text-secondary"
                   >
-                    par
-                    {{ batch.createdBy ?? 'SYSTEM' }}
+                    @if (batch.status === 'REVERSED') {
+                      annulé par
+                      {{ batch.reversedBy ?? 'SYSTEM' }}
+                    } @else {
+                      importé par
+                      {{ batch.importedBy ?? batch.createdBy ?? 'SYSTEM' }}
+                    }
                   </p>
                 </td>
 
@@ -494,12 +540,30 @@
                     [class.app-badge-error]="
                       batch.status === 'REJECTED'
                     "
+                    [class.app-badge-warning]="
+                      batch.status === 'REVERSED'
+                    "
+                    [class.app-badge-info]="
+                      batch.status === 'PROCESSING'
+                    "
                   >
-                    {{
-                      batch.status === 'IMPORTED'
-                        ? 'Importé'
-                        : 'Rejeté'
-                    }}
+                    @switch (batch.status) {
+                      @case ('IMPORTED') {
+                        Importé
+                      }
+
+                      @case ('REJECTED') {
+                        Rejeté
+                      }
+
+                      @case ('REVERSED') {
+                        Annulé
+                      }
+
+                      @case ('PROCESSING') {
+                        En cours
+                      }
+                    }
                   </span>
                 </td>
 
@@ -523,7 +587,7 @@
                 <td class="app-table-cell-right">
                   <button
                     type="button"
-                    class="app-button app-button-secondary app-button-sm"
+                    class="app-button app-button-accent app-button-sm"
                     [disabled]="
                       hasPendingOperation()
                     "
@@ -592,6 +656,25 @@
     [detail]="detail"
     [maturities]="selectedMaturities()"
     [loadingMaturities]="loadingMaturities()"
+    [reversing]="reversing()"
+    [canReverse]="
+      authenticationService.isAuthenticated()
+    "
     (closeDialog)="closeDetail()"
+    (requestReversal)="
+      requestReversal($event)
+    "
+  />
+}
+
+@if (batchToReverse(); as batch) {
+  <app-reverse-import-dialog
+    [batch]="batch"
+    [submitting]="reversing()"
+    [serverError]="reversalError()"
+    (closeDialog)="closeReversalDialog()"
+    (confirmReversal)="
+      confirmReversal($event)
+    "
   />
 }

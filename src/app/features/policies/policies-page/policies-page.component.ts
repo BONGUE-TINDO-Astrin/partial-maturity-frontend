@@ -1,5 +1,4 @@
 import {
-  DatePipe,
   DecimalPipe,
   PercentPipe,
 } from '@angular/common';
@@ -9,319 +8,284 @@ import {
   Component,
   computed,
   inject,
+  OnInit,
   signal,
 } from '@angular/core';
 import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import {
-  LucideCalculator,
-  LucideCalendarDays,
-  LucideCircleAlert,
   LucideCircleCheckBig,
   LucideCoins,
+  LucideEye,
   LucideFileSearch,
-  LucideListOrdered,
+  LucideLandmark,
   LucideRefreshCw,
   LucideSearch,
   LucideTrendingUp,
   LucideX,
 } from '@lucide/angular';
-import { finalize } from 'rxjs';
+import {
+  finalize,
+  forkJoin,
+  of,
+  switchMap,
+} from 'rxjs';
 
 import { AuthenticationService } from '../../../core/authentication/authentication.service';
-import {
-  extractApiError,
-  resolveApiErrorMessage,
-} from '../../../core/error-handling/api-error-utils';
-import { PaymentConfirmationDialogComponent } from '../../../shared/ui-components/payment-confirmation-dialog.component/payment-confirmation-dialog.component';
-import { PaymentResponse } from '../../payments/models/payment-response';
-import { PaymentsService } from '../../payments/payments.service';
-import { InterestSimulation } from '../models/interest-simulation';
-import { PolicyDetail } from '../models/policy-detail';
-import { PolicyMaturity } from '../models/policy-maturity';
-import { PoliciesService } from '../policies.service';
+import { resolveApiErrorMessage } from '../../../core/error-handling/api-error-utils';
 import { LocalDatePipe } from '../../../shared/pipes/local-date.pipe';
+import { PaymentConfirmationDialogComponent } from '../../../shared/ui-components/payment-confirmation-dialog.component/payment-confirmation-dialog.component';
+import { PaymentsService } from '../../payments/payments.service';
+import { PolicyFinancialDetail } from '../models/policy-financial-detail';
+import { PoliciesService } from '../policies.service';
+import { PolicyFinancialDetailDialogComponent } from '../policy-financial-detail-dialog/policy-financial-detail-dialog.component';
+import { PolicyFinancialSummary } from '../models/Créer policy-financial-summary';
+import { PolicyPaymentHistory } from '../models/policy-payment-history';
+import { PaymentResponse } from '../../payments/models/payment-response';
 
 /**
- * Écran de recherche, consultation et simulation d'une police.
+ * Liste les polices et leur situation financière courante.
  *
- * Tous les calculs financiers sont réalisés par le backend.
+ * Les synthèses sont chargées à l'ouverture de la page.
+ * La recherche filtre ensuite localement les données reçues,
+ * sans déclencher de nouvel appel HTTP.
  */
 @Component({
   selector: 'app-policies-page',
   standalone: true,
   imports: [
-    DatePipe,
-    LocalDatePipe,
     DecimalPipe,
-    PercentPipe,
-    ReactiveFormsModule,
+    LocalDatePipe,
     PaymentConfirmationDialogComponent,
-    LucideCalculator,
-    LucideCalendarDays,
-    LucideCircleAlert,
-    LucideCircleCheckBig,
-    LucideCoins,
+    PolicyFinancialDetailDialogComponent,
+    LucideEye,
     LucideFileSearch,
-    LucideListOrdered,
     LucideRefreshCw,
     LucideSearch,
-    LucideTrendingUp,
     LucideX,
   ],
   templateUrl: './policies-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PoliciesPageComponent {
-  readonly authenticationService =
-    inject(AuthenticationService);
+export class PoliciesPageComponent implements OnInit {
+  readonly authenticationService = inject(AuthenticationService);
 
-  private readonly policiesService =
-    inject(PoliciesService);
+  private readonly policiesService = inject(PoliciesService);
 
-  private readonly paymentsService =
-    inject(PaymentsService);
+  private readonly paymentsService = inject(PaymentsService);
 
-  readonly policyNumberControl = new FormControl('', {
-    nonNullable: true,
-    validators: [
-      Validators.required,
-      Validators.maxLength(100),
-    ],
-  });
+  readonly policies = signal<PolicyFinancialSummary[]>([]);
 
-  readonly searchForm = new FormGroup({
-    policyNumber: this.policyNumberControl,
-  });
+  readonly searchTerm = signal('');
 
-  /*
-   * Chaque opération conserve son propre état afin que le template
-   * puisse afficher précisément l'action en cours.
+  readonly selectedDetail = signal<PolicyFinancialDetail | null>(null);
+
+    /**
+   * Paiement historique actuellement présenté
+   * dans la popup de la police.
    */
-  readonly loading = signal(false);
-  readonly simulating = signal(false);
+  readonly selectedHistoricalPayment = signal<PaymentResponse | null>(null);
+
+  /**
+   * Indique que la chronologie d'un paiement
+   * est actuellement chargée.
+   */
+  readonly loadingHistoricalPayment = signal(false);
+
+  readonly paymentHistoryError = signal<string | null>(null);
+
+  readonly loadingPolicies = signal(false);
+  readonly loadingDetail = signal(false);
   readonly recordingPayment = signal(false);
 
-  readonly policy =
-    signal<PolicyDetail | null>(null);
+  readonly pageError = signal<string | null>(null);
 
-  readonly simulation =
-    signal<InterestSimulation | null>(null);
+  readonly detailError = signal<string | null>(null);
 
-  readonly lastRecordedPayment =
-    signal<PaymentResponse | null>(null);
+  readonly paymentError = signal<string | null>(null);
 
-  readonly searchedPolicyNumber =
-    signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
 
-  readonly notFoundMessage =
-    signal<string | null>(null);
-
-  readonly pageError =
-    signal<string | null>(null);
-
-  readonly simulationError =
-    signal<string | null>(null);
-
-  readonly paymentError =
-    signal<string | null>(null);
-
-  readonly paymentSuccessMessage =
-    signal<string | null>(null);
-
-  readonly paymentConfirmationOpen =
-    signal(false);
-
-  readonly hasResult = computed(
-    () => this.policy() !== null,
-  );
+  readonly paymentConfirmationOpen = signal(false);
 
   /**
-   * Indique qu'une opération serveur susceptible de modifier
-   * l'état de la page est actuellement en cours.
+   * Cache limité à la durée d'ouverture de la police.
+   *
+   * Il évite de rappeler le backend lorsque l'utilisateur
+   * revient sur un paiement déjà consulté.
    */
+  private readonly paymentDetailCache = new Map<number, PaymentResponse>();
+
+  /**
+   * Filtrage local volontairement limité au numéro de police.
+   *
+   * Le backend n'est pas rappelé à chaque caractère saisi,
+   * ce qui rend la recherche immédiate après le chargement.
+   */
+  readonly filteredPolicies = computed(() => {
+    const normalizedSearch =
+      this.searchTerm()
+        .trim()
+        .toLocaleLowerCase();
+
+    if (!normalizedSearch) {
+      return this.policies();
+    }
+
+    return this.policies().filter((policy) =>
+      policy.policyNumber
+        .toLocaleLowerCase()
+        .includes(normalizedSearch),
+    );
+  });
+
+  readonly displayedPolicyCount = computed(
+    () => this.filteredPolicies().length,
+  );
+
+  readonly totalPolicyCount = computed(
+    () => this.policies().length,
+  );
+
+  readonly hasActiveFilter = computed(
+    () => this.searchTerm().trim().length > 0,
+  );
+
   readonly hasPendingOperation = computed(
     () =>
-      this.loading() ||
-      this.simulating() ||
+      this.loadingPolicies() ||
+      this.loadingDetail() ||
+      this.loadingHistoricalPayment() ||
       this.recordingPayment(),
   );
+  
 
-  readonly maturities = computed<
-    PolicyMaturity[]
-  >(
-    () => this.policy()?.maturities ?? [],
-  );
-
-  /**
-   * Recherche une police et réinitialise les résultats
-   * financiers associés à la recherche précédente.
-   */
-  searchPolicy(): void {
-    if (this.hasPendingOperation()) {
-      return;
-    }
-
-    this.pageError.set(null);
-    this.notFoundMessage.set(null);
-
-    if (this.searchForm.invalid) {
-      this.searchForm.markAllAsTouched();
-      return;
-    }
-
-    const policyNumber =
-      this.policyNumberControl.value.trim();
-
-    if (!policyNumber) {
-      this.policyNumberControl.setErrors({
-        required: true,
-      });
-
-      this.policyNumberControl.markAsTouched();
-      return;
-    }
-
-    this.resetFinancialState();
-
-    this.loading.set(true);
-    this.policy.set(null);
-    this.searchedPolicyNumber.set(
-      policyNumber,
-    );
-
-    this.policiesService
-      .getPolicyDetails(policyNumber)
-      .pipe(
-        finalize(() => {
-          this.loading.set(false);
-        }),
-      )
-      .subscribe({
-        next: (policy) => {
-          this.policy.set(policy);
-
-          this.policyNumberControl.setValue(
-            policy.policyNumber,
-            {
-              emitEvent: false,
-            },
-          );
-        },
-
-        error: (error: HttpErrorResponse) => {
-          this.handleSearchError(error);
-        },
-      });
+  ngOnInit(): void {
+    this.loadPolicies();
   }
 
   /**
-   * Recharge la police actuellement affichée.
+   * Recharge toutes les synthèses financières.
    */
-  refreshPolicy(): void {
-    if (this.hasPendingOperation()) {
-      return;
-    }
-
-    const policyNumber =
-      this.policy()?.policyNumber ??
-      this.searchedPolicyNumber();
-
-    if (!policyNumber) {
-      return;
-    }
-
-    this.policyNumberControl.setValue(
-      policyNumber,
-      {
-        emitEvent: false,
-      },
-    );
-
-    this.searchPolicy();
-  }
-
-  /**
-   * Revient à l'état initial de la page.
-   */
-  clearSearch(): void {
-    if (this.hasPendingOperation()) {
-      return;
-    }
-
-    this.policy.set(null);
-    this.searchedPolicyNumber.set(null);
-    this.notFoundMessage.set(null);
-    this.pageError.set(null);
-
-    this.resetFinancialState();
-
-    this.policyNumberControl.reset('');
-    this.policyNumberControl.markAsUntouched();
-  }
-
-  /**
-   * Demande au backend de recalculer la situation financière
-   * de la police actuellement affichée.
-   */
-  simulateInterest(): void {
-    const currentPolicy = this.policy();
-
+  loadPolicies(): void {
     if (
-      !currentPolicy ||
-      this.hasPendingOperation()
+      this.loadingPolicies() ||
+      this.recordingPayment()
     ) {
       return;
     }
 
-    this.simulating.set(true);
-    this.simulation.set(null);
-    this.simulationError.set(null);
+    this.loadingPolicies.set(true);
+    this.pageError.set(null);
 
     this.policiesService
-      .simulate(currentPolicy.policyNumber)
+      .getFinancialSummaries()
       .pipe(
         finalize(() => {
-          this.simulating.set(false);
+          this.loadingPolicies.set(false);
         }),
       )
       .subscribe({
-        next: (simulation) => {
-          this.simulation.set(simulation);
+        next: (policies) => {
+          this.policies.set(policies);
         },
 
         error: (error: HttpErrorResponse) => {
-          this.simulationError.set(
+          this.pageError.set(
             resolveApiErrorMessage(
               error,
-              'La simulation des intérêts a échoué.',
+              'La liste des polices ne peut pas être chargée.',
             ),
           );
         },
       });
   }
 
+  updateSearchTerm(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    this.searchTerm.set(input.value);
+  }
+
+  clearSearch(): void {
+    this.searchTerm.set('');
+  }
+
   /**
-   * Ouvre la confirmation uniquement lorsqu'une simulation
-   * possède encore un solde strictement positif.
+   * Charge le détail financier uniquement au moment
+   * où l'utilisateur souhaite consulter une police.
+   */
+  openDetail(policy: PolicyFinancialSummary): void {
+    if (this.hasPendingOperation()) {
+      return;
+    }
+
+    this.loadingDetail.set(true);
+    this.detailError.set(null);
+    this.paymentError.set(null);
+    this.selectedDetail.set(null);
+    this.selectedHistoricalPayment.set(null);
+    this.paymentHistoryError.set(null);
+    this.paymentDetailCache.clear();
+
+    this.policiesService
+      .getFinancialDetails(
+        policy.policyNumber,
+      )
+      .pipe(
+        finalize(() => {
+          this.loadingDetail.set(false);
+        }),
+      )
+      .subscribe({
+        next: (detail) => {
+          this.selectedDetail.set(detail);
+        },
+
+        error: (error: HttpErrorResponse) => {
+          this.detailError.set(
+            resolveApiErrorMessage(
+              error,
+              'Le détail financier de la police ne peut pas être chargé.',
+            ),
+          );
+        },
+      });
+  }
+
+  closeDetail(): void {
+    if (
+      this.recordingPayment() ||
+      this.loadingHistoricalPayment()
+    ) {
+      return;
+    }
+
+    this.selectedDetail.set(null);
+    this.selectedHistoricalPayment.set(null);
+
+    this.detailError.set(null);
+    this.paymentError.set(null);
+    this.paymentHistoryError.set(null);
+
+    this.paymentConfirmationOpen.set(false);
+    this.paymentDetailCache.clear();
+  }
+
+  /**
+   * Ouvre la confirmation à partir de la simulation
+   * déjà retournée dans le détail financier.
    */
   openPaymentConfirmation(): void {
-    const currentSimulation = this.simulation();
+    const detail = this.selectedDetail();
 
     if (
-      !currentSimulation ||
-      currentSimulation.balance <= 0 ||
-      this.hasPendingOperation()
+      !detail ||
+      detail.simulation.balance <= 0 ||
+      this.recordingPayment()
     ) {
       return;
     }
 
     this.paymentError.set(null);
-    this.paymentSuccessMessage.set(null);
     this.paymentConfirmationOpen.set(true);
   }
 
@@ -335,59 +299,92 @@ export class PoliciesPageComponent {
   }
 
   /**
-   * Enregistre le paiement total de la police.
+   * Enregistre le paiement puis recharge simultanément
+   * la liste et le détail de la police.
    *
-   * Aucun montant calculé par le frontend n'est envoyé.
-   * Le backend recalcule la situation dans sa transaction.
+   * Aucun montant n'est transmis au backend. Le backend
+   * recalcule intégralement la situation dans sa transaction.
    */
   confirmPayment(): void {
-    const currentPolicy = this.policy();
-    const currentSimulation = this.simulation();
+    const detail = this.selectedDetail();
 
     if (
+      !detail ||
       !this.paymentConfirmationOpen() ||
-      !currentPolicy ||
-      !currentSimulation ||
-      currentSimulation.balance <= 0 ||
-      this.hasPendingOperation()
+      detail.simulation.balance <= 0 ||
+      this.recordingPayment()
     ) {
       return;
     }
 
+    const policyNumber =
+      detail.policyNumber;
+
     this.recordingPayment.set(true);
     this.paymentError.set(null);
-    this.paymentSuccessMessage.set(null);
+    this.successMessage.set(null);
 
     this.paymentsService
-      .recordPayment(currentPolicy.policyNumber)
+      .recordPayment(policyNumber)
       .pipe(
+        /*
+         * Après l'enregistrement, la liste et la popup
+         * doivent présenter immédiatement la nouvelle
+         * situation financière.
+         */
+        switchMap((payment) =>
+          forkJoin({
+            payment: of(payment),
+
+            policies:
+              this.policiesService
+                .getFinancialSummaries(),
+
+            detail:
+              this.policiesService
+                .getFinancialDetails(
+                  policyNumber,
+                ),
+          }),
+        ),
+
         finalize(() => {
           this.recordingPayment.set(false);
         }),
       )
       .subscribe({
-        next: (payment) => {
-          this.lastRecordedPayment.set(payment);
-          this.paymentConfirmationOpen.set(false);
-
-          this.paymentSuccessMessage.set(
-            `Le paiement n° ${payment.id} d’un montant de ${this.formatFinancialAmount(payment.paidAmount)} a été enregistré avec succès.`,
+        next: ({
+          payment,
+          policies,
+          detail: refreshedDetail,
+        }) => {
+          this.policies.set(policies);
+          this.selectedDetail.set(
+            refreshedDetail,
           );
 
           /*
-           * Le callback next est exécuté avant finalize.
-           * L'état est libéré ici pour permettre le recalcul
-           * immédiat de la situation après le paiement.
-           */
-          this.recordingPayment.set(false);
-          this.simulateInterest();
+          * L'historique de la police a changé.
+          * Les détails éventuellement mis en cache ne doivent
+          * plus être considérés comme la photographie courante.
+          */
+          this.paymentDetailCache.clear();
+          this.selectedHistoricalPayment.set(null);
+          this.paymentHistoryError.set(null);
+
+          this.paymentConfirmationOpen.set(false);
+          this.paymentError.set(null);
+
+          this.successMessage.set(
+            `Le paiement n° ${payment.id} a été enregistré avec succès pour la police ${policyNumber}.`,
+          );
         },
 
         error: (error: HttpErrorResponse) => {
           this.paymentError.set(
             resolveApiErrorMessage(
               error,
-              'Le paiement n’a pas pu être enregistré.',
+              'Le paiement total ne peut pas être enregistré.',
             ),
           );
         },
@@ -395,67 +392,67 @@ export class PoliciesPageComponent {
   }
 
   /**
-   * Efface les résultats et les messages liés à la simulation
-   * ainsi qu'au dernier enregistrement de paiement.
-   */
-  private resetFinancialState(): void {
-    this.simulation.set(null);
-    this.simulationError.set(null);
-    this.paymentConfirmationOpen.set(false);
-    this.paymentError.set(null);
-    this.paymentSuccessMessage.set(null);
-    this.lastRecordedPayment.set(null);
-  }
-
-  /**
-   * Oriente les erreurs de recherche vers l'état visuel adapté.
+   * Charge la chronologie figée d'un paiement historique.
    *
-   * Une police absente est présentée comme un résultat vide,
-   * tandis qu'un numéro invalide reste une erreur de saisie.
+   * Les paiements déjà consultés pendant l'ouverture
+   * courante sont lus depuis le cache local.
    */
-  private handleSearchError(
-    error: HttpErrorResponse,
+  openHistoricalPayment(
+    payment: PolicyPaymentHistory,
   ): void {
-    const apiError = extractApiError(error);
-
     if (
-      error.status === 404 &&
-      apiError?.code === 'POLICY_NOT_FOUND'
+      this.recordingPayment() ||
+      this.loadingHistoricalPayment()
     ) {
-      this.notFoundMessage.set(
-        apiError.message?.trim() ||
-          `Aucune maturité n'est disponible pour la police '${this.searchedPolicyNumber()}'.`,
-      );
-
       return;
     }
 
-    if (
-      error.status === 400 &&
-      apiError?.code === 'INVALID_POLICY_NUMBER'
-    ) {
-      this.pageError.set(
-        apiError.message?.trim() ||
-          'Le numéro de police est invalide.',
+    const cachedPayment =
+      this.paymentDetailCache.get(
+        payment.id,
       );
 
+    if (cachedPayment) {
+      this.selectedHistoricalPayment.set(
+        cachedPayment,
+      );
+
+      this.paymentHistoryError.set(null);
       return;
     }
 
-    this.pageError.set(
-      resolveApiErrorMessage(
-        error,
-        'Une erreur est survenue pendant la recherche.',
-      ),
-    );
-  }
+    this.loadingHistoricalPayment.set(true);
+    this.paymentHistoryError.set(null);
 
-  private formatFinancialAmount(
-    amount: number,
-  ): string {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 6,
-      maximumFractionDigits: 6,
-    }).format(amount);
+    this.paymentsService
+      .getPayment(payment.id)
+      .pipe(
+        finalize(() => {
+          this.loadingHistoricalPayment.set(
+            false,
+          );
+        }),
+      )
+      .subscribe({
+        next: detail => {
+          this.paymentDetailCache.set(
+            detail.id,
+            detail,
+          );
+
+          this.selectedHistoricalPayment.set(
+            detail,
+          );
+        },
+
+        error: (error: HttpErrorResponse) => {
+          this.paymentHistoryError.set(
+            resolveApiErrorMessage(
+              error,
+              'La chronologie de ce paiement ne peut pas être chargée.',
+            ),
+          );
+        },
+      });
   }
 }

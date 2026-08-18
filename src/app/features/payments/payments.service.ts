@@ -1,10 +1,18 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import {
+  inject,
+  Injectable,
+} from '@angular/core';
+import {
+  HttpParams,
+} from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { CancelPaymentRequest } from './models/cancel-payment-request';
-import { PaymentResponse } from './models/payment-response';
 import { environment } from '../../../environments/environment';
+import { CancelPaymentRequest } from './models/cancel-payment-request';
+import { PaymentPage } from './models/payment-page';
+import { PaymentResponse } from './models/payment-response';
+import { PaymentStatus } from './models/payment-status';
 
 /**
  * Centralise les appels HTTP liés aux paiements.
@@ -21,38 +29,73 @@ export class PaymentsService {
   private readonly apiUrl = environment.apiUrl;
 
   /**
+   * Retourne une page de paiements selon les filtres
+   * actuellement sélectionnés.
+   */
+  searchPayments(search: string, status: PaymentStatus | null, page: number, size: number,): Observable<PaymentPage> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    const normalizedSearch = search.trim();
+
+    if (normalizedSearch) {
+      params = params.set('search', normalizedSearch);
+    }
+
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    return this.http.get<PaymentPage>(
+      `${this.apiUrl}/payments`, {params},
+    );
+  }
+
+  /**
    * Recalcule et enregistre le paiement total
    * de la situation courante.
    */
-  recordPayment(policyNumber: string,): Observable<PaymentResponse> {
-    const encodedPolicyNumber = encodeURIComponent(policyNumber.trim());
+  recordPayment(policyNumber: string): Observable<PaymentResponse> {
+    const encodedPolicyNumber = this.encodePolicyNumber(policyNumber);
 
     return this.http.post<PaymentResponse>(
-      `${this.apiUrl}/policies/${encodedPolicyNumber}/payments`, null,);
+      `${this.apiUrl}/policies/${encodedPolicyNumber}/payments`,
+      null,
+    );
   }
 
   /**
-   * Retourne l'historique complet des paiements
-   * d'une police.
+   * Endpoint historique conservé pour les consommateurs
+   * consultant directement une police.
    */
-  getPolicyPayments(policyNumber: string,): Observable<PaymentResponse[]> {
-    const encodedPolicyNumber = encodeURIComponent(policyNumber.trim());
+  getPolicyPayments(policyNumber: string): Observable<PaymentResponse[]> {
+    const encodedPolicyNumber = this.encodePolicyNumber(policyNumber);
 
-    return this.http.get<PaymentResponse[]>(`${this.apiUrl}/policies/${encodedPolicyNumber}/payments`,);
+    return this.http.get<PaymentResponse[]>(
+      `${this.apiUrl}/policies/${encodedPolicyNumber}/payments`,
+    );
   }
 
   /**
-   * Retourne un paiement et ses détails.
+   * Retourne un paiement avec toutes ses lignes
+   * justificatives.
    */
-  getPayment(paymentId: number,): Observable<PaymentResponse> {
-    return this.http.get<PaymentResponse>(`${this.apiUrl}/payments/${paymentId}`,);
+  getPayment(paymentId: number): Observable<PaymentResponse> {
+    return this.http.get<PaymentResponse>(
+      `${this.apiUrl}/payments/${paymentId}`,
+    );
   }
 
   /**
    * Annule un paiement encore valide.
    */
-  cancelPayment(paymentId: number, request: CancelPaymentRequest,): Observable<PaymentResponse> {
+  cancelPayment(paymentId: number, request: CancelPaymentRequest): Observable<PaymentResponse> {
     return this.http.post<PaymentResponse>(
       `${this.apiUrl}/payments/${paymentId}/cancel`, request,);
+  }
+
+  private encodePolicyNumber(policyNumber: string): string {
+    return encodeURIComponent(policyNumber.trim());
   }
 }

@@ -91,7 +91,7 @@
               Capital
             </dt>
             <dd class="app-financial-value text-right">
-              {{ simulation().openCapital | number: '1.6-6' }}
+              {{ simulation().openCapital | number: '1.2-6' }} FCFA
             </dd>
           </div>
 
@@ -102,18 +102,18 @@
               Intérêts
             </dt>
             <dd class="text-right font-semibold tabular-nums text-belife-success">
-              {{ simulation().openInterest | number: '1.6-6' }}
+              {{ simulation().openInterest | number: '1.2-6' }} FCFA
             </dd>
           </div>
 
           <div
-            class="flex items-center justify-between gap-4 bg-belife-text px-4 py-3.5 text-white"
+            class="rounded-xl bg-linear-to-t from-belife-accent to-belife-accent-hover p-2 text-white"
           >
             <dt class="font-semibold">
               Montant total estimé
             </dt>
             <dd class="text-xl font-bold tabular-nums">
-              {{ simulation().balance | number: '1.6-6' }}
+              {{ simulation().balance | number: '1.2-6' }} FCFA
             </dd>
           </div>
         </dl>
