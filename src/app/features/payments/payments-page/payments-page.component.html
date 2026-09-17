@@ -926,7 +926,7 @@
   <app-payment-detail-dialog
     [payment]="payment"
     [canCancel]="
-      authenticationService.isAccounting()
+      authenticationService.isAdmin()
     "
     [cancelling]="cancelling()"
     (closeDialog)="closePayment()"

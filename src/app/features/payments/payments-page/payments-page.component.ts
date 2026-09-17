@@ -76,23 +76,17 @@ import { PaymentsService } from '../payments.service';
   changeDetection:
     ChangeDetectionStrategy.OnPush,
 })
-export class PaymentsPageComponent
-  implements OnInit {
+export class PaymentsPageComponent implements OnInit {
 
-  private readonly paymentsService =
-    inject(PaymentsService);
+  private readonly paymentsService = inject(PaymentsService);
 
-  readonly authenticationService =
-    inject(AuthenticationService);
+  readonly authenticationService = inject(AuthenticationService);
 
-  readonly payments =
-    signal<PaymentSummary[]>([]);
+  readonly payments = signal<PaymentSummary[]>([]);
 
-  readonly selectedPayment =
-    signal<PaymentResponse | null>(null);
+  readonly selectedPayment = signal<PaymentResponse | null>(null);
 
-  readonly paymentToCancel =
-    signal<PaymentResponse | null>(null);
+  readonly paymentToCancel = signal<PaymentResponse | null>(null);
 
   readonly searchTerm = signal('');
 
@@ -103,8 +97,7 @@ export class PaymentsPageComponent
    * Pour la comptabilité, le statut réellement envoyé
    * au backend est toujours PAID.
    */
-  readonly selectedStatus =
-    signal<PaymentStatus | null>(null);
+  readonly selectedStatus = signal<PaymentStatus | null>(null);
 
   readonly currentPage = signal(0);
   readonly pageSize = signal(20);
@@ -117,17 +110,13 @@ export class PaymentsPageComponent
   readonly loadingDetail = signal(false);
   readonly cancelling = signal(false);
 
-  readonly pageError =
-    signal<string | null>(null);
+  readonly pageError = signal<string | null>(null);
 
-  readonly detailError =
-    signal<string | null>(null);
+  readonly detailError = signal<string | null>(null);
 
-  readonly successMessage =
-    signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
 
-  readonly cancellationError =
-    signal<string | null>(null);
+  readonly cancellationError = signal<string | null>(null);
 
   /**
    * Détermine si les outils avancés de recherche
@@ -397,14 +386,10 @@ export class PaymentsPageComponent
    * La réponse backend confirme également que le
    * paiement sélectionné est actuellement annulable.
    */
-  requestCancellation(
-    payment: PaymentResponse,
-  ): void {
+  requestCancellation(payment: PaymentResponse): void {
     if (
       !this.authenticationService
-        .isAccounting() ||
-      payment.status !== 'PAID' ||
-      !payment.cancellable ||
+        .isAdmin() || payment.status !== 'PAID' || !payment.cancellable ||
       this.cancelling()
     ) {
       return;
@@ -427,16 +412,13 @@ export class PaymentsPageComponent
    * Annule le paiement puis recharge la page courante
    * et le détail depuis le backend.
    */
-  confirmCancellation(
-    reason: string,
-  ): void {
-    const payment =
-      this.paymentToCancel();
+  confirmCancellation(reason: string): void {
+    const payment = this.paymentToCancel();
 
     if (
       !payment ||
       !this.authenticationService
-        .isAccounting() ||
+        .isAdmin() ||
       !payment.cancellable ||
       this.cancelling()
     ) {

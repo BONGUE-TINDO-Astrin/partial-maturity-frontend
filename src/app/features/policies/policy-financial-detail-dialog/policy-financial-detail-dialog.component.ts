@@ -67,7 +67,6 @@ import { PolicyPaymentHistory } from '../models/policy-payment-history';
     LucideLoaderCircle,
     LucideLockKeyhole,
     LucideReceiptText,
-    LucideRefreshCw,
     LucideTrendingUp,
     LucideX,
   ],
@@ -76,8 +75,7 @@ import { PolicyPaymentHistory } from '../models/policy-payment-history';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PolicyFinancialDetailDialogComponent {
-  readonly detail =
-    input.required<PolicyFinancialDetail>();
+  readonly detail = input.required<PolicyFinancialDetail>();
 
   readonly recordingPayment = input(false);
 
@@ -88,14 +86,11 @@ export class PolicyFinancialDetailDialogComponent {
    *
    * La valeur est chargée par le composant parent.
    */
-  readonly selectedPayment =
-    input<PaymentResponse | null>(null);
+  readonly selectedPayment = input<PaymentResponse | null>(null);
 
-  readonly loadingPayment =
-    input(false);
+  readonly loadingPayment = input(false);
 
-  readonly paymentHistoryError =
-    input<string | null>(null);
+  readonly paymentHistoryError = input<string | null>(null);
 
   readonly closeDialog = output<void>();
 
@@ -105,8 +100,7 @@ export class PolicyFinancialDetailDialogComponent {
    * Demande au parent de charger le détail
    * d'un paiement historique.
    */
-  readonly selectPayment =
-    output<PolicyPaymentHistory>();
+  readonly selectPayment = output<PolicyPaymentHistory>();
 
   /**
    * Vue ouverte par défaut.
@@ -120,8 +114,7 @@ export class PolicyFinancialDetailDialogComponent {
    * La chronologie courante reste repliée
    * pour alléger la première lecture.
    */
-  readonly currentCalculationExpanded =
-    signal(false);
+  readonly currentCalculationExpanded = signal(false);
 
   readonly hasPayableBalance = computed(
     () =>
@@ -149,9 +142,7 @@ export class PolicyFinancialDetailDialogComponent {
    * Lors de la première ouverture de l'historique,
    * le paiement valide le plus récent est sélectionné.
    */
-  selectTab(
-    tab: PolicyFinancialDetailTab,
-  ): void {
+  selectTab(tab: PolicyFinancialDetailTab): void {
     if (
       this.recordingPayment() ||
       this.loadingPayment()
@@ -183,9 +174,7 @@ export class PolicyFinancialDetailDialogComponent {
     }
   }
 
-  selectHistoricalPayment(
-    payment: PolicyPaymentHistory,
-  ): void {
+  selectHistoricalPayment(payment: PolicyPaymentHistory): void {
     if (
       this.loadingPayment() ||
       this.recordingPayment() ||
