@@ -1,22 +1,53 @@
 <section class="app-page">
-  <header class="app-page-header">
-    <p class="app-eyebrow">
-      Administration
-    </p>
+  <!-- ================================================== -->
+  <!-- EN-TÊTE                                            -->
+  <!-- ================================================== -->
 
-    <h1 class="app-page-title">
-      Chargements CSV
-    </h1>
+  <header
+    class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div>
+      <p class="app-eyebrow">
+        Administration
+      </p>
 
-    <p class="app-page-description">
-      Importez les maturités des polices. Le fichier est
-      entièrement contrôlé avant toute insertion.
-    </p>
+      <h1 class="app-page-title">
+        Chargements CSV
+      </h1>
+
+      <p class="mt-1 text-sm text-belife-text-secondary">
+        Importez les maturités partielles des polices.
+        Chaque fichier est entièrement contrôlé avant insertion.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="app-button app-button-secondary app-button-sm"
+      [disabled]="hasPendingOperation()"
+      (click)="loadHistory(currentPage())"
+    >
+      <svg
+        lucideRefreshCw
+        [class.app-spinner]="loadingHistory()"
+        aria-hidden="true"
+      ></svg>
+
+      {{
+        loadingHistory()
+          ? 'Actualisation...'
+          : 'Actualiser'
+      }}
+    </button>
   </header>
 
-  @if (pageError()) {
+  <!-- ================================================== -->
+  <!-- MESSAGES GÉNÉRAUX                                  -->
+  <!-- ================================================== -->
+
+  @if (pageError(); as errorMessage) {
     <div
-      class="app-alert app-alert-error app-section"
+      class="app-alert app-alert-error mt-4"
       role="alert"
     >
       <svg
@@ -26,14 +57,20 @@
       ></svg>
 
       <div class="app-alert-content">
-        {{ pageError() }}
+        <p class="app-alert-title">
+          Opération impossible
+        </p>
+
+        <p class="app-alert-message">
+          {{ errorMessage }}
+        </p>
       </div>
     </div>
   }
 
   @if (successMessage(); as message) {
     <div
-      class="app-alert app-alert-success app-section"
+      class="app-alert app-alert-success mt-4"
       role="status"
       aria-live="polite"
     >
@@ -67,37 +104,77 @@
     </div>
   }
 
+  <!-- ================================================== -->
+  <!-- RÉSULTAT DU DERNIER IMPORT                         -->
+  <!-- ================================================== -->
+
   @if (lastImportResult(); as result) {
     <section
-      class="app-alert app-section flex-col"
-      [class.app-alert-success]="
+      class="mt-4 overflow-hidden rounded-xl border bg-white shadow-sm"
+      [class.border-belife-success/25]="
         result.status === 'IMPORTED'
       "
-      [class.app-alert-error]="
+      [class.border-belife-error/25]="
         result.status === 'REJECTED'
       "
       role="status"
       aria-live="polite"
     >
-      <div
-        class="flex w-full items-start gap-2.5"
+      <header
+        class="flex items-start gap-3 border-b px-4 py-3"
+        [class.border-belife-success/20]="
+          result.status === 'IMPORTED'
+        "
+        [class.bg-belife-success-soft/35]="
+          result.status === 'IMPORTED'
+        "
+        [class.border-belife-error/20]="
+          result.status === 'REJECTED'
+        "
+        [class.bg-belife-error-soft/50]="
+          result.status === 'REJECTED'
+        "
       >
-        @if (result.status === 'IMPORTED') {
-          <svg
-            lucideCircleCheckBig
-            class="app-alert-icon"
-            aria-hidden="true"
-          ></svg>
-        } @else {
-          <svg
-            lucideTriangleAlert
-            class="app-alert-icon"
-            aria-hidden="true"
-          ></svg>
-        }
+        <div
+          class="flex size-8 shrink-0 items-center justify-center rounded-lg"
+          [class.bg-belife-success-soft]="
+            result.status === 'IMPORTED'
+          "
+          [class.text-belife-success]="
+            result.status === 'IMPORTED'
+          "
+          [class.bg-white]="
+            result.status === 'REJECTED'
+          "
+          [class.text-belife-error]="
+            result.status === 'REJECTED'
+          "
+        >
+          @if (result.status === 'IMPORTED') {
+            <svg
+              lucideCircleCheckBig
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          } @else {
+            <svg
+              lucideTriangleAlert
+              class="size-4"
+              aria-hidden="true"
+            ></svg>
+          }
+        </div>
 
-        <div class="app-alert-content">
-          <p class="app-alert-title">
+        <div class="min-w-0 flex-1">
+          <p
+            class="text-sm font-semibold"
+            [class.text-belife-success]="
+              result.status === 'IMPORTED'
+            "
+            [class.text-belife-error]="
+              result.status === 'REJECTED'
+            "
+          >
             {{
               result.status === 'IMPORTED'
                 ? 'Importation réussie'
@@ -105,7 +182,10 @@
             }}
           </p>
 
-          <p class="app-alert-message break-words">
+          <p
+            class="mt-0.5 truncate text-xs text-belife-text-secondary"
+            [title]="result.fileName"
+          >
             {{ result.fileName }}
           </p>
         </div>
@@ -122,119 +202,169 @@
             aria-hidden="true"
           ></svg>
         </button>
-      </div>
+      </header>
 
-      <dl
-        class="grid w-full gap-2 sm:grid-cols-4"
-      >
-        <div class="rounded-lg bg-white/70 p-3">
-          <dt class="app-metric-label">
-            Lignes analysées
-          </dt>
-
-          <dd class="app-metric-value">
-            {{ result.totalRows }}
-          </dd>
-        </div>
-
-        <div class="rounded-lg bg-white/70 p-3">
-          <dt class="app-metric-label">
-            Insérées
-          </dt>
-
-          <dd
-            class="app-metric-value text-belife-success"
+      <div class="p-4">
+        <dl class="grid gap-2.5 sm:grid-cols-3">
+          <div
+            class="rounded-lg border border-belife-border bg-belife-surface-muted/50 p-3"
           >
-            {{ result.insertedRows }}
-          </dd>
-        </div>
-
-        <div class="rounded-lg bg-white/70 p-3">
-          <dt class="app-metric-label">
-            Existantes
-          </dt>
-
-          <dd
-            class="app-metric-value text-belife-info"
-          >
-            {{ result.existingRows }}
-          </dd>
-        </div>
-
-        <div class="rounded-lg bg-white/70 p-3">
-          <dt class="app-metric-label">
-            Erreurs
-          </dt>
-
-          <dd
-            class="app-metric-value text-belife-error"
-          >
-            {{ result.errorRows }}
-          </dd>
-        </div>
-      </dl>
-
-      @if (result.errors.length > 0) {
-        <div class="grid w-full gap-2">
-          @for (
-            importError of result.errors;
-            track $index
-          ) {
-            <div
-              class="rounded-lg border border-belife-error bg-white/80 px-3 py-2 text-sm"
+            <dt
+              class="text-xs font-medium text-belife-text-secondary"
             >
-              <strong>
-                {{
-                  importError.rowNumber > 0
-                    ? 'Ligne ' +
-                      importError.rowNumber
-                    : 'Fichier'
-                }}
-              </strong>
+              Lignes analysées
+            </dt>
 
-              @if (importError.column) {
-                <span>
-                  · {{ importError.column }}
-                </span>
-              }
+            <dd
+              class="mt-1 text-xl font-bold tabular-nums text-belife-primary"
+            >
+              {{ result.totalRows }}
+            </dd>
+          </div>
 
-              <span>
-                : {{ importError.message }}
-              </span>
+          <div
+            class="rounded-lg border border-belife-success/20 bg-belife-success-soft/35 p-3"
+          >
+            <dt
+              class="text-xs font-medium text-belife-text-secondary"
+            >
+              Maturités insérées
+            </dt>
+
+            <dd
+              class="mt-1 text-xl font-bold tabular-nums text-belife-success"
+            >
+              {{ result.insertedRows }}
+            </dd>
+          </div>
+
+          <div
+            class="rounded-lg border border-belife-error/20 bg-belife-error-soft/40 p-3"
+          >
+            <dt
+              class="text-xs font-medium text-belife-text-secondary"
+            >
+              Lignes en erreur
+            </dt>
+
+            <dd
+              class="mt-1 text-xl font-bold tabular-nums text-belife-error"
+            >
+              {{ result.errorRows }}
+            </dd>
+          </div>
+        </dl>
+
+        @if (result.errors.length > 0) {
+          <section
+            class="mt-4 border-t border-belife-border pt-4"
+            aria-labelledby="latest-import-errors-title"
+          >
+            <div class="mb-2">
+              <h2
+                id="latest-import-errors-title"
+                class="text-sm font-semibold text-belife-text"
+              >
+                Erreurs détectées
+              </h2>
+
+              <p
+                class="mt-0.5 text-xs text-belife-text-secondary"
+              >
+                Le fichier a été rejeté dans son intégralité.
+                Aucune maturité n’a été insérée.
+              </p>
             </div>
-          }
-        </div>
-      }
+
+            <div
+              class="max-h-64 space-y-2 overflow-y-auto pr-1"
+            >
+              @for (
+                importError of result.errors;
+                track $index
+              ) {
+                <article
+                  class="rounded-lg border border-belife-error/20 bg-belife-error-soft/30 px-3 py-2.5"
+                >
+                  <div
+                    class="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:gap-2"
+                  >
+                    <strong
+                      class="shrink-0 text-xs text-belife-error"
+                    >
+                      {{
+                        importError.rowNumber > 0
+                          ? 'Ligne ' +
+                            importError.rowNumber
+                          : 'Fichier'
+                      }}
+                    </strong>
+
+                    @if (importError.column) {
+                      <span
+                        class="shrink-0 text-xs font-medium text-belife-accent"
+                      >
+                        {{ importError.column }}
+                      </span>
+                    }
+
+                    <p
+                      class="text-xs leading-5 text-belife-text-secondary"
+                    >
+                      {{ importError.message }}
+                    </p>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+      </div>
     </section>
   }
 
+  <!-- ================================================== -->
+  <!-- IMPORT ET FORMAT ATTENDU                           -->
+  <!-- ================================================== -->
+
   <div
-    class="app-section grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]"
+    class="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_23rem]"
   >
-    <section class="app-card">
-      <div class="app-card-body">
-        <div class="flex items-start gap-2.5">
-          <div class="app-section-icon">
-            <svg
-              lucideFileUp
-              aria-hidden="true"
-            ></svg>
-          </div>
-
-          <div>
-            <h2 class="app-card-title">
-              Importer un fichier
-            </h2>
-
-            <p class="app-card-description">
-              CSV UTF-8, séparateur point-virgule,
-              maximum 10 Mo
-            </p>
-          </div>
+    <!-- Import du fichier -->
+    <section
+      class="overflow-hidden rounded-xl border border-belife-border bg-white shadow-sm"
+    >
+      <header
+        class="flex items-start gap-2.5 border-b border-belife-border px-4 py-3"
+      >
+        <div
+          class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+        >
+          <svg
+            lucideFileUp
+            class="size-4"
+            aria-hidden="true"
+          ></svg>
         </div>
 
+        <div>
+          <h2
+            class="text-sm font-semibold text-belife-text"
+          >
+            Importer un fichier
+          </h2>
+
+          <p
+            class="mt-0.5 text-xs text-belife-text-secondary"
+          >
+            CSV UTF-8, séparateur point-virgule, maximum 10 Mo
+          </p>
+        </div>
+      </header>
+
+      <div class="p-4">
         <label
-          class="mt-4 flex min-h-44 flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 text-center transition"
+          class="flex min-h-40 flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 text-center transition-colors"
           [class.cursor-pointer]="
             !hasPendingOperation()
           "
@@ -253,7 +383,14 @@
           [class.border-belife-border-strong]="
             !dragActive()
           "
-          [class.hover:border-belife-text-muted]="
+          [class.bg-belife-surface-muted/30]="
+            !dragActive()
+          "
+          [class.hover:border-belife-primary]="
+            !dragActive() &&
+            !hasPendingOperation()
+          "
+          [class.hover:bg-belife-primary-soft/30]="
             !dragActive() &&
             !hasPendingOperation()
           "
@@ -269,26 +406,36 @@
             (change)="selectFile($event)"
           />
 
-          <svg
-            lucideCloudUpload
-            class="size-9 text-belife-text-muted"
-            aria-hidden="true"
-          ></svg>
+          <div
+            class="flex size-11 items-center justify-center rounded-xl bg-belife-primary-soft text-belife-primary"
+          >
+            <svg
+              lucideCloudUpload
+              class="size-5"
+              aria-hidden="true"
+            ></svg>
+          </div>
 
           <p
-            class="mt-3 font-semibold text-belife-text"
+            class="mt-3 text-sm font-semibold text-belife-text"
           >
             Déposez le fichier CSV ici
           </p>
 
           <p
-            class="mt-1 text-sm text-belife-text-secondary"
+            class="mt-1 text-xs text-belife-text-secondary"
           >
             ou cliquez pour parcourir votre ordinateur
           </p>
+
+          <span
+            class="mt-3 inline-flex rounded-full bg-belife-surface-muted px-2.5 py-1 text-[10px] font-medium text-belife-text-secondary"
+          >
+            Un seul fichier CSV, 10 Mo maximum
+          </span>
         </label>
 
-        @if (fileError()) {
+        @if (fileError(); as errorMessage) {
           <div
             class="app-alert app-alert-error mt-3"
             role="alert"
@@ -300,34 +447,49 @@
             ></svg>
 
             <div class="app-alert-content">
-              {{ fileError() }}
+              {{ errorMessage }}
             </div>
           </div>
         }
 
         @if (selectedFile(); as file) {
           <div
-            class="app-panel-muted mt-3 flex items-center justify-between gap-3"
+            class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-belife-primary/15 bg-belife-primary-soft/40 px-4 py-3"
           >
-            <div class="min-w-0">
-              <p
-                class="truncate font-semibold text-belife-text"
+            <div class="flex min-w-0 items-center gap-3">
+              <div
+                class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-belife-primary text-white"
               >
-                {{ file.name }}
-              </p>
+                <svg
+                  lucideFileUp
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </div>
 
-              <p class="app-card-description">
-                {{
-                  file.size / 1024
-                    | number: '1.0-2'
-                }}
-                Ko
-              </p>
+              <div class="min-w-0">
+                <p
+                  class="truncate text-sm font-semibold text-belife-text"
+                  [title]="file.name"
+                >
+                  {{ file.name }}
+                </p>
+
+                <p
+                  class="mt-0.5 text-xs text-belife-text-secondary"
+                >
+                  {{
+                    file.size / 1024
+                      | number: '1.0-2'
+                  }}
+                  Ko
+                </p>
+              </div>
             </div>
 
             <button
               type="button"
-              class="app-button app-button-ghost app-button-icon"
+              class="app-button app-button-ghost app-button-icon app-button-sm"
               aria-label="Retirer le fichier"
               [disabled]="hasPendingOperation()"
               (click)="removeSelectedFile()"
@@ -342,7 +504,7 @@
 
         <button
           type="button"
-          class="app-button app-button-primary app-button-block mt-4"
+          class="app-button app-button-primary app-button-block mt-3"
           [disabled]="!canImport()"
           (click)="importCsv()"
         >
@@ -354,83 +516,234 @@
 
           {{
             importing()
-              ? 'Importation en cours...'
+              ? 'Analyse et importation...'
               : 'Analyser et importer'
           }}
         </button>
       </div>
     </section>
 
-    <aside class="app-card">
-      <div class="app-card-body">
-        <h2 class="app-card-title">
-          Format attendu
-        </h2>
-
-        <ol
-          class="mt-3 grid gap-2 text-sm text-belife-text-secondary"
-        >
-          <li>
-            <strong>1.</strong>
-            Encodage UTF-8
-          </li>
-
-          <li>
-            <strong>2.</strong>
-            Séparateur point-virgule
-          </li>
-
-          <li>
-            <strong>3.</strong>
-            Date au format yyyy-MM-dd
-          </li>
-
-          <li>
-            <strong>4.</strong>
-            Montant avec un point décimal
-          </li>
-
-          <li>
-            <strong>5.</strong>
-            Type au format MATURITE_N
-          </li>
-
-          <li>
-            <strong>6.</strong>
-            Date de fin des intérêts au format yyyy-MM-dd
-          </li>
-        </ol>
-
+    <!-- Format attendu -->
+    <aside
+      class="overflow-hidden rounded-xl border border-belife-border bg-white shadow-sm"
+    >
+      <header
+        class="flex items-start gap-2.5 border-b border-belife-border px-4 py-3"
+      >
         <div
-          class="mt-4 overflow-x-auto rounded-lg bg-belife-text p-3"
+          class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
         >
-          <code
-            class="whitespace-pre text-xs leading-5 text-white"
-          >num_police;type_maturite;date_maturite;montant_maturite;date_fin_interets
-            POL001;MATURITE_1;2020-03-15;2500000.00;2030-03-15</code>
-        </div>
-      </div>
-    </aside>
-  </div>
-
-  <section
-    class="app-card app-section overflow-hidden"
-  >
-    <header class="app-card-header">
-      <div class="flex items-center gap-2.5">
-        <div class="app-section-icon">
           <svg
-            lucideHistory
+            lucideFileSearch
+            class="size-4"
             aria-hidden="true"
           ></svg>
         </div>
 
         <div>
-          <h2 class="app-card-title">
+          <h2
+            class="text-sm font-semibold text-belife-text"
+          >
+            Format attendu
+          </h2>
+
+          <p
+            class="mt-0.5 text-xs text-belife-text-secondary"
+          >
+            Quatre colonnes métier obligatoires
+          </p>
+        </div>
+      </header>
+
+      <div class="space-y-4 p-4">
+        <!-- Colonnes obligatoires -->
+        <section
+          aria-labelledby="required-columns-title"
+        >
+          <h3
+            id="required-columns-title"
+            class="text-xs font-semibold uppercase tracking-wider text-belife-text-secondary"
+          >
+            Colonnes obligatoires
+          </h3>
+
+          <ul class="mt-2">
+            <li
+              class="flex items-center gap-2 rounded-lg bg-belife-primary-soft/40 px-3"
+            >
+              <span
+                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-primary text-[10px] font-bold text-white"
+              >
+                1
+              </span>
+
+              <code
+                class="text-xs font-semibold text-belife-primary"
+              >
+                num_police
+              </code>
+            </li>
+
+            <li
+              class="flex items-center gap-2 rounded-lg bg-belife-accent-soft/40 px-3"
+            >
+              <span
+                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-accent text-[10px] font-bold text-white"
+              >
+                2
+              </span>
+
+              <code
+                class="text-xs font-semibold text-belife-accent"
+              >
+                nom_client
+              </code>
+            </li>
+
+            <li
+              class="flex items-center gap-2 rounded-lg bg-belife-success-soft/40 px-3"
+            >
+              <span
+                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-success text-[10px] font-bold text-white"
+              >
+                3
+              </span>
+
+              <code
+                class="text-xs font-semibold text-belife-success"
+              >
+                montant_maturite
+              </code>
+            </li>
+
+            <li
+              class="flex items-center gap-2 rounded-lg bg-belife-primary-soft/40 px-3"
+            >
+              <span
+                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-primary text-[10px] font-bold text-white"
+              >
+                4
+              </span>
+
+              <code
+                class="text-xs font-semibold text-belife-primary"
+              >
+                date_fin_interets
+              </code>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Règles -->
+        <section
+          class="rounded-xl border border-belife-border bg-belife-surface-muted/50 p-3"
+          aria-labelledby="import-rules-title"
+        >
+          <h3
+            id="import-rules-title"
+            class="text-xs font-semibold text-belife-text"
+          >
+            Règles d’importation
+          </h3>
+
+          <ul
+            class="mt-2 space-y-1.5 text-xs leading-5 text-belife-text-secondary"
+          >
+            <li class="flex items-start gap-2">
+              <span
+                class="mt-2 size-1 shrink-0 rounded-full bg-belife-primary"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                Encodage UTF-8 et séparateur point-virgule.
+              </span>
+            </li>
+
+            <li class="flex items-start gap-2">
+              <span
+                class="mt-2 size-1 shrink-0 rounded-full bg-belife-accent"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                La date utilise le format
+                <strong class="font-semibold text-belife-text">
+                  yyyy-MM-dd
+                </strong>
+              </span>
+            </li>
+
+            <li class="flex items-start gap-2">
+              <span
+                class="mt-2 size-1 shrink-0 rounded-full bg-belife-primary"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                Le nom du client est obligatoire et doit
+                rester cohérent pour une même police.
+              </span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Exemple -->
+        <section
+          aria-labelledby="csv-example-title"
+        >
+          <h3
+            id="csv-example-title"
+            class="text-xs font-semibold text-belife-text"
+          >
+            Exemple minimal
+          </h3>
+
+          <div
+            class="mt-2 overflow-x-auto rounded-lg border border-belife-primary/15 bg-belife-primary-soft/35 p-3"
+          >
+            <code
+              class="whitespace-pre text-[11px] leading-5 text-belife-text"
+            >num_police;nom_client;montant_maturite;date_fin_interets
+YK10240;MBOG JEAN;500000.00;2035-02-10
+YK10240;MBOG JEAN;750000.00;2035-02-10</code>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ================================================== -->
+  <!-- HISTORIQUE DES CHARGEMENTS                         -->
+  <!-- ================================================== -->
+
+  <section
+    class="mt-4 overflow-hidden rounded-xl border border-belife-border bg-white shadow-sm"
+  >
+    <header
+      class="flex flex-col gap-3 border-b border-belife-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-center gap-2.5">
+        <div
+          class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-belife-primary-soft text-belife-primary"
+        >
+          <svg
+            lucideHistory
+            class="size-4"
+            aria-hidden="true"
+          ></svg>
+        </div>
+
+        <div>
+          <h2
+            class="text-sm font-semibold text-belife-text"
+          >
             Historique des chargements
           </h2>
 
-          <p class="app-card-description">
+          <p
+            class="mt-0.5 text-xs text-belife-text-secondary"
+          >
             {{ totalElements() }}
             chargement(s)
           </p>
@@ -458,7 +771,7 @@
     </header>
 
     @if (loadingHistory()) {
-      <div class="app-loading-state">
+      <div class="app-loading-state py-8">
         <svg
           lucideRefreshCw
           class="app-spinner text-belife-accent"
@@ -468,7 +781,7 @@
         Chargement de l’historique...
       </div>
     } @else if (history().length === 0) {
-      <div class="app-empty-state">
+      <div class="app-empty-state py-8">
         <div class="app-empty-state-icon">
           <svg
             lucideHistory
@@ -479,137 +792,306 @@
         <p class="app-empty-state-title">
           Aucun chargement disponible
         </p>
+
+        <p class="app-empty-state-message">
+          Les fichiers analysés apparaîtront ici.
+        </p>
       </div>
     } @else {
-      <div class="app-table-container">
-        <table class="app-table">
-          <thead>
-            <tr>
-              <th>Fichier</th>
-              <th>Statut</th>
-
-              <th class="app-table-cell-right">
-                Lignes
-              </th>
-
-              <th class="app-table-cell-right">
-                Insérées
-              </th>
-
-              <th>Date</th>
-
-              <th class="app-table-cell-right">
-                Action
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            @for (
-              batch of history();
-              track batch.id
-            ) {
+      <!-- Tableau desktop -->
+      <div class="hidden md:block">
+        <div class="app-table-container">
+          <table class="app-table">
+            <thead>
               <tr>
-                <td>
-                  <p
-                    class="max-w-xs truncate font-semibold"
-                    [title]="batch.originalFileName"
+                <th>Fichier</th>
+                <th>Statut</th>
+
+                <th class="app-table-cell-right">
+                  Lignes
+                </th>
+
+                <th class="app-table-cell-right">
+                  Insérées
+                </th>
+
+                <th>Date du chargement</th>
+
+                <th class="app-table-cell-right">
+                  Action
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (
+                batch of history();
+                track batch.id
+              ) {
+                <tr>
+                  <td>
+                    <p
+                      class="max-w-xs truncate font-semibold text-belife-text"
+                      [title]="batch.originalFileName"
+                    >
+                      {{ batch.originalFileName }}
+                    </p>
+
+                    <p
+                      class="mt-0.5 text-xs text-belife-text-secondary"
+                    >
+                      @if (batch.status === 'REVERSED') {
+                        Annulé par
+                        {{ batch.reversedBy ?? 'SYSTEM' }}
+                      } @else if (
+                        batch.status === 'REJECTED'
+                      ) {
+                        Soumis par
+                        {{
+                          batch.createdBy
+                            ?? 'SYSTEM'
+                        }}
+                      } @else {
+                        Importé par
+                        {{
+                          batch.importedBy
+                            ?? batch.createdBy
+                            ?? 'SYSTEM'
+                        }}
+                      }
+                    </p>
+                  </td>
+
+                  <td>
+                    <span
+                      class="app-badge"
+                      [class.app-badge-success]="
+                        batch.status === 'IMPORTED'
+                      "
+                      [class.app-badge-error]="
+                        batch.status === 'REJECTED'
+                      "
+                      [class.app-badge-warning]="
+                        batch.status === 'REVERSED'
+                      "
+                      [class.app-badge-info]="
+                        batch.status === 'PROCESSING'
+                      "
+                    >
+                      @switch (batch.status) {
+                        @case ('IMPORTED') {
+                          Importé
+                        }
+
+                        @case ('REJECTED') {
+                          Rejeté
+                        }
+
+                        @case ('REVERSED') {
+                          Annulé
+                        }
+
+                        @case ('PROCESSING') {
+                          En cours
+                        }
+                      }
+                    </span>
+                  </td>
+
+                  <td class="app-table-cell-right">
+                    {{ batch.totalRows }}
+                  </td>
+
+                  <td
+                    class="app-table-cell-right font-semibold tabular-nums text-belife-success"
                   >
-                    {{ batch.originalFileName }}
-                  </p>
+                    {{ batch.insertedRows }}
+                  </td>
 
-                  <p
-                    class="mt-0.5 text-xs text-belife-text-secondary"
-                  >
-                    @if (batch.status === 'REVERSED') {
-                      annulé par
-                      {{ batch.reversedBy ?? 'SYSTEM' }}
-                    } @else {
-                      importé par
-                      {{ batch.importedBy ?? batch.createdBy ?? 'SYSTEM' }}
-                    }
-                  </p>
-                </td>
+                  <td class="whitespace-nowrap">
+                    {{
+                      batch.createdAt
+                        | date: 'dd/MM/yyyy HH:mm'
+                    }}
+                  </td>
 
-                <td>
-                  <span
-                    class="app-badge"
-                    [class.app-badge-success]="
-                      batch.status === 'IMPORTED'
-                    "
-                    [class.app-badge-error]="
-                      batch.status === 'REJECTED'
-                    "
-                    [class.app-badge-warning]="
-                      batch.status === 'REVERSED'
-                    "
-                    [class.app-badge-info]="
-                      batch.status === 'PROCESSING'
-                    "
-                  >
-                    @switch (batch.status) {
-                      @case ('IMPORTED') {
-                        Importé
-                      }
+                  <td class="app-table-cell-right">
+                    <button
+                      type="button"
+                      class="app-button app-button-secondary app-button-sm"
+                      [disabled]="hasPendingOperation()"
+                      (click)="openDetail(batch)"
+                    >
+                      <svg
+                        lucideFileSearch
+                        aria-hidden="true"
+                      ></svg>
 
-                      @case ('REJECTED') {
-                        Rejeté
-                      }
+                      Détails
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-                      @case ('REVERSED') {
-                        Annulé
-                      }
-
-                      @case ('PROCESSING') {
-                        En cours
-                      }
-                    }
-                  </span>
-                </td>
-
-                <td class="app-table-cell-right">
-                  {{ batch.totalRows }}
-                </td>
-
-                <td
-                  class="app-table-cell-right font-semibold"
+      <!-- Cartes mobiles -->
+      <div
+        class="divide-y divide-belife-border md:hidden"
+      >
+        @for (
+          batch of history();
+          track batch.id
+        ) {
+          <article class="p-4">
+            <div
+              class="flex items-start justify-between gap-3"
+            >
+              <div class="min-w-0">
+                <p
+                  class="truncate text-sm font-semibold text-belife-text"
+                  [title]="batch.originalFileName"
                 >
-                  {{ batch.insertedRows }}
-                </td>
+                  {{ batch.originalFileName }}
+                </p>
 
-                <td class="whitespace-nowrap">
+                <p
+                  class="mt-1 text-xs text-belife-text-secondary"
+                >
                   {{
                     batch.createdAt
                       | date: 'dd/MM/yyyy HH:mm'
                   }}
-                </td>
+                </p>
+              </div>
 
-                <td class="app-table-cell-right">
-                  <button
-                    type="button"
-                    class="app-button app-button-accent app-button-sm"
-                    [disabled]="
-                      hasPendingOperation()
-                    "
-                    (click)="openDetail(batch)"
-                  >
-                    <svg
-                      lucideFileSearch
-                      aria-hidden="true"
-                    ></svg>
+              <span
+                class="app-badge shrink-0"
+                [class.app-badge-success]="
+                  batch.status === 'IMPORTED'
+                "
+                [class.app-badge-error]="
+                  batch.status === 'REJECTED'
+                "
+                [class.app-badge-warning]="
+                  batch.status === 'REVERSED'
+                "
+                [class.app-badge-info]="
+                  batch.status === 'PROCESSING'
+                "
+              >
+                @switch (batch.status) {
+                  @case ('IMPORTED') {
+                    Importé
+                  }
 
-                    Détails
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+                  @case ('REJECTED') {
+                    Rejeté
+                  }
+
+                  @case ('REVERSED') {
+                    Annulé
+                  }
+
+                  @case ('PROCESSING') {
+                    En cours
+                  }
+                }
+              </span>
+            </div>
+
+            <dl
+              class="mt-3 grid grid-cols-2 gap-2.5"
+            >
+              <div
+                class="rounded-lg bg-belife-primary-soft/40 p-3"
+              >
+                <dt
+                  class="text-[10px] font-medium uppercase tracking-wide text-belife-text-secondary"
+                >
+                  Lignes
+                </dt>
+
+                <dd
+                  class="mt-1 text-lg font-bold tabular-nums text-belife-primary"
+                >
+                  {{ batch.totalRows }}
+                </dd>
+              </div>
+
+              <div
+                class="rounded-lg bg-belife-success-soft/35 p-3"
+              >
+                <dt
+                  class="text-[10px] font-medium uppercase tracking-wide text-belife-text-secondary"
+                >
+                  Insérées
+                </dt>
+
+                <dd
+                  class="mt-1 text-lg font-bold tabular-nums text-belife-success"
+                >
+                  {{ batch.insertedRows }}
+                </dd>
+              </div>
+            </dl>
+
+            <div
+              class="mt-3 flex items-center justify-between gap-3"
+            >
+              <p
+                class="min-w-0 truncate text-xs text-belife-text-secondary"
+              >
+                @if (batch.status === 'REVERSED') {
+                  Annulé par
+                  {{ batch.reversedBy ?? 'SYSTEM' }}
+                } @else if (
+                  batch.status === 'REJECTED'
+                ) {
+                  Soumis par
+                  {{
+                    batch.createdBy
+                      ?? 'SYSTEM'
+                  }}
+                } @else {
+                  Importé par
+                  {{
+                    batch.importedBy
+                      ?? batch.createdBy
+                      ?? 'SYSTEM'
+                  }}
+                }
+              </p>
+
+              <button
+                type="button"
+                class="app-button app-button-secondary app-button-sm shrink-0"
+                [disabled]="hasPendingOperation()"
+                (click)="openDetail(batch)"
+              >
+                <svg
+                  lucideFileSearch
+                  aria-hidden="true"
+                ></svg>
+
+                Détails
+              </button>
+            </div>
+          </article>
+        }
       </div>
 
+      <!-- Pagination -->
       <footer class="app-pagination">
         <p class="app-pagination-label">
-          Page {{ currentPage() + 1 }}
+          Page
+          {{
+            totalPages() === 0
+              ? 0
+              : currentPage() + 1
+          }}
           sur {{ totalPages() || 1 }}
         </p>
 
@@ -651,6 +1133,10 @@
   </section>
 </section>
 
+<!-- ==================================================== -->
+<!-- DÉTAIL DU CHARGEMENT                                 -->
+<!-- ==================================================== -->
+
 @if (selectedDetail(); as detail) {
   <app-import-detail-dialog
     [detail]="detail"
@@ -666,6 +1152,10 @@
     "
   />
 }
+
+<!-- ==================================================== -->
+<!-- CONFIRMATION DE RÉVERSION                            -->
+<!-- ==================================================== -->
 
 @if (batchToReverse(); as batch) {
   <app-reverse-import-dialog

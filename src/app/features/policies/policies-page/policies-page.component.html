@@ -136,7 +136,7 @@
           for="policySearch"
           class="mb-1.5 block text-xs font-semibold text-belife-text"
         >
-          Rechercher une police
+          Rechercher une police ou un client
         </label>
 
         <div class="relative max-w-2xl">
@@ -151,7 +151,7 @@
             type="search"
             class="app-input h-10 pl-10 pr-10"
             autocomplete="off"
-            placeholder="Saisir un numéro de police"
+            placeholder="Numéro de police ou nom du client"
             [value]="searchTerm()"
             [disabled]="loadingPolicies()"
             (input)="updateSearchTerm($event)"
@@ -255,7 +255,7 @@
         </h2>
 
         <p class="app-empty-state-message">
-          Aucun numéro de police ne correspond à
+          Aucune police ni aucun client ne correspond à
           « {{ searchTerm() }} ».
         </p>
 
@@ -353,19 +353,28 @@
             ) {
               <tr>
                 <td>
-                  <p class="font-semibold text-belife-text">
-                    {{ policy.policyNumber }}
-                  </p>
+                  <div class="max-w-60">
+                    <p class="font-semibold text-belife-text">
+                      {{ policy.policyNumber }}
+                    </p>
 
-                  <p
-                    class="mt-0.5 text-xs text-belife-text-secondary"
-                  >
+                    <p
+                      class="mt-0.5 truncate text-xs font-medium text-belife-accent"
+                      [title]="policy.clientName"
+                    >
+                      {{ policy.clientName }}
+                    </p>
+
+                    <p
+                      class="mt-1 text-[11px] text-belife-text-secondary"
+                    >
                     Calcul au
                     {{
                       policy.calculationDate
                         | localDate
                     }}
-                  </p>
+                    </p>
+                  </div>
                 </td>
 
                 <td class="app-table-cell-right">
@@ -479,7 +488,7 @@
           <header
             class="flex items-start justify-between gap-3 border-b border-belife-border px-4 py-3"
           >
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <p
                 class="text-[10px] font-semibold uppercase tracking-wider text-belife-accent"
               >
@@ -491,6 +500,13 @@
               >
                 {{ policy.policyNumber }}
               </h2>
+
+              <p
+                class="mt-1 truncate text-xs font-medium text-belife-text-secondary"
+                [title]="policy.clientName"
+              >
+                {{ policy.clientName }}
+              </p>
             </div>
 
             @if (policy.interestAccrualClosed) {

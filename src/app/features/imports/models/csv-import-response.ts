@@ -1,9 +1,7 @@
 import { CsvValidationError } from './csv-validation-error';
 import { ImportBatchStatus } from './import-batch-status';
 
-/**
- * Rapport retourné après le traitement d'un CSV.
- */
+/** Rapport retourné après le traitement d'un CSV. */
 export interface CsvImportResponse {
   batchId: number;
   fileName: string;

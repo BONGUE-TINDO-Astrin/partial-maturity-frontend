@@ -1,9 +1,4 @@
-/**
- * Erreur détectée pendant la validation d'un CSV.
- *
- * rowNumber vaut zéro lorsqu'il s'agit d'une erreur
- * globale concernant le fichier.
- */
+/** Erreur détectée pendant la validation d'un CSV. */
 export interface CsvValidationError {
   rowNumber: number;
   column: string;

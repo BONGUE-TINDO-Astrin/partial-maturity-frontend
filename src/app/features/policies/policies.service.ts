@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
 import { InterestSimulation } from './models/interest-simulation';
 import { PolicyDetail } from './models/policy-detail';
 import { PolicyFinancialDetail } from './models/policy-financial-detail';
-import { PolicyFinancialSummary } from './models/Créer policy-financial-summary';
+import { PolicyFinancialSummary } from './models/policy-financial-summary';
 
 /**
  * Centralise les appels HTTP liés à la consultation

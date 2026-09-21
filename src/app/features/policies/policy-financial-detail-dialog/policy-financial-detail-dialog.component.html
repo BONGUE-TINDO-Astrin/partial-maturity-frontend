@@ -16,10 +16,10 @@
     <!-- ================================================ -->
 
     <header class="app-modal-header shrink-0">
-      <div class="min-w-0">
-        <p class="app-eyebrow">
+      <div class="min-w-0 flex-1">
+        <!-- <p class="app-eyebrow">
           Situation financière
-        </p>
+        </p> -->
 
         <h2
           id="policy-financial-detail-title"
@@ -27,6 +27,13 @@
         >
           Police {{ detail().policyNumber }}
         </h2>
+
+        <p
+          class="mt-1 truncate text-sm font-semibold text-belife-accent"
+          [title]="detail().clientName"
+        >
+          {{ detail().clientName }}
+        </p>
 
         <p
           id="policy-financial-detail-description"
@@ -491,12 +498,25 @@
           </dl>
 
           <!-- Repères de la police -->
-          <section
+          <!-- <section
             class="rounded-xl border border-belife-border bg-belife-surface-muted p-4"
           >
             <dl
-              class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-5"
+              class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-6"
             >
+              <div class="col-span-2 sm:col-span-3 lg:col-span-1">
+                <dt class="text-xs text-belife-text-secondary">
+                  Client
+                </dt>
+
+                <dd
+                  class="mt-0.5 truncate font-semibold text-belife-text"
+                  [title]="detail().clientName"
+                >
+                  {{ detail().clientName }}
+                </dd>
+              </div>
+
               <div>
                 <dt
                   class="text-xs text-belife-text-secondary"
@@ -579,7 +599,7 @@
                 </dd>
               </div>
             </dl>
-          </section>
+          </section> -->
 
           <!-- Détail du calcul courant repliable -->
           <section
@@ -1376,7 +1396,7 @@
                 <p
                   class="mt-0.5 text-xs text-belife-text-secondary"
                 >
-                  Données importées et classées par rang.
+                  Maturités classées selon leur rang automatique.
                 </p>
               </div>
             </header>
@@ -1389,7 +1409,7 @@
                     <tr>
                       <th>Rang</th>
                       <th>Type</th>
-                      <th>Date</th>
+                      <th>Date de chargement</th>
 
                       <th class="app-table-cell-right">
                         Montant
@@ -1490,6 +1510,7 @@
                         <p
                           class="mt-0.5 text-xs text-belife-text-secondary"
                         >
+                          Chargée le
                           {{
                             maturity.maturityDate
                               | localDate

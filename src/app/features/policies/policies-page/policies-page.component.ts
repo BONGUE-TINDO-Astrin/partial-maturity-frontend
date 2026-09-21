@@ -1,7 +1,4 @@
-import {
-  DecimalPipe,
-  PercentPipe,
-} from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -12,14 +9,11 @@ import {
   signal,
 } from '@angular/core';
 import {
-  LucideCircleCheckBig,
-  LucideCoins,
   LucideEye,
   LucideFileSearch,
   LucideLandmark,
   LucideRefreshCw,
   LucideSearch,
-  LucideTrendingUp,
   LucideX,
 } from '@lucide/angular';
 import {
@@ -33,20 +27,20 @@ import { AuthenticationService } from '../../../core/authentication/authenticati
 import { resolveApiErrorMessage } from '../../../core/error-handling/api-error-utils';
 import { LocalDatePipe } from '../../../shared/pipes/local-date.pipe';
 import { PaymentConfirmationDialogComponent } from '../../../shared/ui-components/payment-confirmation-dialog.component/payment-confirmation-dialog.component';
+import { PaymentResponse } from '../../payments/models/payment-response';
 import { PaymentsService } from '../../payments/payments.service';
 import { PolicyFinancialDetail } from '../models/policy-financial-detail';
+import { PolicyFinancialSummary } from '../models/policy-financial-summary';
+import { PolicyPaymentHistory } from '../models/policy-payment-history';
 import { PoliciesService } from '../policies.service';
 import { PolicyFinancialDetailDialogComponent } from '../policy-financial-detail-dialog/policy-financial-detail-dialog.component';
-import { PolicyFinancialSummary } from '../models/Créer policy-financial-summary';
-import { PolicyPaymentHistory } from '../models/policy-payment-history';
-import { PaymentResponse } from '../../payments/models/payment-response';
 
 /**
  * Liste les polices et leur situation financière courante.
  *
- * Les synthèses sont chargées à l'ouverture de la page.
- * La recherche filtre ensuite localement les données reçues,
- * sans déclencher de nouvel appel HTTP.
+ * Les données sont chargées à l'ouverture. La recherche
+ * est ensuite appliquée localement au numéro de police
+ * et au nom du client.
  */
 @Component({
   selector: 'app-policies-page',
@@ -58,6 +52,7 @@ import { PaymentResponse } from '../../payments/models/payment-response';
     PolicyFinancialDetailDialogComponent,
     LucideEye,
     LucideFileSearch,
+    LucideLandmark,
     LucideRefreshCw,
     LucideSearch,
     LucideX,
@@ -66,76 +61,76 @@ import { PaymentResponse } from '../../payments/models/payment-response';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PoliciesPageComponent implements OnInit {
-  readonly authenticationService = inject(AuthenticationService);
+  readonly authenticationService =
+    inject(AuthenticationService);
 
-  private readonly policiesService = inject(PoliciesService);
+  private readonly policiesService =
+    inject(PoliciesService);
 
-  private readonly paymentsService = inject(PaymentsService);
+  private readonly paymentsService =
+    inject(PaymentsService);
 
-  readonly policies = signal<PolicyFinancialSummary[]>([]);
+  readonly policies =
+    signal<PolicyFinancialSummary[]>([]);
 
   readonly searchTerm = signal('');
 
-  readonly selectedDetail = signal<PolicyFinancialDetail | null>(null);
+  readonly selectedDetail =
+    signal<PolicyFinancialDetail | null>(null);
 
-    /**
-   * Paiement historique actuellement présenté
-   * dans la popup de la police.
-   */
-  readonly selectedHistoricalPayment = signal<PaymentResponse | null>(null);
-
-  /**
-   * Indique que la chronologie d'un paiement
-   * est actuellement chargée.
-   */
-  readonly loadingHistoricalPayment = signal(false);
-
-  readonly paymentHistoryError = signal<string | null>(null);
+  readonly selectedHistoricalPayment =
+    signal<PaymentResponse | null>(null);
 
   readonly loadingPolicies = signal(false);
   readonly loadingDetail = signal(false);
+  readonly loadingHistoricalPayment = signal(false);
   readonly recordingPayment = signal(false);
 
-  readonly pageError = signal<string | null>(null);
+  readonly pageError =
+    signal<string | null>(null);
 
-  readonly detailError = signal<string | null>(null);
+  readonly detailError =
+    signal<string | null>(null);
 
-  readonly paymentError = signal<string | null>(null);
+  readonly paymentError =
+    signal<string | null>(null);
 
-  readonly successMessage = signal<string | null>(null);
+  readonly paymentHistoryError =
+    signal<string | null>(null);
 
-  readonly paymentConfirmationOpen = signal(false);
+  readonly successMessage =
+    signal<string | null>(null);
+
+  readonly paymentConfirmationOpen =
+    signal(false);
+
+  private readonly paymentDetailCache =
+    new Map<number, PaymentResponse>();
 
   /**
-   * Cache limité à la durée d'ouverture de la police.
-   *
-   * Il évite de rappeler le backend lorsque l'utilisateur
-   * revient sur un paiement déjà consulté.
+   * Recherche locale par numéro de police
+   * ou nom du client.
    */
-  private readonly paymentDetailCache = new Map<number, PaymentResponse>();
+readonly filteredPolicies = computed(() => {
+  const normalizedSearch =
+    this.searchTerm()
+      .trim()
+      .toLocaleLowerCase();
 
-  /**
-   * Filtrage local volontairement limité au numéro de police.
-   *
-   * Le backend n'est pas rappelé à chaque caractère saisi,
-   * ce qui rend la recherche immédiate après le chargement.
-   */
-  readonly filteredPolicies = computed(() => {
-    const normalizedSearch =
-      this.searchTerm()
-        .trim()
-        .toLocaleLowerCase();
+  if (!normalizedSearch) {
+    return this.policies();
+  }
 
-    if (!normalizedSearch) {
-      return this.policies();
-    }
-
-    return this.policies().filter((policy) =>
+  return this.policies().filter(
+    policy =>
       policy.policyNumber
         .toLocaleLowerCase()
+        .includes(normalizedSearch) ||
+      policy.clientName
+        .toLocaleLowerCase()
         .includes(normalizedSearch),
-    );
-  });
+  );
+});
 
   readonly displayedPolicyCount = computed(
     () => this.filteredPolicies().length,
@@ -156,14 +151,13 @@ export class PoliciesPageComponent implements OnInit {
       this.loadingHistoricalPayment() ||
       this.recordingPayment(),
   );
-  
 
   ngOnInit(): void {
     this.loadPolicies();
   }
 
   /**
-   * Recharge toutes les synthèses financières.
+   * Recharge les synthèses financières.
    */
   loadPolicies(): void {
     if (
@@ -184,7 +178,7 @@ export class PoliciesPageComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: (policies) => {
+        next: policies => {
           this.policies.set(policies);
         },
 
@@ -200,7 +194,8 @@ export class PoliciesPageComponent implements OnInit {
   }
 
   updateSearchTerm(event: Event): void {
-    const input = event.target as HTMLInputElement;
+    const input =
+      event.target as HTMLInputElement;
 
     this.searchTerm.set(input.value);
   }
@@ -210,20 +205,23 @@ export class PoliciesPageComponent implements OnInit {
   }
 
   /**
-   * Charge le détail financier uniquement au moment
-   * où l'utilisateur souhaite consulter une police.
+   * Charge le détail financier d'une police.
    */
-  openDetail(policy: PolicyFinancialSummary): void {
+  openDetail(
+    policy: PolicyFinancialSummary,
+  ): void {
     if (this.hasPendingOperation()) {
       return;
     }
 
     this.loadingDetail.set(true);
+
     this.detailError.set(null);
     this.paymentError.set(null);
+    this.paymentHistoryError.set(null);
+
     this.selectedDetail.set(null);
     this.selectedHistoricalPayment.set(null);
-    this.paymentHistoryError.set(null);
     this.paymentDetailCache.clear();
 
     this.policiesService
@@ -236,7 +234,7 @@ export class PoliciesPageComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: (detail) => {
+        next: detail => {
           this.selectedDetail.set(detail);
         },
 
@@ -271,11 +269,11 @@ export class PoliciesPageComponent implements OnInit {
   }
 
   /**
-   * Ouvre la confirmation à partir de la simulation
-   * déjà retournée dans le détail financier.
+   * Ouvre la confirmation du paiement total.
    */
   openPaymentConfirmation(): void {
-    const detail = this.selectedDetail();
+    const detail =
+      this.selectedDetail();
 
     if (
       !detail ||
@@ -299,14 +297,12 @@ export class PoliciesPageComponent implements OnInit {
   }
 
   /**
-   * Enregistre le paiement puis recharge simultanément
+   * Enregistre le paiement puis actualise
    * la liste et le détail de la police.
-   *
-   * Aucun montant n'est transmis au backend. Le backend
-   * recalcule intégralement la situation dans sa transaction.
    */
   confirmPayment(): void {
-    const detail = this.selectedDetail();
+    const detail =
+      this.selectedDetail();
 
     if (
       !detail ||
@@ -327,12 +323,7 @@ export class PoliciesPageComponent implements OnInit {
     this.paymentsService
       .recordPayment(policyNumber)
       .pipe(
-        /*
-         * Après l'enregistrement, la liste et la popup
-         * doivent présenter immédiatement la nouvelle
-         * situation financière.
-         */
-        switchMap((payment) =>
+        switchMap(payment =>
           forkJoin({
             payment: of(payment),
 
@@ -363,11 +354,6 @@ export class PoliciesPageComponent implements OnInit {
             refreshedDetail,
           );
 
-          /*
-          * L'historique de la police a changé.
-          * Les détails éventuellement mis en cache ne doivent
-          * plus être considérés comme la photographie courante.
-          */
           this.paymentDetailCache.clear();
           this.selectedHistoricalPayment.set(null);
           this.paymentHistoryError.set(null);
@@ -392,10 +378,7 @@ export class PoliciesPageComponent implements OnInit {
   }
 
   /**
-   * Charge la chronologie figée d'un paiement historique.
-   *
-   * Les paiements déjà consultés pendant l'ouverture
-   * courante sont lus depuis le cache local.
+   * Charge le détail figé d'un paiement historique.
    */
   openHistoricalPayment(
     payment: PolicyPaymentHistory,
@@ -434,14 +417,14 @@ export class PoliciesPageComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: detail => {
+        next: paymentDetail => {
           this.paymentDetailCache.set(
-            detail.id,
-            detail,
+            paymentDetail.id,
+            paymentDetail,
           );
 
           this.selectedHistoricalPayment.set(
-            detail,
+            paymentDetail,
           );
         },
 
@@ -454,5 +437,21 @@ export class PoliciesPageComponent implements OnInit {
           );
         },
       });
+  }
+
+  /**
+   * Normalise une valeur pour la recherche locale.
+   *
+   * La suppression des accents permet par exemple
+   * de retrouver "Jérôme" avec "jerome".
+   */
+  private normalizeSearchValue(
+    value: string | null | undefined,
+  ): string {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLocaleLowerCase();
   }
 }

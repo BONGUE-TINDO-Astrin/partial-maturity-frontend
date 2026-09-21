@@ -1,24 +1,26 @@
 /**
  * Représente une maturité appartenant à une police.
- *
- * Cette interface reste alignée avec
- * PolicyMaturityResponse dans le backend Spring Boot.
- *
- * Les montants reçus sont uniquement utilisés pour
- * l'affichage. Aucun calcul financier n'est réalisé
- * dans le frontend.
  */
 export interface PolicyMaturity {
   id: number;
   policyNumber: string;
-  maturityType: string;
-  maturityRank: number;
+  clientName: string;
 
   /**
-   * Date métier au format ISO yyyy-MM-dd.
+   * Type généré automatiquement par le backend
+   * à partir du rang définitif.
+   *
+   * Exemples :
+   * MATURITE_1, MATURITE_2, MATURITE_12.
    */
-  maturityDate: string;
+  maturityType: string;
 
+  /**
+   * Rang attribué automatiquement par le backend
+   * selon les maturités déjà enregistrées.
+   */
+  maturityRank: number;
+  maturityDate: string;
   maturityAmount: number;
 
   /**
@@ -27,6 +29,9 @@ export interface PolicyMaturity {
    */
   interestEndDate: string;
 
+  /**
+   * Numéro de la ligne d'origine dans le fichier CSV.
+   */
   sourceRowNumber: number;
   createdAt: string;
   createdBy: string | null;

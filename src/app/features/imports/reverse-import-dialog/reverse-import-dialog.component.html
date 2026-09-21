@@ -11,8 +11,9 @@
     aria-describedby="reverse-import-warning"
     (click)="$event.stopPropagation()"
   >
+    <!-- En-tête -->
     <header class="app-modal-header">
-      <div>
+      <div class="min-w-0">
         <p
           class="text-xs font-bold uppercase tracking-wider text-belife-error"
         >
@@ -25,12 +26,18 @@
         >
           Annuler le chargement
         </h2>
+
+        <p
+          class="mt-1 text-sm text-belife-text-secondary"
+        >
+          Chargement n° {{ batch().id }}
+        </p>
       </div>
 
       <button
         type="button"
         class="app-button app-button-ghost app-button-icon"
-        aria-label="Fermer"
+        aria-label="Fermer la confirmation"
         [disabled]="submitting()"
         (click)="close()"
       >
@@ -49,35 +56,50 @@
     >
       <div class="app-modal-body">
         <div class="space-y-4">
-          <div
+          <!-- Avertissement -->
+          <section
             id="reverse-import-warning"
-            class="app-alert app-alert-warning"
+            class="flex items-start gap-3 rounded-xl border border-belife-error/20 bg-belife-error-soft/35 px-4 py-3"
           >
-            <svg
-              lucideTriangleAlert
-              class="app-alert-icon"
-              aria-hidden="true"
-            ></svg>
+            <div
+              class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/70 text-belife-error"
+            >
+              <svg
+                lucideTriangleAlert
+                class="size-4"
+                aria-hidden="true"
+              ></svg>
+            </div>
 
-            <div class="app-alert-content">
-              <p class="app-alert-title">
+            <div>
+              <p
+                class="text-sm font-semibold text-belife-error"
+              >
                 Les maturités du chargement seront retirées
               </p>
 
-              <p class="app-alert-message">
-                L’opération est autorisée uniquement si aucune
-                police concernée ne possède de paiement valide
-                et si les séquences restantes demeurent
-                cohérentes.
+              <p
+                class="mt-1 text-xs leading-5 text-belife-text-secondary"
+              >
+                Cette opération retire toutes les maturités
+                actives introduites par ce chargement. Le lot
+                restera visible dans l’historique.
               </p>
             </div>
-          </div>
+          </section>
 
+          <!-- Erreur serveur -->
           @if (serverError(); as errorMessage) {
             <div
               class="app-alert app-alert-error"
               role="alert"
             >
+              <svg
+                lucideTriangleAlert
+                class="app-alert-icon"
+                aria-hidden="true"
+              ></svg>
+
               <div class="app-alert-content">
                 <p class="app-alert-title">
                   Annulation impossible
@@ -90,79 +112,117 @@
             </div>
           }
 
-          <dl
-            class="app-card overflow-hidden shadow-none"
+          <!-- Résumé du chargement -->
+          <section
+            class="overflow-hidden rounded-xl border border-belife-border bg-white"
           >
-            <div
-              class="flex justify-between gap-4 border-b border-belife-border px-4 py-2.5"
+            <header
+              class="flex items-center gap-2.5 border-b border-belife-border bg-belife-surface-muted/45 px-4 py-3"
             >
-              <dt
-                class="text-sm text-belife-text-secondary"
+              <div
+                class="flex size-8 items-center justify-center rounded-lg bg-belife-accent-soft text-belife-accent"
               >
-                Chargement
-              </dt>
+                <svg
+                  lucideArchiveX
+                  class="size-4"
+                  aria-hidden="true"
+                ></svg>
+              </div>
 
-              <dd
-                class="font-semibold text-belife-text"
-              >
-                N° {{ batch().id }}
-              </dd>
-            </div>
+              <div>
+                <p
+                  class="text-sm font-semibold text-belife-text"
+                >
+                  Chargement n° {{ batch().id }}
+                </p>
 
-            <div
-              class="flex justify-between gap-4 border-b border-belife-border px-4 py-2.5"
-            >
-              <dt
-                class="text-sm text-belife-text-secondary"
-              >
-                Fichier
-              </dt>
+                <p
+                  class="mt-0.5 text-xs text-belife-text-secondary"
+                >
+                  Vérifiez les informations avant de confirmer.
+                </p>
+              </div>
+            </header>
 
-              <dd
-                class="max-w-64 break-words text-right font-semibold text-belife-text"
+            <dl class="divide-y divide-belife-border">
+              <div
+                class="flex items-start justify-between gap-4 px-4 py-3"
               >
-                {{ batch().originalFileName }}
-              </dd>
-            </div>
+                <dt
+                  class="text-sm text-belife-text-secondary"
+                >
+                  Fichier
+                </dt>
 
-            <div
-              class="flex justify-between gap-4 border-b border-belife-border px-4 py-2.5"
-            >
-              <dt
-                class="text-sm text-belife-text-secondary"
-              >
-                Importé le
-              </dt>
+                <dd
+                  class="max-w-64 break-words text-right text-sm font-semibold text-belife-text"
+                >
+                  {{ batch().originalFileName }}
+                </dd>
+              </div>
 
-              <dd
-                class="text-right font-semibold text-belife-text"
+              <div
+                class="flex items-start justify-between gap-4 px-4 py-3"
               >
-                @if (batch().importedAt) {
+                <dt
+                  class="text-sm text-belife-text-secondary"
+                >
+                  Importé le
+                </dt>
+
+                <dd
+                  class="text-right text-sm font-semibold text-belife-text"
+                >
+                  @if (batch().importedAt) {
+                    {{
+                      batch().importedAt
+                        | date: 'dd/MM/yyyy HH:mm'
+                    }}
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+
+              <div
+                class="flex items-start justify-between gap-4 px-4 py-3"
+              >
+                <dt
+                  class="text-sm text-belife-text-secondary"
+                >
+                  Importé par
+                </dt>
+
+                <dd
+                  class="max-w-64 break-all text-right text-sm font-semibold text-belife-text"
+                >
                   {{
-                    batch().importedAt
-                      | date: 'dd/MM/yyyy HH:mm'
+                    batch().importedBy
+                      ?? batch().createdBy
+                      ?? 'SYSTEM'
                   }}
-                } @else {
-                  —
-                }
-              </dd>
-            </div>
+                </dd>
+              </div>
 
-            <div
-              class="flex justify-between gap-4 px-4 py-2.5"
-            >
-              <dt
-                class="text-sm text-belife-text-secondary"
+              <div
+                class="flex items-center justify-between gap-4 bg-belife-primary-soft/35 px-4 py-3"
               >
-                Maturités insérées
-              </dt>
+                <dt
+                  class="text-sm font-medium text-belife-text"
+                >
+                  Maturités à retirer
+                </dt>
 
-              <dd class="app-financial-value">
-                {{ batch().insertedRows }}
-              </dd>
-            </div>
-          </dl>
+                <dd
+                  class="text-xl font-bold tabular-nums text-belife-primary"
+                >
+                  {{ batch().insertedRows }}
+                </dd>
+              </div>
+            </dl>
+          </section>
 
+          <!-- Motif -->
           <div class="app-field">
             <label
               for="importReversalReason"
@@ -170,6 +230,13 @@
             >
               Motif de l’annulation
             </label>
+
+            <p
+              class="mb-2 text-xs leading-5 text-belife-text-secondary"
+            >
+              Indiquez clairement l’erreur ou la raison
+              justifiant le retrait du chargement.
+            </p>
 
             <textarea
               id="importReversalReason"
@@ -181,7 +248,7 @@
                 form.controls.reason.touched &&
                 form.controls.reason.invalid
               "
-              placeholder="Expliquez précisément l’erreur détectée dans le chargement..."
+              placeholder="Exemple : le fichier importé ne correspond pas à la période attendue."
             ></textarea>
 
             <div
@@ -222,9 +289,25 @@
               </p>
             </div>
           </div>
+
+          <!-- Rappel -->
+          <div
+            class="rounded-lg border border-belife-border bg-belife-surface-muted/50 px-3 py-2.5"
+          >
+            <p
+              class="text-xs leading-5 text-belife-text-secondary"
+            >
+              L’annulation reste soumise aux contrôles métier
+              du serveur. Elle peut être refusée si certaines
+              maturités ont déjà participé à une opération
+              financière ou si la séquence restante devient
+              incohérente.
+            </p>
+          </div>
         </div>
       </div>
 
+      <!-- Actions -->
       <footer class="app-modal-footer">
         <button
           type="button"
