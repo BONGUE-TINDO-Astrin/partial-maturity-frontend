@@ -39,7 +39,7 @@
           id="policy-financial-detail-description"
           class="mt-1 text-sm text-belife-text-secondary"
         >
-          Situation actuelle, paiements et maturités enregistrées.
+          Situation actuelle, paiements et maturite enregistrées.
         </p>
       </div>
 
@@ -218,7 +218,7 @@
             aria-hidden="true"
           ></svg>
 
-          Maturités
+          Maturite
 
           <span
             class="inline-flex min-w-5 items-center justify-center rounded-full bg-belife-accent-soft px-1.5 py-0.5 text-[10px] font-bold text-belife-accent"
@@ -783,7 +783,7 @@
                                   >
                                     @switch (line.eventType) {
                                       @case ('MATURITY_ADDED') {
-                                        Maturité ajoutée
+                                        Maturite ajoutée
                                       }
 
                                       @case ('INTEREST_APPLIED') {
@@ -1113,7 +1113,7 @@
                         <dt
                           class="text-xs text-belife-text-secondary"
                         >
-                          Cycles
+                          Cycles appliqués
                         </dt>
 
                         <dd
@@ -1250,7 +1250,7 @@
                                 >
                                   @switch (line.eventType) {
                                     @case ('MATURITY_ADDED') {
-                                      Maturité ajoutée
+                                      Maturite ajoutée
                                     }
 
                                     @case ('INTEREST_APPLIED') {
@@ -1390,13 +1390,13 @@
                 <h3
                   class="text-sm font-semibold text-belife-text"
                 >
-                  Séquence des maturités
+                  Séquence des maturite
                 </h3>
 
                 <p
                   class="mt-0.5 text-xs text-belife-text-secondary"
                 >
-                  Maturités classées selon leur rang automatique.
+                  Maturite classées selon leur rang automatique.
                 </p>
               </div>
             </header>
@@ -1408,8 +1408,8 @@
                   <thead>
                     <tr>
                       <th>Rang</th>
-                      <th>Type</th>
-                      <th>Date de chargement</th>
+                      <!-- <th>Type</th> -->
+                      <th>Date de maturite</th>
 
                       <th class="app-table-cell-right">
                         Montant
@@ -1439,9 +1439,9 @@
                           </span>
                         </td>
 
-                        <td class="font-medium">
+                        <!-- <td class="font-medium">
                           {{ maturity.maturityType }}
-                        </td>
+                        </td> -->
 
                         <td class="whitespace-nowrap">
                           {{

@@ -541,25 +541,18 @@
         </div>
 
         <div>
-          <h2
-            class="text-sm font-semibold text-belife-text"
-          >
+          <h2 class="text-sm font-semibold text-belife-text">
             Format attendu
           </h2>
 
-          <p
-            class="mt-0.5 text-xs text-belife-text-secondary"
-          >
-            Quatre colonnes métier obligatoires
+          <p class="mt-0.5 text-xs text-belife-text-secondary">
+            Cinq colonnes métier obligatoires
           </p>
         </div>
       </header>
 
       <div class="space-y-4 p-4">
-        <!-- Colonnes obligatoires -->
-        <section
-          aria-labelledby="required-columns-title"
-        >
+        <section aria-labelledby="required-columns-title">
           <h3
             id="required-columns-title"
             class="text-xs font-semibold uppercase tracking-wider text-belife-text-secondary"
@@ -567,146 +560,92 @@
             Colonnes obligatoires
           </h3>
 
-          <ul class="mt-2">
-            <li
-              class="flex items-center gap-2 rounded-lg bg-belife-primary-soft/40 px-3"
-            >
-              <span
-                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-primary text-[10px] font-bold text-white"
-              >
-                1
-              </span>
-
-              <code
-                class="text-xs font-semibold text-belife-primary"
-              >
-                num_police
-              </code>
+          <ul class="mt-2 space-y-1">
+            <li class="flex items-center gap-2 rounded-lg bg-belife-primary-soft/40 px-3 py-1">
+              <span class="flex size-4 shrink-0 items-center justify-center rounded-full bg-belife-primary text-[10px] font-bold text-white">1</span>
+              <code class="text-xs font-semibold text-belife-primary">num_police</code>
             </li>
 
-            <li
-              class="flex items-center gap-2 rounded-lg bg-belife-accent-soft/40 px-3"
-            >
-              <span
-                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-accent text-[10px] font-bold text-white"
-              >
-                2
-              </span>
-
-              <code
-                class="text-xs font-semibold text-belife-accent"
-              >
-                nom_client
-              </code>
+            <li class="flex items-center gap-2 rounded-lg bg-belife-accent-soft/40 px-3 py-1">
+              <span class="flex size-4 shrink-0 items-center justify-center rounded-full bg-belife-accent text-[10px] font-bold text-white">2</span>
+              <code class="text-xs font-semibold text-belife-accent">nom_client</code>
             </li>
 
-            <li
-              class="flex items-center gap-2 rounded-lg bg-belife-success-soft/40 px-3"
-            >
-              <span
-                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-success text-[10px] font-bold text-white"
-              >
-                3
-              </span>
-
-              <code
-                class="text-xs font-semibold text-belife-success"
-              >
-                montant_maturite
-              </code>
+            <li class="flex items-center gap-2 rounded-lg bg-belife-primary-soft/40 px-3 py-1">
+              <span class="flex size-4 shrink-0 items-center justify-center rounded-full bg-belife-primary text-[10px] font-bold text-white">3</span>
+              <code class="text-xs font-semibold text-belife-primary">date_maturite</code>
             </li>
 
-            <li
-              class="flex items-center gap-2 rounded-lg bg-belife-primary-soft/40 px-3"
-            >
-              <span
-                class="flex size-5 shrink-0 items-center justify-center rounded-full bg-belife-primary text-[10px] font-bold text-white"
-              >
-                4
-              </span>
+            <li class="flex items-center gap-2 rounded-lg bg-belife-success-soft/40 px-3 py-1">
+              <span class="flex size-4  shrink-0 items-center justify-center rounded-full bg-belife-success text-[10px] font-bold text-white">4</span>
+              <code class="text-xs font-semibold text-belife-success">montant_maturite</code>
+            </li>
 
-              <code
-                class="text-xs font-semibold text-belife-primary"
-              >
-                date_fin_interets
-              </code>
+            <li class="flex items-center gap-2 rounded-lg bg-belife-primary-soft/40 px-3 py-1">
+              <span class="flex size-4 shrink-0 items-center justify-center rounded-full bg-belife-primary text-[10px] font-bold text-white">5</span>
+              <code class="text-xs font-semibold text-belife-primary">date_fin_interets</code>
             </li>
           </ul>
         </section>
 
-        <!-- Règles -->
         <section
           class="rounded-xl border border-belife-border bg-belife-surface-muted/50 p-3"
           aria-labelledby="import-rules-title"
         >
-          <h3
-            id="import-rules-title"
-            class="text-xs font-semibold text-belife-text"
-          >
+          <h3 id="import-rules-title" class="text-xs font-semibold text-belife-text">
             Règles d’importation
           </h3>
 
-          <ul
-            class="mt-2 space-y-1.5 text-xs leading-5 text-belife-text-secondary"
-          >
+          <ul class="mt-2 space-y-1.5 text-xs leading-5 text-belife-text-secondary">
             <li class="flex items-start gap-2">
-              <span
-                class="mt-2 size-1 shrink-0 rounded-full bg-belife-primary"
-                aria-hidden="true"
-              ></span>
+              <span class="mt-2 size-1 shrink-0 rounded-full bg-belife-primary" aria-hidden="true"></span>
+              <span>Le fichier utilise l’encodage UTF-8 et le point-virgule comme séparateur.</span>
+            </li>
 
+            <li class="flex items-start gap-2">
+              <span class="mt-2 size-1 shrink-0 rounded-full bg-belife-accent" aria-hidden="true"></span>
               <span>
-                Encodage UTF-8 et séparateur point-virgule.
+                Les dates de maturité et de fin des intérêts utilisent le format
+                <strong class="font-semibold text-belife-text">yyyy-MM-dd</strong>.
               </span>
             </li>
 
             <li class="flex items-start gap-2">
-              <span
-                class="mt-2 size-1 shrink-0 rounded-full bg-belife-accent"
-                aria-hidden="true"
-              ></span>
-
-              <span>
-                La date utilise le format
-                <strong class="font-semibold text-belife-text">
-                  yyyy-MM-dd
-                </strong>
-              </span>
+              <span class="mt-2 size-1 shrink-0 rounded-full bg-belife-success" aria-hidden="true"></span>
+              <span>La date de maturité est fournie séparément pour chaque ligne.</span>
             </li>
 
             <li class="flex items-start gap-2">
-              <span
-                class="mt-2 size-1 shrink-0 rounded-full bg-belife-primary"
-                aria-hidden="true"
-              ></span>
+              <span class="mt-2 size-1 shrink-0 rounded-full bg-belife-primary" aria-hidden="true"></span>
+              <span>Le montant utilise le point comme séparateur décimal.</span>
+            </li>
 
-              <span>
-                Le nom du client est obligatoire et doit
-                rester cohérent pour une même police.
-              </span>
+            <li class="flex items-start gap-2">
+              <span class="mt-2 size-1 shrink-0 rounded-full bg-belife-accent" aria-hidden="true"></span>
+              <span>Le nom du client doit rester cohérent pour toutes les maturités d’une même police.</span>
+            </li>
+
+            <li class="flex items-start gap-2">
+              <span class="mt-2 size-1 shrink-0 rounded-full bg-belife-primary" aria-hidden="true"></span>
+              <span>La date de fin des intérêts doit rester identique pour une même police.</span>
+            </li>
+
+            <li class="flex items-start gap-2">
+              <span class="mt-2 size-1 shrink-0 rounded-full bg-belife-success" aria-hidden="true"></span>
+              <span>Les colonnes supplémentaires sont acceptées et ignorées.</span>
             </li>
           </ul>
         </section>
 
-        <!-- Exemple -->
-        <section
-          aria-labelledby="csv-example-title"
-        >
-          <h3
-            id="csv-example-title"
-            class="text-xs font-semibold text-belife-text"
-          >
+        <section aria-labelledby="csv-example-title">
+          <h3 id="csv-example-title" class="text-xs font-semibold text-belife-text">
             Exemple minimal
           </h3>
 
-          <div
-            class="mt-2 overflow-x-auto rounded-lg border border-belife-primary/15 bg-belife-primary-soft/35 p-3"
-          >
-            <code
-              class="whitespace-pre text-[11px] leading-5 text-belife-text"
-            >num_police;nom_client;montant_maturite;date_fin_interets
-YK10240;MBOG JEAN;500000.00;2035-02-10
-YK10240;MBOG JEAN;750000.00;2035-02-10</code>
+          <div class="mt-2 overflow-x-auto rounded-lg border border-belife-primary/15 bg-belife-primary-soft/35 p-3">
+            <code class="whitespace-pre text-[11px] leading-5 text-belife-text">num_police;nom_client;date_maturite;montant_maturite;date_fin_interets
+YK10240;MBOG JEAN;2025-02-10;500000.00;2035-02-10
+YK10240;MBOG JEAN;2026-06-15;750000.00;2035-02-10</code>
           </div>
         </section>
       </div>
